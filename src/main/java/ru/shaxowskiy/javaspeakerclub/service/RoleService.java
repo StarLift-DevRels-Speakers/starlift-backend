@@ -52,12 +52,29 @@ public class RoleService {
     }
 
     @Transactional(readOnly = true)
-    public List<SpeakerResponse> findSpeakersByRole(String roleNamePart) {
+    public List<SpeakerResponse> findSpeakersByRole(String roleNamePart, BigDecimal npsMin, BigDecimal npsMax) {
+        if (npsMin != null && npsMax != null && npsMin.compareTo(npsMax) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "npsMin must be <= npsMax");
+        }
+        if (npsMin != null && (npsMin.compareTo(BigDecimal.ZERO) < 0 || npsMin.compareTo(BigDecimal.TEN) > 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "npsMin must be between 0 and 10");
+        }
+        if (npsMax != null && (npsMax.compareTo(BigDecimal.ZERO) < 0 || npsMax.compareTo(BigDecimal.TEN) > 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "npsMax must be between 0 and 10");
+        }
+
         List<UsersRecord> speakers = (roleNamePart == null || roleNamePart.isBlank())
                 ? roleRepository.findAllSpeakersWithRoles()
                 : roleRepository.findSpeakersByRoleNameContaining(roleNamePart);
 
         return speakers.stream()
+                .filter(user -> {
+                    BigDecimal nps = user.getNps();
+                    if (nps == null) return npsMin == null && npsMax == null;
+                    if (npsMin != null && nps.compareTo(npsMin) < 0) return false;
+                    if (npsMax != null && nps.compareTo(npsMax) > 0) return false;
+                    return true;
+                })
                 .map(this::toSpeakerResponse)
                 .toList();
     }

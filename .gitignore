@@ -36,3 +36,4 @@ CLAUDE.md
 .cursor
 .mvn
 src/main/generated
+.env

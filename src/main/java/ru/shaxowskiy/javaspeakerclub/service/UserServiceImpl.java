@@ -1,22 +1,24 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.shaxowskiy.javaspeakerclub.entity.User;
-import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
+import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
+import ru.shaxowskiy.javaspeakerclub.repository.UserRoleRepository;
+import ru.shaxowskiy.javaspeakerclub.security.AppRole;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public User registerUser(String username, String password) {
@@ -25,6 +27,7 @@ public class UserServiceImpl implements UserService {
         }
         String encodedPassword = passwordEncoder.encode(password);
         UsersRecord record = userRepository.save(username, encodedPassword);
+        userRoleRepository.assignRole(record.getId(), AppRole.USER);
         return mapToUser(record);
     }
 
@@ -34,6 +37,12 @@ public class UserServiceImpl implements UserService {
                 .filter(record -> passwordEncoder.matches(password, record.getPassword()))
                 .map(this::mapToUser)
                 .orElse(null);
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id)
+                .map(this::mapToUser);
     }
 
     private User mapToUser(UsersRecord record) {
@@ -55,6 +64,10 @@ public class UserServiceImpl implements UserService {
         } else {
             user.setLastModifiedDate(LocalDateTime.now());
         }
+        user.setRoles(userRoleRepository.findRolesByUserId(record.getId())
+                .stream()
+                .map(Enum::name)
+                .toList());
         return user;
     }
 }

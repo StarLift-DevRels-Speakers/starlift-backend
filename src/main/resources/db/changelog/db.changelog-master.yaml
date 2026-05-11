@@ -9,3 +9,9 @@ databaseChangeLog:
       file: db/changelog/0004_create_speaker_roles_table.yaml
   - include:
       file: db/changelog/0005_add_nps_to_users.yaml
+  - include:
+      file: db/changelog/0006_seed_initial_data.yaml
+  - include:
+      file: db/changelog/0007_add_user_roles.yaml
+  - include:
+      file: db/changelog/0008_create_user_media_table.yaml

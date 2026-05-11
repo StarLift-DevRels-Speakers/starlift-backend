@@ -10,6 +10,7 @@ import ru.shaxowskiy.javaspeakerclub.dto.RoleResponse;
 import ru.shaxowskiy.javaspeakerclub.dto.SpeakerResponse;
 import ru.shaxowskiy.javaspeakerclub.service.RoleService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -42,8 +43,11 @@ public class RoleController {
     }
 
     @GetMapping("/speakers")
-    public List<SpeakerResponse> findSpeakersByRole(@RequestParam(required = false) String role) {
-        return roleService.findSpeakersByRole(role);
+    public List<SpeakerResponse> findSpeakersByRole(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) BigDecimal npsMin,
+            @RequestParam(required = false) BigDecimal npsMax) {
+        return roleService.findSpeakersByRole(role, npsMin, npsMax);
     }
 
     @GetMapping("/speakers/{id}")

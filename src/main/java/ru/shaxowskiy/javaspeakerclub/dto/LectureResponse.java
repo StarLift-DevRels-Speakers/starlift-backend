@@ -8,6 +8,8 @@ public record LectureResponse(
         String title,
         UUID talkId,
         Long speakerId,
-        String mediaS3Key,
+        boolean hasMedia,
+        String mediaFilename,
+        String mediaMime,
         LocalDateTime createdDate
 ) {}

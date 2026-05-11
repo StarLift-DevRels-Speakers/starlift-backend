@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: java-speaker-club
   datasource:
@@ -6,16 +8,16 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 server:
   port: 8080
@@ -25,3 +27,10 @@ s3:
   access-key: minioadmin
   secret-key: minioadmin
   bucket: lectures-media
+
+security:
+  jwt:
+    issuer: java-speaker-club
+    secret: ${JWT_SECRET:change-me}
+    access-ttl: 15m
+    refresh-ttl: 7d

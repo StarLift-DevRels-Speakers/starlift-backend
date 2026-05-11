@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Java Speaker Club API
-  description: API для управления докладами и лекциями спикеров
-  version: 1.0.0
+  description: API для управления докладами, лекциями, ролями и медиафайлами спикеров
+  version: 2.0.0
 
 servers:
   - url: http://localhost:8080
@@ -17,6 +17,12 @@ tags:
     description: Управление докладами
   - name: Lectures
     description: Управление лекциями
+  - name: Roles
+    description: Управление ролями спикеров
+  - name: Speakers
+    description: Поиск спикеров и управление NPS
+  - name: Media
+    description: Загрузка медиа (в т.ч. без привязки к лекции), скачивание и удаление файлов лекций
 
 paths:
 
@@ -35,11 +41,11 @@ paths:
               $ref: '#/components/schemas/AuthRequest'
       responses:
         '200':
-          description: Пользователь зарегистрирован
+          description: Пользователь зарегистрирован и получил токены
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AuthTokensResponse'
         '400':
           description: Ошибка регистрации (например, username уже занят)
 
@@ -60,18 +66,62 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/AuthTokensResponse'
         '401':
           description: Неверные учётные данные
+
+  /api/auth/roles:
+    get:
+      tags: [Auth]
+      summary: Получить список всех доступных ролей
+      operationId: listRoles
+      responses:
+        '200':
+          description: Список ролей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleName'
 
   /api/auth/logout:
     post:
       tags: [Auth]
       summary: Выход из системы
       operationId: logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
       responses:
         '200':
-          description: Успешный выход
+          description: Refresh-токен отозван
+        '401':
+          description: Недействительный refresh-токен
+
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Обновить пару access/refresh токенов
+      operationId: refreshTokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Токены обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokensResponse'
+        '401':
+          description: Refresh-токен недействителен или отозван
 
   # ── Profile ─────────────────────────────────────────────────────────
 
@@ -81,7 +131,7 @@ paths:
       summary: Профиль текущего аутентифицированного пользователя
       operationId: me
       security:
-        - session: []
+        - bearerAuth: []
       responses:
         '200':
           description: Профиль и доклады пользователя
@@ -359,8 +409,396 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
-components:
+  # ── Roles ───────────────────────────────────────────────────────────
 
+  /api/roles:
+    get:
+      tags: [Roles]
+      summary: Список всех ролей
+      operationId: findAllRoles
+      responses:
+        '200':
+          description: Список ролей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleResponse'
+
+    post:
+      tags: [Roles]
+      summary: Создать роль
+      operationId: createRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreateRequest'
+      responses:
+        '201':
+          description: Роль создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Спикер не найден или роль уже назначена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/roles/by-speaker/{speakerId}:
+    get:
+      tags: [Roles]
+      summary: Роли спикера по его ID
+      operationId: findRolesBySpeakerId
+      parameters:
+        - name: speakerId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Список ролей спикера
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleResponse'
+
+  /api/roles/{id}:
+    delete:
+      tags: [Roles]
+      summary: Удалить роль
+      operationId: deleteRole
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      responses:
+        '204':
+          description: Роль удалена
+        '404':
+          description: Роль не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ── Speakers ────────────────────────────────────────────────────────
+
+  /api/speakers:
+    get:
+      tags: [Speakers]
+      summary: Поиск спикеров по роли и NPS
+      operationId: findSpeakersByRole
+      parameters:
+        - name: role
+          in: query
+          required: false
+          description: Фильтр по названию роли
+          schema:
+            type: string
+        - name: npsMin
+          in: query
+          required: false
+          description: Минимальное значение NPS
+          schema:
+            type: number
+            format: decimal
+        - name: npsMax
+          in: query
+          required: false
+          description: Максимальное значение NPS
+          schema:
+            type: number
+            format: decimal
+      responses:
+        '200':
+          description: Список спикеров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpeakerResponse'
+
+  /api/speakers/{id}:
+    get:
+      tags: [Speakers]
+      summary: Получить спикера по ID
+      operationId: findSpeakerById
+      parameters:
+        - $ref: '#/components/parameters/SpeakerId'
+      responses:
+        '200':
+          description: Спикер найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerResponse'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/speakers/{id}/nps:
+    put:
+      tags: [Speakers]
+      summary: Обновить NPS спикера
+      operationId: updateNps
+      parameters:
+        - $ref: '#/components/parameters/SpeakerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NpsUpdateRequest'
+      responses:
+        '200':
+          description: NPS обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerResponse'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ── Media ───────────────────────────────────────────────────────────
+
+  /api/media/upload:
+    post:
+      tags: [Media]
+      summary: Загрузить медиафайл без привязки к лекции
+      operationId: uploadStandaloneMedia
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Загружаемый файл
+      responses:
+        '201':
+          description: Файл загружен, создана запись с идентификатором и ключом MinIO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMediaUploadResponse'
+        '400':
+          description: Ошибка загрузки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/media/upload/{lectureId}:
+    post:
+      tags: [Media]
+      summary: Загрузить медиафайл для лекции
+      operationId: uploadMedia
+      parameters:
+        - $ref: '#/components/parameters/MediaLectureId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Загружаемый файл
+      responses:
+        '201':
+          description: Медиафайл загружен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LectureResponse'
+        '400':
+          description: Ошибка загрузки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/media/download/{lectureId}:
+    get:
+      tags: [Media]
+      summary: Скачать медиафайл лекции
+      operationId: downloadMedia
+      parameters:
+        - $ref: '#/components/parameters/MediaLectureId'
+      responses:
+        '200':
+          description: Файл для скачивания
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="presentation.pdf"'
+        '404':
+          description: Лекция не найдена или медиафайл отсутствует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/media/url/{lectureId}:
+    get:
+      tags: [Media]
+      summary: Получить presigned URL медиафайла
+      operationId: getPresignedUrl
+      parameters:
+        - $ref: '#/components/parameters/MediaLectureId'
+      responses:
+        '200':
+          description: Presigned URL
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: https://minio:9000/lectures-media/...?X-Amz-Signature=...
+        '404':
+          description: Лекция не найдена или медиафайл отсутствует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/media/{lectureId}:
+    delete:
+      tags: [Media]
+      summary: Удалить медиафайл лекции
+      operationId: deleteMedia
+      parameters:
+        - $ref: '#/components/parameters/MediaLectureId'
+      responses:
+        '204':
+          description: Медиафайл удалён
+        '404':
+          description: Лекция не найдена или медиафайл отсутствует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/reports/filters:
+    get:
+      tags: [Reports]
+      summary: Получить справочники и опции для фильтров дашбордов
+      operationId: getReportFilters
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Справочники для speaker и DevRel dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportFiltersResponse'
+        '401':
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/reports/speaker-dashboard/generate:
+    post:
+      tags: [Reports]
+      summary: Сгенерировать JSON-отчёт для дашборда спикера
+      operationId: generateSpeakerDashboardReport
+      description: Возвращает данные для личного кабинета спикера, включая графики, достижения и рекомендации CFP.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeakerDashboardReportRequest'
+      responses:
+        '200':
+          description: Отчёт для speaker dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerDashboardReport'
+        '401':
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден или для него ещё нет данных отчёта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/reports/devrel-dashboard/generate:
+    post:
+      tags: [Reports]
+      summary: Сгенерировать JSON-отчёт для дашборда DevRel
+      operationId: generateDevRelDashboardReport
+      description: Возвращает агрегаты, рейтинги, blind spots и поток карточек для парсинга мероприятий.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevRelDashboardReportRequest'
+      responses:
+        '200':
+          description: Отчёт для DevRel dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevRelDashboardReport'
+        '401':
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав для DevRel-аналитики
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+components:
   parameters:
     TalkId:
       name: id
@@ -378,11 +816,35 @@ components:
         type: string
         format: uuid
 
+    RoleId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    SpeakerId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    MediaLectureId:
+      name: lectureId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
   securitySchemes:
-    session:
-      type: apiKey
-      in: cookie
-      name: JSESSIONID
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
   schemas:
 
@@ -400,6 +862,57 @@ components:
           format: password
           example: secret123
 
+    RoleName:
+      type: string
+      enum: [ADMIN, DEVREL, SPEAKER, USER]
+
+    AuthResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        username:
+          type: string
+          example: johndoe
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleName'
+        createdDate:
+          type: string
+          format: date-time
+        lastModifiedDate:
+          type: string
+          format: date-time
+
+    AuthTokensResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access-токен
+        accessTokenExpiresIn:
+          type: integer
+          format: int64
+          description: Время жизни access в секундах
+        refreshToken:
+          type: string
+        refreshTokenExpiresIn:
+          type: integer
+          format: int64
+          description: Время жизни refresh в секундах
+        user:
+          $ref: '#/components/schemas/AuthResponse'
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
     User:
       type: object
       properties:
@@ -410,6 +923,10 @@ components:
         username:
           type: string
           example: johndoe
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleName'
         createdDate:
           type: string
           format: date-time
@@ -549,19 +1066,12 @@ components:
           type: integer
           format: int64
           example: 1
-        mediaS3Key:
-          type: string
-          nullable: true
-          example: lectures/2026/03/intro-loom.pdf
 
     LectureUpdateRequest:
       type: object
       properties:
         title:
           type: string
-        mediaS3Key:
-          type: string
-          nullable: true
 
     LectureResponse:
       type: object
@@ -577,14 +1087,739 @@ components:
         speakerId:
           type: integer
           format: int64
-        mediaS3Key:
+        hasMedia:
+          type: boolean
+          description: Есть ли прикрепленный медиафайл
+        mediaFilename:
           type: string
           nullable: true
+          description: Оригинальное имя файла
+          example: presentation.pdf
+        mediaMime:
+          type: string
+          nullable: true
+          description: MIME тип медиафайла (если доступен)
+          example: application/pdf
         createdDate:
           type: string
           format: date-time
 
-    # ── Common ──────────────────────────────────────────────────────
+    UserMediaUploadResponse:
+      type: object
+      required: [id, mediaMinioKey]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор записи о загрузке
+        mediaMinioKey:
+          type: string
+          description: Уникальный ключ объекта в MinIO
+
+    # ── Roles ───────────────────────────────────────────────────────
+
+    RoleCreateRequest:
+      type: object
+      required: [name, speakerId]
+      properties:
+        name:
+          type: string
+          example: SPEAKER
+        speakerId:
+          type: integer
+          format: int64
+          example: 1
+
+    RoleResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          example: SPEAKER
+        speakerId:
+          type: integer
+          format: int64
+        createdDate:
+          type: string
+          format: date-time
+
+    # ── Speakers ────────────────────────────────────────────────────
+
+    SpeakerResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+          example: johndoe
+        nps:
+          type: number
+          format: decimal
+          nullable: true
+          example: 8.5
+        createdDate:
+          type: string
+          format: date-time
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleResponse'
+
+    SpeakerProfileResponse:
+      type: object
+      required: [user, talks, lectures]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        talks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TalkResponse'
+        lectures:
+          type: array
+          items:
+            $ref: '#/components/schemas/LectureResponse'
+
+    NpsUpdateRequest:
+      type: object
+      required: [nps]
+      properties:
+        nps:
+          type: number
+          format: decimal
+          example: 9.2
+
+    MediaUrlResponse:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://minio:9000/lectures-media/presentation.pdf?X-Amz-Signature=...
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+
+    SelectOption:
+      type: object
+      required: [label, value]
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+
+    RoleFilterOption:
+      type: object
+      required: [label, key]
+      properties:
+        label:
+          type: string
+        key:
+          type: string
+
+    RoleFilterGroup:
+      type: object
+      required: [label, key, children]
+      properties:
+        label:
+          type: string
+        key:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleFilterOption'
+
+    ReportFiltersResponse:
+      type: object
+      required:
+        - periods
+        - regions
+        - companies
+        - roles
+        - influences
+        - tagWindows
+        - parsingSources
+        - parsingStatuses
+      properties:
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectOption'
+        regions:
+          type: array
+          items:
+            type: string
+        companies:
+          type: array
+          items:
+            type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleFilterGroup'
+        influences:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectOption'
+        tagWindows:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectOption'
+        parsingSources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectOption'
+        parsingStatuses:
+          type: array
+          items:
+            $ref: '#/components/schemas/SelectOption'
+
+    DashboardPeriod:
+      type: string
+      enum: ['30d', quarter, year, all]
+
+    DashboardInfluence:
+      type: string
+      enum: [local, regional, federal, international]
+
+    ParsingStatus:
+      type: string
+      enum: [new, duplicate, confirmed, rejected]
+
+    TagWindow:
+      type: string
+      enum: [week, month]
+
+    TrendSeries:
+      type: object
+      required: [labels, talks, nps]
+      properties:
+        labels:
+          type: array
+          items:
+            type: string
+        talks:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+        nps:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 100
+
+    InfluenceBreakdown:
+      type: object
+      required: [local, regional, federal, international]
+      properties:
+        local:
+          type: integer
+          minimum: 0
+        regional:
+          type: integer
+          minimum: 0
+        federal:
+          type: integer
+          minimum: 0
+        international:
+          type: integer
+          minimum: 0
+
+    DashboardSeriesByPeriod:
+      type: object
+      required: ['30d', quarter, year, all]
+      properties:
+        '30d':
+          $ref: '#/components/schemas/TrendSeries'
+        quarter:
+          $ref: '#/components/schemas/TrendSeries'
+        year:
+          $ref: '#/components/schemas/TrendSeries'
+        all:
+          $ref: '#/components/schemas/TrendSeries'
+
+    RecommendationCard:
+      type: object
+      required: [id, title, city, level, topic, deadline, match, hostCompany, url]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        city:
+          type: string
+        level:
+          $ref: '#/components/schemas/DashboardInfluence'
+        topic:
+          type: string
+        deadline:
+          type: string
+          format: date
+        match:
+          type: integer
+          minimum: 0
+          maximum: 100
+        hostCompany:
+          type: string
+        url:
+          type: string
+          format: uri
+
+    Achievement:
+      type: object
+      required: [id, title, description, current, target]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        current:
+          type: integer
+          minimum: 0
+        target:
+          type: integer
+          minimum: 1
+
+    TagCloudItem:
+      type: object
+      required: [label, weight]
+      properties:
+        label:
+          type: string
+        weight:
+          type: integer
+          minimum: 1
+
+    DashboardSpeaker:
+      type: object
+      required:
+        - id
+        - name
+        - username
+        - role
+        - roleKey
+        - roleGroup
+        - roleGroupKey
+        - region
+        - company
+        - influence
+        - nps
+        - previousNps
+        - talksCount
+        - lastTalkDate
+        - topConferenceCandidate
+        - tags
+        - profileCompletion
+        - lastEvaluationDate
+        - audience
+        - talkMix
+        - series
+        - heatmap
+        - achievements
+        - recommendations
+        - avatarColor
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+        roleKey:
+          type: string
+        roleGroup:
+          type: string
+        roleGroupKey:
+          type: string
+        region:
+          type: string
+        company:
+          type: string
+        influence:
+          $ref: '#/components/schemas/DashboardInfluence'
+        nps:
+          type: integer
+          minimum: 0
+          maximum: 100
+        previousNps:
+          type: integer
+          minimum: 0
+          maximum: 100
+        talksCount:
+          type: integer
+          minimum: 0
+        lastTalkDate:
+          type: string
+          format: date-time
+        topConferenceCandidate:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        profileCompletion:
+          type: integer
+          minimum: 0
+          maximum: 100
+        lastEvaluationDate:
+          type: [string, 'null']
+          format: date-time
+        audience:
+          type: integer
+          minimum: 0
+        talkMix:
+          $ref: '#/components/schemas/InfluenceBreakdown'
+        series:
+          $ref: '#/components/schemas/DashboardSeriesByPeriod'
+        heatmap:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 4
+        achievements:
+          type: array
+          items:
+            $ref: '#/components/schemas/Achievement'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendationCard'
+        avatarColor:
+          type: string
+          example: '#0ea5e9'
+
+    ParsingEvent:
+      type: object
+      required: [id, conference, speakerId, speakerName, source, status, region, date, note]
+      properties:
+        id:
+          type: string
+        conference:
+          type: string
+        speakerId:
+          type: integer
+          format: int64
+        speakerName:
+          type: string
+        source:
+          type: string
+        status:
+          $ref: '#/components/schemas/ParsingStatus'
+        region:
+          type: string
+        date:
+          type: string
+          format: date-time
+        note:
+          type: string
+
+    BlindSpotRow:
+      allOf:
+        - $ref: '#/components/schemas/DashboardSpeaker'
+        - type: object
+          required: [reasons, daysWithoutReview]
+          properties:
+            reasons:
+              type: array
+              items:
+                type: string
+            daysWithoutReview:
+              type: [integer, 'null']
+              minimum: 0
+
+    ParsingSourceBucket:
+      type: object
+      required: [source, count]
+      properties:
+        source:
+          type: string
+        count:
+          type: integer
+          minimum: 0
+
+    SpeakerDashboardReportRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        period:
+          $ref: '#/components/schemas/DashboardPeriod'
+        targetRegions:
+          type: array
+          items:
+            type: string
+        targetRoles:
+          type: array
+          items:
+            type: string
+        targetCompanies:
+          type: array
+          items:
+            type: string
+        targetInfluence:
+          oneOf:
+            - $ref: '#/components/schemas/DashboardInfluence'
+            - type: 'null'
+        npsMin:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Нижняя граница фильтра рекомендаций по score match
+        npsMax:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Верхняя граница фильтра рекомендаций по score match
+
+    SpeakerDashboardSummary:
+      type: object
+      required:
+        - talksCount
+        - lastTalkDate
+        - nps
+        - previousNps
+        - trendDirection
+        - trendDelta
+        - audience
+        - activityGrowth
+        - activeTopicsCount
+        - relevantRecommendationsCount
+      properties:
+        talksCount:
+          type: integer
+          minimum: 0
+        lastTalkDate:
+          type: string
+          format: date-time
+        nps:
+          type: integer
+          minimum: 0
+          maximum: 100
+        previousNps:
+          type: integer
+          minimum: 0
+          maximum: 100
+        trendDirection:
+          type: string
+          enum: [up, down, stable]
+        trendDelta:
+          type: integer
+        audience:
+          type: integer
+          minimum: 0
+        activityGrowth:
+          type: integer
+        activeTopicsCount:
+          type: integer
+          minimum: 0
+        relevantRecommendationsCount:
+          type: integer
+          minimum: 0
+
+    SpeakerDashboardReport:
+      type: object
+      required:
+        - generatedAt
+        - filtersApplied
+        - speaker
+        - currentSeries
+        - summary
+        - tagCloud
+        - filteredRecommendations
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        filtersApplied:
+          $ref: '#/components/schemas/SpeakerDashboardReportRequest'
+        speaker:
+          $ref: '#/components/schemas/DashboardSpeaker'
+        currentSeries:
+          $ref: '#/components/schemas/TrendSeries'
+        summary:
+          $ref: '#/components/schemas/SpeakerDashboardSummary'
+        tagCloud:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagCloudItem'
+        filteredRecommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendationCard'
+
+    DevRelDashboardReportRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        period:
+          $ref: '#/components/schemas/DashboardPeriod'
+        regions:
+          type: array
+          items:
+            type: string
+        roles:
+          type: array
+          items:
+            type: string
+        companies:
+          type: array
+          items:
+            type: string
+        influence:
+          oneOf:
+            - $ref: '#/components/schemas/DashboardInfluence'
+            - type: 'null'
+        npsMin:
+          type: integer
+          minimum: 0
+          maximum: 100
+        npsMax:
+          type: integer
+          minimum: 0
+          maximum: 100
+        speakerSearch:
+          type: string
+        tagWindow:
+          $ref: '#/components/schemas/TagWindow'
+        parsingSource:
+          type: [string, 'null']
+        parsingStatus:
+          oneOf:
+            - $ref: '#/components/schemas/ParsingStatus'
+            - type: 'null'
+
+    DevRelDashboardSummary:
+      type: object
+      required: [activeSpeakers, avgNps, risingSpeakers, confirmedRate, topConferenceCandidates]
+      properties:
+        activeSpeakers:
+          type: integer
+          minimum: 0
+        avgNps:
+          type: integer
+          minimum: 0
+          maximum: 100
+        risingSpeakers:
+          type: integer
+          minimum: 0
+        confirmedRate:
+          type: integer
+          minimum: 0
+          maximum: 100
+        topConferenceCandidates:
+          type: integer
+          minimum: 0
+
+    DevRelRatingSection:
+      type: object
+      required: [speakers, topConferenceCandidates, averageTalks, internationalSpeakers]
+      properties:
+        speakers:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardSpeaker'
+        topConferenceCandidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardSpeaker'
+        averageTalks:
+          type: integer
+          minimum: 0
+        internationalSpeakers:
+          type: integer
+          minimum: 0
+
+    DevRelAnalyticsSection:
+      type: object
+      required: [aggregateSeries, influenceMix, tagCloud, dominantTag]
+      properties:
+        aggregateSeries:
+          $ref: '#/components/schemas/TrendSeries'
+        influenceMix:
+          $ref: '#/components/schemas/InfluenceBreakdown'
+        tagCloud:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagCloudItem'
+        dominantTag:
+          type: string
+
+    DevRelBlindSpotsSection:
+      type: object
+      required: [unevaluatedShare, inactiveSpeakersCount, incompleteProfilesCount, rows]
+      properties:
+        unevaluatedShare:
+          type: integer
+          minimum: 0
+          maximum: 100
+        inactiveSpeakersCount:
+          type: integer
+          minimum: 0
+        incompleteProfilesCount:
+          type: integer
+          minimum: 0
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlindSpotRow'
+
+    DevRelParsingSection:
+      type: object
+      required: [newParsingEvents, duplicateParsingEvents, parsingConfirmedRate, eventsBySource, events]
+      properties:
+        newParsingEvents:
+          type: integer
+          minimum: 0
+        duplicateParsingEvents:
+          type: integer
+          minimum: 0
+        parsingConfirmedRate:
+          type: integer
+          minimum: 0
+          maximum: 100
+        eventsBySource:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParsingSourceBucket'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParsingEvent'
+
+    DevRelDashboardReport:
+      type: object
+      required: [generatedAt, filtersApplied, summary, rating, analytics, blindSpots, parsing]
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        filtersApplied:
+          $ref: '#/components/schemas/DevRelDashboardReportRequest'
+        summary:
+          $ref: '#/components/schemas/DevRelDashboardSummary'
+        rating:
+          $ref: '#/components/schemas/DevRelRatingSection'
+        analytics:
+          $ref: '#/components/schemas/DevRelAnalyticsSection'
+        blindSpots:
+          $ref: '#/components/schemas/DevRelBlindSpotsSection'
+        parsing:
+          $ref: '#/components/schemas/DevRelParsingSection'
 
     ProblemDetail:
       type: object

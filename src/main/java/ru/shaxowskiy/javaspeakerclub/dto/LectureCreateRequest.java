@@ -5,6 +5,5 @@ import java.util.UUID;
 public record LectureCreateRequest(
         String title,
         UUID talkId,
-        Long speakerId,
-        String mediaS3Key
+        Long speakerId
 ) {}

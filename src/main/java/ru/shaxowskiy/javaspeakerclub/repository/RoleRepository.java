@@ -54,6 +54,7 @@ public class RoleRepository {
                         Users.USERS.ID,
                         Users.USERS.USERNAME,
                         Users.USERS.PASSWORD,
+                        Users.USERS.NPS,
                         Users.USERS.CREATED_DATE,
                         Users.USERS.LAST_MODIFIED_DATE
                 )
@@ -73,6 +74,7 @@ public class RoleRepository {
                         Users.USERS.ID,
                         Users.USERS.USERNAME,
                         Users.USERS.PASSWORD,
+                        Users.USERS.NPS,
                         Users.USERS.CREATED_DATE,
                         Users.USERS.LAST_MODIFIED_DATE
                 )

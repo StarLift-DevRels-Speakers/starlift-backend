@@ -1,0 +1,281 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0006
+      author: loonklage
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: {name: id, valueNumeric: 1}
+              - column: {name: username, value: alice}
+              - column: {name: password, value: password1}
+              - column: {name: nps, valueNumeric: 8.5}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+              - column: {name: last_modified_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: users
+            columns:
+              - column: {name: id, valueNumeric: 2}
+              - column: {name: username, value: bob}
+              - column: {name: password, value: password2}
+              - column: {name: nps, valueNumeric: 7.3}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+              - column: {name: last_modified_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: users
+            columns:
+              - column: {name: id, valueNumeric: 3}
+              - column: {name: username, value: carol}
+              - column: {name: password, value: password3}
+              - column: {name: nps, valueNumeric: 9.1}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+              - column: {name: last_modified_date, valueComputed: CURRENT_TIMESTAMP}
+
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: b0f97c8a-8f2d-4d0e-9a8e-2d0b8f1c1e01}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: topic, value: Modern jOOQ Patterns}
+              - column: {name: talk_date, valueDate: "2024-01-15T10:00:00"}
+              - column: {name: conference_type, value: MEETUP}
+              - column: {name: format, value: ONLINE}
+              - column: {name: activity_name, value: Spring Meetup Online}
+              - column: {name: activity_date, valueDate: "2024-01-10T12:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 0a39d4e2-5e9d-4fda-8d4f-7a9b2de620b2}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: topic, value: Building Clean REST APIs}
+              - column: {name: talk_date, valueDate: "2024-02-12T14:00:00"}
+              - column: {name: conference_type, value: CONFERENCE}
+              - column: {name: format, value: OFFLINE}
+              - column: {name: activity_name, value: Java Day Moscow}
+              - column: {name: activity_date, valueDate: "2024-02-11T09:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 9e7c0a4c-6bf8-4c17-b273-0b8f2c47b702}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: topic, value: Reactive Streams in Practice}
+              - column: {name: talk_date, valueDate: "2024-03-03T16:30:00"}
+              - column: {name: conference_type, value: MEETUP}
+              - column: {name: format, value: ONLINE}
+              - column: {name: activity_name, value: Reactor Hands-on}
+              - column: {name: activity_date, valueDate: "2024-02-28T18:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 3e6d2b4a-4d1c-47d5-9a3a-4c6b0a7f0c9e}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: topic, value: Testing Strategies for Spring Boot}
+              - column: {name: talk_date, valueDate: "2024-03-25T11:00:00"}
+              - column: {name: conference_type, value: WORKSHOP}
+              - column: {name: format, value: OFFLINE}
+              - column: {name: activity_name, value: QA Bootcamp}
+              - column: {name: activity_date, valueDate: "2024-03-24T10:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 6f1b8c2d-9d2a-4b6a-9f1d-1a4b6c8d0e2f}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: topic, value: Observability with Micrometer}
+              - column: {name: talk_date, valueDate: "2024-04-18T09:00:00"}
+              - column: {name: conference_type, value: CONFERENCE}
+              - column: {name: format, value: ONLINE}
+              - column: {name: activity_name, value: Observability Summit}
+              - column: {name: activity_date, valueDate: "2024-04-15T15:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: d7a4c9b1-3f5e-4d8e-9b6d-5f3e7d2c6b1a}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: topic, value: Pragmatic MapStruct Usage}
+              - column: {name: talk_date, valueDate: "2024-05-07T15:00:00"}
+              - column: {name: conference_type, value: MEETUP}
+              - column: {name: format, value: OFFLINE}
+              - column: {name: activity_name, value: Mapper Meetup}
+              - column: {name: activity_date, valueDate: "2024-05-06T17:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 5c8b6a7d-1f2e-4a3b-9c4d-7e8f9a0b1c2d}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: topic, value: Kotlin and Java 25 Interop}
+              - column: {name: talk_date, valueDate: "2024-05-29T13:00:00"}
+              - column: {name: conference_type, value: CONFERENCE}
+              - column: {name: format, value: ONLINE}
+              - column: {name: activity_name, value: JVM Summit}
+              - column: {name: activity_date, valueDate: "2024-05-25T09:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 2b4c6d8e-0f1a-423c-9d4e-6f7a8b9c0d1e}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: topic, value: Domain-Driven Design Lite}
+              - column: {name: talk_date, valueDate: "2024-06-18T10:30:00"}
+              - column: {name: conference_type, value: WORKSHOP}
+              - column: {name: format, value: OFFLINE}
+              - column: {name: activity_name, value: DDD Camp}
+              - column: {name: activity_date, valueDate: "2024-06-17T14:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 4a6c8e0f-1b2c-463d-9e4f-5a6b7c8d9e0f}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: topic, value: Spring Boot 4.0 Deep Dive}
+              - column: {name: talk_date, valueDate: "2024-07-09T09:00:00"}
+              - column: {name: conference_type, value: CONFERENCE}
+              - column: {name: format, value: ONLINE}
+              - column: {name: activity_name, value: SpringOne Lite}
+              - column: {name: activity_date, valueDate: "2024-07-05T10:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: talks
+            columns:
+              - column: {name: id, value: 8d0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: topic, value: Resilient API Gateways}
+              - column: {name: talk_date, valueDate: "2024-08-02T12:00:00"}
+              - column: {name: conference_type, value: MEETUP}
+              - column: {name: format, value: OFFLINE}
+              - column: {name: activity_name, value: Gateway Guild}
+              - column: {name: activity_date, valueDate: "2024-08-01T16:00:00"}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+
+        - insert:
+            tableName: speaker_roles
+            columns:
+              - column: {name: name, value: Backend Architect}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: speaker_roles
+            columns:
+              - column: {name: name, value: Team Lead}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: speaker_roles
+            columns:
+              - column: {name: name, value: Senior Engineer}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: speaker_roles
+            columns:
+              - column: {name: name, value: Cloud Advocate}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: speaker_roles
+            columns:
+              - column: {name: name, value: Data Engineer}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: speaker_roles
+            columns:
+              - column: {name: name, value: Mentor}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555551}
+              - column: {name: title, value: "Live demo: jOOQ table mappings"}
+              - column: {name: talk_id, value: b0f97c8a-8f2d-4d0e-9a8e-2d0b8f1c1e01}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: media_s3_key, value: media/talks/jooq-demo.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555552}
+              - column: {name: title, value: REST API pitfalls and fixes}
+              - column: {name: talk_id, value: 0a39d4e2-5e9d-4fda-8d4f-7a9b2de620b2}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: media_s3_key, value: media/talks/rest-pitfalls.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555553}
+              - column: {name: title, value: Hands-on reactive pipelines}
+              - column: {name: talk_id, value: 9e7c0a4c-6bf8-4c17-b273-0b8f2c47b702}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: media_s3_key, value: media/talks/reactive-pipelines.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555554}
+              - column: {name: title, value: Contract testing recipe}
+              - column: {name: talk_id, value: 3e6d2b4a-4d1c-47d5-9a3a-4c6b0a7f0c9e}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: media_s3_key, value: media/talks/contract-testing.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555555}
+              - column: {name: title, value: Tracing and metrics setup}
+              - column: {name: talk_id, value: 6f1b8c2d-9d2a-4b6a-9f1d-1a4b6c8d0e2f}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: media_s3_key, value: media/talks/micrometer-tracing.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555556}
+              - column: {name: title, value: Mapping strategies with MapStruct}
+              - column: {name: talk_id, value: d7a4c9b1-3f5e-4d8e-9b6d-5f3e7d2c6b1a}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: media_s3_key, value: media/talks/mapstruct-strategies.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555557}
+              - column: {name: title, value: Interop patterns across JVM languages}
+              - column: {name: talk_id, value: 5c8b6a7d-1f2e-4a3b-9c4d-7e8f9a0b1c2d}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: media_s3_key, value: media/talks/jvm-interop.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555558}
+              - column: {name: title, value: Lightweight DDD walkthrough}
+              - column: {name: talk_id, value: 2b4c6d8e-0f1a-423c-9d4e-6f7a8b9c0d1e}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: media_s3_key, value: media/talks/ddd-lite.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555559}
+              - column: {name: title, value: Spring Boot 4 features overview}
+              - column: {name: talk_id, value: 4a6c8e0f-1b2c-463d-9e4f-5a6b7c8d9e0f}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: media_s3_key, value: media/talks/spring-boot4.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}
+        - insert:
+            tableName: lectures
+            columns:
+              - column: {name: id, value: 11111111-2222-4333-8444-555555555560}
+              - column: {name: title, value: API gateways resilience patterns}
+              - column: {name: talk_id, value: 8d0f1a2b-3c4d-4e5f-9a6b-7c8d9e0f1a2b}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: media_s3_key, value: media/talks/api-gateways.mp4}
+              - column: {name: created_date, valueComputed: CURRENT_TIMESTAMP}

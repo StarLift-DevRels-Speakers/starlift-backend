@@ -12,6 +12,7 @@ import ru.shaxowskiy.javaspeakerclub.entity.User;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.repository.TalkRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
+import ru.shaxowskiy.javaspeakerclub.repository.UserRoleRepository;
 
 import java.net.URI;
 import java.util.List;
@@ -23,6 +24,7 @@ public class ProfileController {
 
     private final UserRepository userRepository;
     private final TalkRepository talkRepository;
+    private final UserRoleRepository userRoleRepository;
 
     public record TalkDto(
             String id,
@@ -59,6 +61,7 @@ public class ProfileController {
         me.setPassword(null);
         me.setCreatedDate(userRecord.getCreatedDate());
         me.setLastModifiedDate(userRecord.getLastModifiedDate());
+        me.setRoles(userRoleRepository.findRolesByUserId(userRecord.getId()).stream().map(Enum::name).toList());
 
         List<TalksRecord> talks = talkRepository.findBySpeakerId(userRecord.getId());
         List<TalkDto> talkDtos = talks.stream()

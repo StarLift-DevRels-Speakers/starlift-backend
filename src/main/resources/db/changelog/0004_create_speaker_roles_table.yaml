@@ -48,6 +48,3 @@ databaseChangeLog:
             columns:
               - column:
                   name: name
-        - dropColumn:
-            tableName: users
-            columnName: roles
