@@ -23,6 +23,8 @@ tags:
     description: Поиск спикеров и управление NPS
   - name: Media
     description: Загрузка медиа (в т.ч. без привязки к лекции), скачивание и удаление файлов лекций
+  - name: Users
+    description: Администрирование ролей пользователей
 
 paths:
 
@@ -141,6 +143,58 @@ paths:
                 $ref: '#/components/schemas/MeResponse'
         '401':
           description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/users/{userId}/role:
+    patch:
+      tags: [Users]
+      summary: Заменить роль пользователя на одну указанную
+      operationId: replaceUserRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleUpdateRequest'
+      responses:
+        '200':
+          description: Роль пользователя обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRoleUpdateResponse'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав
           content:
             application/json:
               schema:
@@ -937,6 +991,25 @@ components:
       properties:
         refreshToken:
           type: string
+
+    UserRoleUpdateRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleName'
+
+    UserRoleUpdateResponse:
+      type: object
+      required: [userId, roles]
+      properties:
+        userId:
+          type: integer
+          format: int64
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleName'
 
     User:
       type: object

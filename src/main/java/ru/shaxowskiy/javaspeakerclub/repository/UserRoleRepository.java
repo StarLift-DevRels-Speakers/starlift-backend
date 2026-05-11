@@ -44,4 +44,10 @@ public class UserRoleRepository {
                 .doNothing()
                 .execute();
     }
+
+    public void deleteByUserId(Long userId) {
+        dsl.deleteFrom(USER_ROLES)
+                .where(USER_ID.eq(userId))
+                .execute();
+    }
 }

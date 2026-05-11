@@ -64,6 +64,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/reports/**").hasAnyRole("DEVREL", "ADMIN")
 
                 .requestMatchers(HttpMethod.PUT, "/api/speakers/**").hasAnyRole("DEVREL", "ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers("/api/speakers/**", "/api/me").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
 
                 .anyRequest().hasRole("ADMIN")

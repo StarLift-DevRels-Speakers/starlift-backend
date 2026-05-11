@@ -37,3 +37,5 @@ CLAUDE.md
 .mvn
 src/main/generated
 .env
+mvnw
+mvnw.cmd

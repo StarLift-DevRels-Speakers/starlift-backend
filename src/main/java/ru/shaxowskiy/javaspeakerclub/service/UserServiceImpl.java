@@ -1,8 +1,11 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.shaxowskiy.javaspeakerclub.entity.User;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
@@ -43,6 +46,16 @@ public class UserServiceImpl implements UserService {
     public Optional<User> findById(Long id) {
         return userRepository.findById(id)
                 .map(this::mapToUser);
+    }
+
+    @Override
+    @Transactional
+    public User replaceUserRole(Long userId, AppRole role) {
+        var userRecord = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        userRoleRepository.deleteByUserId(userId);
+        userRoleRepository.assignRole(userId, role);
+        return mapToUser(userRecord);
     }
 
     private User mapToUser(UsersRecord record) {
