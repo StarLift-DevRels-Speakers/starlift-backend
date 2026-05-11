@@ -17,6 +17,8 @@ public class User {
 
     private String surName;
 
+    private String avatarMediaKey;
+
     private String password;
 
     private LocalDateTime createdDate;

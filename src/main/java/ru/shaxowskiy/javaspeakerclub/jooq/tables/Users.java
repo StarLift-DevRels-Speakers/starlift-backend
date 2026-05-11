@@ -91,6 +91,11 @@ public class Users extends TableImpl<UsersRecord> {
     public final TableField<UsersRecord, String> SUR_NAME = createField(DSL.name("sur_name"), SQLDataType.VARCHAR(255), this, "");
 
     /**
+     * The column <code>users.avatar_media_key</code>.
+     */
+    public final TableField<UsersRecord, String> AVATAR_MEDIA_KEY = createField(DSL.name("avatar_media_key"), SQLDataType.VARCHAR(1024), this, "");
+
+    /**
      * The column <code>users.password</code>.
      */
     public final TableField<UsersRecord, String> PASSWORD = createField(DSL.name("password"), SQLDataType.VARCHAR(255).nullable(false), this, "");

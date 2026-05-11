@@ -4,6 +4,7 @@ CREATE TABLE users (
   first_name VARCHAR(255),
   last_name VARCHAR(255),
   sur_name VARCHAR(255),
+  avatar_media_key VARCHAR(1024),
   password VARCHAR(255) NOT NULL,
   nps DECIMAL(3,1) DEFAULT NULL CHECK (nps >= 0 AND nps <= 10.0),
   created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -153,6 +153,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+    patch:
+      tags: [Profile]
+      summary: Частично обновить профиль текущего пользователя
+      operationId: patchMe
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfilePatchRequest'
+      responses:
+        '200':
+          description: Профиль обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   /api/users/{userId}/role:
     patch:
@@ -1033,6 +1064,10 @@ components:
           type: string
           nullable: true
           example: Smith
+        avatarMediaKey:
+          type: string
+          nullable: true
+          description: Ключ аватара пользователя в MinIO
         roles:
           type: array
           items:
@@ -1055,6 +1090,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MeTalkDto'
+
+    ProfilePatchRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        firstName:
+          type: [string, 'null']
+          example: John
+        lastName:
+          type: [string, 'null']
+          example: Doe
+        surName:
+          type: [string, 'null']
+          example: Smith
+        avatarMediaKey:
+          type: [string, 'null']
+          description: Ключ объекта в MinIO, полученный после загрузки
 
     MeTalkDto:
       type: object

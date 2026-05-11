@@ -92,59 +92,73 @@ public class UsersRecord extends UpdatableRecordImpl<UsersRecord> {
     }
 
     /**
+     * Setter for <code>users.avatar_media_key</code>.
+     */
+    public void setAvatarMediaKey(String value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>users.avatar_media_key</code>.
+     */
+    public String getAvatarMediaKey() {
+        return (String) get(5);
+    }
+
+    /**
      * Setter for <code>users.password</code>.
      */
     public void setPassword(String value) {
-        set(5, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>users.password</code>.
      */
     public String getPassword() {
-        return (String) get(5);
+        return (String) get(6);
     }
 
     /**
      * Setter for <code>users.nps</code>.
      */
     public void setNps(BigDecimal value) {
-        set(6, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>users.nps</code>.
      */
     public BigDecimal getNps() {
-        return (BigDecimal) get(6);
+        return (BigDecimal) get(7);
     }
 
     /**
      * Setter for <code>users.created_date</code>.
      */
     public void setCreatedDate(LocalDateTime value) {
-        set(7, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>users.created_date</code>.
      */
     public LocalDateTime getCreatedDate() {
-        return (LocalDateTime) get(7);
+        return (LocalDateTime) get(8);
     }
 
     /**
      * Setter for <code>users.last_modified_date</code>.
      */
     public void setLastModifiedDate(LocalDateTime value) {
-        set(8, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>users.last_modified_date</code>.
      */
     public LocalDateTime getLastModifiedDate() {
-        return (LocalDateTime) get(8);
+        return (LocalDateTime) get(9);
     }
 
     // -------------------------------------------------------------------------
@@ -170,7 +184,7 @@ public class UsersRecord extends UpdatableRecordImpl<UsersRecord> {
     /**
      * Create a detached, initialised UsersRecord
      */
-    public UsersRecord(Long id, String username, String firstName, String lastName, String surName, String password, BigDecimal nps, LocalDateTime createdDate, LocalDateTime lastModifiedDate) {
+    public UsersRecord(Long id, String username, String firstName, String lastName, String surName, String avatarMediaKey, String password, BigDecimal nps, LocalDateTime createdDate, LocalDateTime lastModifiedDate) {
         super(Users.USERS);
 
         setId(id);
@@ -178,6 +192,7 @@ public class UsersRecord extends UpdatableRecordImpl<UsersRecord> {
         setFirstName(firstName);
         setLastName(lastName);
         setSurName(surName);
+        setAvatarMediaKey(avatarMediaKey);
         setPassword(password);
         setNps(nps);
         setCreatedDate(createdDate);

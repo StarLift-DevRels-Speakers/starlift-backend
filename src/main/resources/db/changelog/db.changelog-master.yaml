@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/0008_create_user_media_table.yaml
   - include:
       file: db/changelog/0009_add_user_name_fields.yaml
+  - include:
+      file: db/changelog/0010_add_users_avatar_media_key.yaml

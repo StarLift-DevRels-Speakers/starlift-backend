@@ -2,10 +2,13 @@ package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.shaxowskiy.javaspeakerclub.dto.ProfilePatchRequest;
 import ru.shaxowskiy.javaspeakerclub.entity.User;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
@@ -14,6 +17,7 @@ import ru.shaxowskiy.javaspeakerclub.security.AppRole;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +53,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .map(this::mapToUser);
+    }
+
+    @Override
     @Transactional
     public User replaceUserRole(Long userId, AppRole role) {
         var userRecord = userRepository.findById(userId)
@@ -56,6 +66,29 @@ public class UserServiceImpl implements UserService {
         userRoleRepository.deleteByUserId(userId);
         userRoleRepository.assignRole(userId, role);
         return mapToUser(userRecord);
+    }
+
+    @Override
+    @Transactional
+    public User patchCurrentUser(ProfilePatchRequest request, Set<String> providedFields) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+
+        Long userId = userRepository.findByUsername(authentication.getName())
+                .map(UsersRecord::getId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        return userRepository.patchProfile(
+                        userId,
+                        providedFields.contains("firstName"), request.firstName(),
+                        providedFields.contains("lastName"), request.lastName(),
+                        providedFields.contains("surName"), request.surName(),
+                        providedFields.contains("avatarMediaKey"), request.avatarMediaKey()
+                )
+                .map(this::mapToUser)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
     private User mapToUser(UsersRecord record) {
@@ -68,6 +101,7 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(record.getFirstName());
         user.setLastName(record.getLastName());
         user.setSurName(record.getSurName());
+        user.setAvatarMediaKey(record.getAvatarMediaKey());
         user.setPassword(record.getPassword());
         // created_date / last_modified_date могут быть null, если БД проставляет значения по умолчанию
         if (record.getCreatedDate() != null) {
