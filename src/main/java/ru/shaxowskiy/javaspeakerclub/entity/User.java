@@ -11,6 +11,12 @@ public class User {
 
     private String username;
 
+    private String firstName;
+
+    private String lastName;
+
+    private String surName;
+
     private String password;
 
     private LocalDateTime createdDate;

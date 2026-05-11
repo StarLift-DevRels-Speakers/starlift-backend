@@ -21,12 +21,12 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public User registerUser(String username, String password) {
+    public User registerUser(String username, String password, String firstName, String lastName, String surName) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("User already exists");
         }
         String encodedPassword = passwordEncoder.encode(password);
-        UsersRecord record = userRepository.save(username, encodedPassword);
+        UsersRecord record = userRepository.save(username, encodedPassword, firstName, lastName, surName);
         userRoleRepository.assignRole(record.getId(), AppRole.USER);
         return mapToUser(record);
     }
@@ -52,6 +52,9 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setId(record.getId());
         user.setUsername(record.getUsername());
+        user.setFirstName(record.getFirstName());
+        user.setLastName(record.getLastName());
+        user.setSurName(record.getSurName());
         user.setPassword(record.getPassword());
         // created_date / last_modified_date могут быть null, если БД проставляет значения по умолчанию
         if (record.getCreatedDate() != null) {

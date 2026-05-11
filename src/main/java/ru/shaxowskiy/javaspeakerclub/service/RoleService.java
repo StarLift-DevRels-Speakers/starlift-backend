@@ -108,6 +108,9 @@ public class RoleService {
         return new SpeakerResponse(
                 user.getId(),
                 user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getSurName(),
                 user.getNps(),
                 user.getCreatedDate(),
                 roles

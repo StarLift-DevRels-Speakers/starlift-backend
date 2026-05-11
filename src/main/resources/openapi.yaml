@@ -856,11 +856,24 @@ components:
       properties:
         username:
           type: string
+          description: Уникальный идентификатор пользователя (логин)
           example: johndoe
         password:
           type: string
           format: password
           example: secret123
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
 
     RoleName:
       type: string
@@ -876,6 +889,18 @@ components:
         username:
           type: string
           example: johndoe
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
         roles:
           type: array
           items:
@@ -923,6 +948,18 @@ components:
         username:
           type: string
           example: johndoe
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
         roles:
           type: array
           items:
@@ -1028,6 +1065,15 @@ components:
           format: int64
         speakerUsername:
           type: string
+        speakerFirstName:
+          type: string
+          nullable: true
+        speakerLastName:
+          type: string
+          nullable: true
+        speakerSurName:
+          type: string
+          nullable: true
         topic:
           type: string
         talkDate:
@@ -1157,6 +1203,18 @@ components:
         username:
           type: string
           example: johndoe
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
         nps:
           type: number
           format: decimal

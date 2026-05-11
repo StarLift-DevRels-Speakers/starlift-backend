@@ -27,10 +27,13 @@ public class UserRepository {
                 .fetchOptional();
     }
 
-    public UsersRecord save(String username, String encodedPassword) {
+    public UsersRecord save(String username, String encodedPassword, String firstName, String lastName, String surName) {
         return dsl.insertInto(Users.USERS)
                 .set(Users.USERS.USERNAME, username)
                 .set(Users.USERS.PASSWORD, encodedPassword)
+                .set(Users.USERS.FIRST_NAME, firstName)
+                .set(Users.USERS.LAST_NAME, lastName)
+                .set(Users.USERS.SUR_NAME, surName)
                 .returning()
                 .fetchOne();
     }

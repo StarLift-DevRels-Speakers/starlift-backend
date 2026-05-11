@@ -101,16 +101,17 @@ public class TalkService {
     }
 
     private TalkResponse toResponse(TalksRecord record) {
-        String speakerUsername = userRepository.findById(record.getSpeakerId())
-                .map(UsersRecord::getUsername)
-                .orElse(null);
+        UsersRecord speaker = userRepository.findById(record.getSpeakerId()).orElse(null);
 
         List<LectureResponse> lectures = lectureService.findByTalkId(record.getId());
 
         return new TalkResponse(
                 record.getId(),
                 record.getSpeakerId(),
-                speakerUsername,
+                speaker == null ? null : speaker.getUsername(),
+                speaker == null ? null : speaker.getFirstName(),
+                speaker == null ? null : speaker.getLastName(),
+                speaker == null ? null : speaker.getSurName(),
                 record.getTopic(),
                 record.getTalkDate(),
                 record.getConferenceType(),

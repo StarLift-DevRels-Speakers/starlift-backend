@@ -33,7 +33,13 @@ public class AuthRestController {
     @PostMapping("/sign-on")
     public ResponseEntity<?> register(@RequestBody AuthRequest request) {
         try {
-            var registeredUser = userService.registerUser(request.username(), request.password());
+            var registeredUser = userService.registerUser(
+                    request.username(),
+                    request.password(),
+                    request.firstName(),
+                    request.lastName(),
+                    request.surName()
+            );
             var issued = jwtTokenService.issueTokens(registeredUser);
             return ResponseEntity.status(HttpStatus.CREATED).body(toAuthTokensResponse(issued));
         } catch (RuntimeException e) {
@@ -111,6 +117,9 @@ public class AuthRestController {
                 new AuthResponse(
                         user.getId(),
                         user.getUsername(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getSurName(),
                         user.getRoles(),
                         user.getCreatedDate(),
                         user.getLastModifiedDate()

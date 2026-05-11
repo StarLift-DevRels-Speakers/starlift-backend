@@ -53,6 +53,9 @@ public class RoleRepository {
         return dsl.selectDistinct(
                         Users.USERS.ID,
                         Users.USERS.USERNAME,
+                        Users.USERS.FIRST_NAME,
+                        Users.USERS.LAST_NAME,
+                        Users.USERS.SUR_NAME,
                         Users.USERS.PASSWORD,
                         Users.USERS.NPS,
                         Users.USERS.CREATED_DATE,
@@ -73,6 +76,9 @@ public class RoleRepository {
         return dsl.selectDistinct(
                         Users.USERS.ID,
                         Users.USERS.USERNAME,
+                        Users.USERS.FIRST_NAME,
+                        Users.USERS.LAST_NAME,
+                        Users.USERS.SUR_NAME,
                         Users.USERS.PASSWORD,
                         Users.USERS.NPS,
                         Users.USERS.CREATED_DATE,

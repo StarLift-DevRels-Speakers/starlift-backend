@@ -58,6 +58,9 @@ public class ProfileController {
         User me = new User();
         me.setId(userRecord.getId());
         me.setUsername(userRecord.getUsername());
+        me.setFirstName(userRecord.getFirstName());
+        me.setLastName(userRecord.getLastName());
+        me.setSurName(userRecord.getSurName());
         me.setPassword(null);
         me.setCreatedDate(userRecord.getCreatedDate());
         me.setLastModifiedDate(userRecord.getLastModifiedDate());
