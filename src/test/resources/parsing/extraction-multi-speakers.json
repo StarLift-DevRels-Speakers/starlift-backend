@@ -1,0 +1,9 @@
+{
+  "skipped": false,
+  "region": "Москва",
+  "speakers": [
+    {"conference": "JPoint 2026", "speakerName": "Иван Иванов", "company": "Сбер"},
+    {"conference": "JPoint 2026", "speakerName": "Мария Петрова", "company": null},
+    {"conference": "JPoint 2026", "speakerName": "Alex Smith", "company": "Yandex"}
+  ]
+}
