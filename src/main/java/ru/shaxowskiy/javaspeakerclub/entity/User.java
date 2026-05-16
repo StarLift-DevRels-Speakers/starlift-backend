@@ -17,7 +17,7 @@ public class User {
 
     private String surName;
 
-    private String avatarMediaKey;
+    private String avatarUrl;
 
     private String password;
 

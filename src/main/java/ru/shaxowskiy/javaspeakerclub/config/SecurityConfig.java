@@ -41,7 +41,7 @@ public class SecurityConfig {
                     .accessDeniedHandler(accessDeniedHandler))
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/**/home", "/**/sign-on", "/**/sign-in", "/health", "/api/auth/**").permitAll()
+                .requestMatchers("/", "/**/home", "/**/sign-on", "/**/sign-in", "/health", "/api/auth/**", "/api/parsing/run").permitAll()
 
                 .requestMatchers(HttpMethod.GET,
                         "/api/talks/**",
@@ -62,6 +62,8 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.GET, "/api/reports/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
                 .requestMatchers("/api/reports/**").hasAnyRole("DEVREL", "ADMIN")
+
+                .requestMatchers("/api/parsing/**").hasAnyRole("DEVREL", "ADMIN")
 
                 .requestMatchers(HttpMethod.PUT, "/api/speakers/**").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAnyRole("DEVREL", "ADMIN")

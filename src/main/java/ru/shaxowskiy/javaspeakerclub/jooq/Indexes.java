@@ -10,6 +10,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
@@ -28,6 +29,9 @@ public class Indexes {
 
     public static final Index IDX_LECTURES_SPEAKER_ID = Internal.createIndex(DSL.name("idx_lectures_speaker_id"), Lectures.LECTURES, new OrderField[] { Lectures.LECTURES.SPEAKER_ID }, false);
     public static final Index IDX_LECTURES_TALK_ID = Internal.createIndex(DSL.name("idx_lectures_talk_id"), Lectures.LECTURES, new OrderField[] { Lectures.LECTURES.TALK_ID }, false);
+    public static final Index IDX_PARSING_EVENTS_DEDUP = Internal.createIndex(DSL.name("idx_parsing_events_dedup"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.DEDUP_KEY }, true);
+    public static final Index IDX_PARSING_EVENTS_EVENT_DATE = Internal.createIndex(DSL.name("idx_parsing_events_event_date"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.EVENT_DATE }, false);
+    public static final Index IDX_PARSING_EVENTS_STATUS = Internal.createIndex(DSL.name("idx_parsing_events_status"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.STATUS }, false);
     public static final Index IDX_SPEAKER_ROLES_NAME = Internal.createIndex(DSL.name("idx_speaker_roles_name"), SpeakerRoles.SPEAKER_ROLES, new OrderField[] { SpeakerRoles.SPEAKER_ROLES.NAME }, false);
     public static final Index IDX_SPEAKER_ROLES_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_roles_speaker_id"), SpeakerRoles.SPEAKER_ROLES, new OrderField[] { SpeakerRoles.SPEAKER_ROLES.SPEAKER_ID }, false);
     public static final Index IDX_TALKS_SPEAKER_ID = Internal.createIndex(DSL.name("idx_talks_speaker_id"), Talks.TALKS, new OrderField[] { Talks.TALKS.SPEAKER_ID }, false);

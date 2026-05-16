@@ -37,6 +37,7 @@ import org.jooq.impl.TableImpl;
 import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures.LecturesPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents.ParsingEventsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles.SpeakerRolesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks.TalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia.UserMediaPath;
@@ -207,6 +208,19 @@ public class Users extends TableImpl<UsersRecord> {
             _lectures = new LecturesPath(this, null, Keys.FK_LECTURES_USERS_SPEAKER_ID.getInverseKey());
 
         return _lectures;
+    }
+
+    private transient ParsingEventsPath _parsingEvents;
+
+    /**
+     * Get the implicit to-many join path to the <code>parsing_events</code>
+     * table
+     */
+    public ParsingEventsPath parsingEvents() {
+        if (_parsingEvents == null)
+            _parsingEvents = new ParsingEventsPath(this, null, Keys.FK_PARSING_EVENTS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _parsingEvents;
     }
 
     private transient SpeakerRolesPath _speakerRoles;

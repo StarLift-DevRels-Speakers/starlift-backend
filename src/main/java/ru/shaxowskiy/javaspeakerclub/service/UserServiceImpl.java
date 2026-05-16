@@ -1,6 +1,7 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +18,8 @@ import ru.shaxowskiy.javaspeakerclub.security.AppRole;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -26,6 +27,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MinioService minioService;
+    private final SharedDownloadUrlService sharedDownloadUrlService;
 
     @Override
     public User registerUser(String username, String password, String firstName, String lastName, String surName) {
@@ -70,22 +73,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User patchCurrentUser(ProfilePatchRequest request, Set<String> providedFields) {
+    public User patchCurrentUser(ProfilePatchRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
 
-        Long userId = userRepository.findByUsername(authentication.getName())
-                .map(UsersRecord::getId)
+        UsersRecord currentUserRecord = userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
+        String mergedFirstName = request.firstName() != null ? request.firstName() : currentUserRecord.getFirstName();
+        String mergedLastName = request.lastName() != null ? request.lastName() : currentUserRecord.getLastName();
+        String mergedSurName = request.surName() != null ? request.surName() : currentUserRecord.getSurName();
+        String mergedAvatarMediaKey = request.avatarMediaKey() != null
+                ? request.avatarMediaKey()
+                : currentUserRecord.getAvatarMediaKey();
+
         return userRepository.patchProfile(
-                        userId,
-                        providedFields.contains("firstName"), request.firstName(),
-                        providedFields.contains("lastName"), request.lastName(),
-                        providedFields.contains("surName"), request.surName(),
-                        providedFields.contains("avatarMediaKey"), request.avatarMediaKey()
+                        currentUserRecord.getId(),
+                        mergedFirstName,
+                        mergedLastName,
+                        mergedSurName,
+                        mergedAvatarMediaKey
                 )
                 .map(this::mapToUser)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -101,7 +110,7 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(record.getFirstName());
         user.setLastName(record.getLastName());
         user.setSurName(record.getSurName());
-        user.setAvatarMediaKey(record.getAvatarMediaKey());
+        user.setAvatarUrl(buildAvatarUrl(record.getAvatarMediaKey()));
         user.setPassword(record.getPassword());
         // created_date / last_modified_date могут быть null, если БД проставляет значения по умолчанию
         if (record.getCreatedDate() != null) {
@@ -119,5 +128,18 @@ public class UserServiceImpl implements UserService {
                 .map(Enum::name)
                 .toList());
         return user;
+    }
+
+    private String buildAvatarUrl(String avatarMediaKey) {
+        if (avatarMediaKey == null || avatarMediaKey.isBlank()) {
+            return null;
+        }
+        try {
+            String presignedUrl = minioService.getPresignedUrl(avatarMediaKey);
+            return sharedDownloadUrlService.wrapPresignedUrl(presignedUrl);
+        } catch (RuntimeException ex) {
+            log.warn("Failed to build avatar URL for key {}", avatarMediaKey, ex);
+            return null;
+        }
     }
 }

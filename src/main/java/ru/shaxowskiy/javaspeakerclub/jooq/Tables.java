@@ -5,6 +5,7 @@ package ru.shaxowskiy.javaspeakerclub.jooq;
 
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
@@ -22,6 +23,11 @@ public class Tables {
      * The table <code>lectures</code>.
      */
     public static final Lectures LECTURES = Lectures.LECTURES;
+
+    /**
+     * The table <code>parsing_events</code>.
+     */
+    public static final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
 
     /**
      * The table <code>speaker_roles</code>.

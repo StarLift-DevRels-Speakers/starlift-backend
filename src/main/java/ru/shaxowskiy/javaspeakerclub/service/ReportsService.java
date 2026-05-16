@@ -14,12 +14,15 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerRolesRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.ParsingEventsRecord;
+import ru.shaxowskiy.javaspeakerclub.repository.ParsingEventRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.RoleRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.TalkRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -40,6 +43,7 @@ public class ReportsService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final TalkRepository talkRepository;
+    private final ParsingEventRepository parsingEventRepository;
 
     @Transactional(readOnly = true)
     public ReportFiltersResponse getFilters() {
@@ -76,6 +80,10 @@ public class ReportsService {
                 new SelectOption("Отклонённые", ParsingStatus.rejected.name())
         );
 
+        List<SelectOption> parsingSourceOptions = parsingEventRepository.findDistinctSources().stream()
+                .map(source -> new SelectOption(source, source))
+                .toList();
+
         ReportFiltersResponse response = new ReportFiltersResponse(
                 periodOptions,
                 List.of(), // regions
@@ -83,7 +91,7 @@ public class ReportsService {
                 List.of(roleGroup),
                 influenceOptions,
                 tagWindowOptions,
-                List.of(), // parsingSources
+                parsingSourceOptions,
                 parsingStatusOptions
         );
         log.info("Built report filters: roleOptions={}, parsingOptions={}", roleOptions.size(), parsingStatusOptions.size());
@@ -223,13 +231,7 @@ public class ReportsService {
                 List.of()
         );
 
-        DevRelParsingSection parsing = new DevRelParsingSection(
-                0,
-                0,
-                0,
-                List.of(),
-                List.of()
-        );
+        DevRelParsingSection parsing = buildParsingSection();
 
         DevRelDashboardReportRequest appliedFilters = request != null ? request
                 : new DevRelDashboardReportRequest(null, List.of(), List.of(), List.of(), null, null, null, null, null, null, null);
@@ -351,6 +353,69 @@ public class ReportsService {
             return 0;
         }
         return nps0to10.multiply(BigDecimal.TEN).setScale(0, RoundingMode.HALF_UP).intValue();
+    }
+
+    private DevRelParsingSection buildParsingSection() {
+        int newEvents = parsingEventRepository.countByStatus("new");
+        int duplicateEvents = parsingEventRepository.countByStatus("duplicate");
+        int confirmed = parsingEventRepository.countByStatus("confirmed");
+        int rejected = parsingEventRepository.countByStatus("rejected");
+        int reviewed = confirmed + rejected;
+        int confirmedRate = reviewed == 0 ? 0 : (confirmed * 100) / reviewed;
+
+        List<ParsingSourceBucket> bySource = parsingEventRepository.countGroupedBySource().stream()
+                .map(bucket -> new ParsingSourceBucket(extractSourceHost(bucket.source()), bucket.count()))
+                .toList();
+
+        List<ParsingEvent> events = parsingEventRepository.findAllOrderByCreatedAtDesc().stream()
+                .limit(100)
+                .map(this::toParsingEvent)
+                .toList();
+
+        return new DevRelParsingSection(
+                newEvents,
+                duplicateEvents,
+                confirmedRate,
+                bySource,
+                events
+        );
+    }
+
+    private ParsingEvent toParsingEvent(ParsingEventsRecord record) {
+        return new ParsingEvent(
+                record.getId().toString(),
+                record.getConference(),
+                record.getSpeakerId(),
+                record.getSpeakerName(),
+                extractSourceHost(record.getSourceUrl()),
+                fromParsingStatus(record.getStatus()),
+                record.getRegion() != null ? record.getRegion() : "",
+                record.getEventDate().atStartOfDay(),
+                record.getNote() != null ? record.getNote() : ""
+        );
+    }
+
+    private ParsingStatus fromParsingStatus(String status) {
+        return switch (status) {
+            case "new" -> ParsingStatus.NEW;
+            case "duplicate" -> ParsingStatus.duplicate;
+            case "confirmed" -> ParsingStatus.confirmed;
+            case "rejected" -> ParsingStatus.rejected;
+            default -> ParsingStatus.NEW;
+        };
+    }
+
+    private String extractSourceHost(String sourceUrl) {
+        if (sourceUrl == null || sourceUrl.isBlank()) {
+            return "";
+        }
+        try {
+            URI uri = URI.create(sourceUrl);
+            String host = uri.getHost();
+            return host != null ? host : sourceUrl;
+        } catch (Exception e) {
+            return sourceUrl;
+        }
     }
 
     private record SpeakerAggregate(Long id, String username, Integer nps, int talksCount, LocalDateTime lastTalkDate) {

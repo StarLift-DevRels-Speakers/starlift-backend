@@ -2,14 +2,11 @@ package ru.shaxowskiy.javaspeakerclub.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.springframework.stereotype.Repository;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -52,36 +49,16 @@ public class UserRepository {
 
     public Optional<UsersRecord> patchProfile(
             Long id,
-            boolean firstNameProvided,
             String firstName,
-            boolean lastNameProvided,
             String lastName,
-            boolean surNameProvided,
             String surName,
-            boolean avatarMediaKeyProvided,
             String avatarMediaKey
     ) {
-        Map<Field<?>, Object> updates = new LinkedHashMap<>();
-
-        if (firstNameProvided) {
-            updates.put(Users.USERS.FIRST_NAME, firstName);
-        }
-        if (lastNameProvided) {
-            updates.put(Users.USERS.LAST_NAME, lastName);
-        }
-        if (surNameProvided) {
-            updates.put(Users.USERS.SUR_NAME, surName);
-        }
-        if (avatarMediaKeyProvided) {
-            updates.put(Users.USERS.AVATAR_MEDIA_KEY, avatarMediaKey);
-        }
-
-        if (updates.isEmpty()) {
-            return findById(id);
-        }
-
         int updated = dsl.update(Users.USERS)
-                .set(updates)
+                .set(Users.USERS.FIRST_NAME, firstName)
+                .set(Users.USERS.LAST_NAME, lastName)
+                .set(Users.USERS.SUR_NAME, surName)
+                .set(Users.USERS.AVATAR_MEDIA_KEY, avatarMediaKey)
                 .where(Users.USERS.ID.eq(id))
                 .execute();
         return updated > 0 ? findById(id) : Optional.empty();

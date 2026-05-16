@@ -1,7 +1,5 @@
 package ru.shaxowskiy.javaspeakerclub.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -19,9 +17,7 @@ import ru.shaxowskiy.javaspeakerclub.repository.TalkRepository;
 import ru.shaxowskiy.javaspeakerclub.service.UserService;
 
 import java.net.URI;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
@@ -30,7 +26,6 @@ public class ProfileController {
 
     private final UserService userService;
     private final TalkRepository talkRepository;
-    private final ObjectMapper objectMapper;
 
     public record TalkDto(
             String id,
@@ -81,18 +76,14 @@ public class ProfileController {
     }
 
     @PatchMapping("/me")
-    public MeResponse patchMe(@RequestBody JsonNode patchPayload, Authentication authentication) {
+    public MeResponse patchMe(@RequestBody ProfilePatchRequest request, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated() || authentication.getName() == null) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Not authenticated");
             pd.setType(URI.create("about:blank"));
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, pd.getDetail());
         }
 
-        ProfilePatchRequest request = objectMapper.convertValue(patchPayload, ProfilePatchRequest.class);
-        Set<String> providedFields = new HashSet<>();
-        patchPayload.fieldNames().forEachRemaining(providedFields::add);
-
-        userService.patchCurrentUser(request, providedFields);
+        userService.patchCurrentUser(request);
         return me(authentication);
     }
 }

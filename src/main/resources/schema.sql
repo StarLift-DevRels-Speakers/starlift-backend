@@ -71,3 +71,23 @@ CREATE TABLE user_media (
 );
 
 CREATE INDEX idx_user_media_user_id ON user_media (user_id);
+
+CREATE TABLE parsing_events (
+  id UUID PRIMARY KEY,
+  conference VARCHAR(255) NOT NULL,
+  speaker_name VARCHAR(255) NOT NULL,
+  company VARCHAR(255),
+  source_url VARCHAR(1024) NOT NULL,
+  event_date DATE NOT NULL,
+  region VARCHAR(100),
+  status VARCHAR(20) NOT NULL,
+  speaker_id BIGINT,
+  note TEXT,
+  dedup_key VARCHAR(64) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_parsing_events_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE UNIQUE INDEX idx_parsing_events_dedup ON parsing_events (dedup_key);
+CREATE INDEX idx_parsing_events_event_date ON parsing_events (event_date);
+CREATE INDEX idx_parsing_events_status ON parsing_events (status);

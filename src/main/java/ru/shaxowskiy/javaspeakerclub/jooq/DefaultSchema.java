@@ -13,6 +13,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
@@ -37,6 +38,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>lectures</code>.
      */
     public final Lectures LECTURES = Lectures.LECTURES;
+
+    /**
+     * The table <code>parsing_events</code>.
+     */
+    public final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
 
     /**
      * The table <code>speaker_roles</code>.
@@ -80,6 +86,7 @@ public class DefaultSchema extends SchemaImpl {
     public final List<Table<?>> getTables() {
         return Arrays.asList(
             Lectures.LECTURES,
+            ParsingEvents.PARSING_EVENTS,
             SpeakerRoles.SPEAKER_ROLES,
             Talks.TALKS,
             UserMedia.USER_MEDIA,

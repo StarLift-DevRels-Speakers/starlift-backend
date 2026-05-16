@@ -883,6 +883,84 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ── Parsing ─────────────────────────────────────────────────────────
+
+  /api/parsing/run:
+    post:
+      tags: [Parsing]
+      summary: Запустить ИИ-парсинг конференций за дату
+      operationId: runConferenceParsing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParsingRunRequest'
+      responses:
+        '200':
+          description: Результат парсинга
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsingRunResponse'
+
+  /api/parsing/events:
+    get:
+      tags: [Parsing]
+      summary: Список событий парсинга для ревью
+      operationId: listParsingEvents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ParsingStatus'
+      responses:
+        '200':
+          description: События парсинга
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParsingEventRecord'
+
+  /api/parsing/events/{id}:
+    patch:
+      tags: [Parsing]
+      summary: Подтвердить или отклонить событие парсинга
+      operationId: patchParsingEvent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParsingEventPatchRequest'
+      responses:
+        '200':
+          description: Обновлённое событие
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsingEventRecord'
+
 components:
   parameters:
     TalkId:
@@ -1064,10 +1142,11 @@ components:
           type: string
           nullable: true
           example: Smith
-        avatarMediaKey:
+        avatarUrl:
           type: string
           nullable: true
-          description: Ключ аватара пользователя в MinIO
+          format: uri
+          description: Ссылка на аватар через shared-download прокси (временная)
         roles:
           type: array
           items:
@@ -1106,7 +1185,8 @@ components:
           example: Smith
         avatarMediaKey:
           type: [string, 'null']
-          description: Ключ объекта в MinIO, полученный после загрузки
+          writeOnly: true
+          description: Input-only ключ объекта в MinIO, полученный после загрузки
 
     MeTalkDto:
       type: object
@@ -2003,6 +2083,104 @@ components:
           $ref: '#/components/schemas/DevRelBlindSpotsSection'
         parsing:
           $ref: '#/components/schemas/DevRelParsingSection'
+
+    ParsedSpeakerRow:
+      type: object
+      required: [conference, speakerName]
+      properties:
+        conference:
+          type: string
+        speakerName:
+          type: string
+        company:
+          type: string
+          nullable: true
+
+    ParsingRunRequest:
+      type: object
+      required: [date]
+      properties:
+        date:
+          type: string
+          format: date
+        hint:
+          type: string
+
+    ParsingRunResponse:
+      type: object
+      required: [speakers, newEvents, duplicateEvents, scannedUrls, errors, skippedUrls, rejectedPlaceholders]
+      properties:
+        speakers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParsedSpeakerRow'
+        newEvents:
+          type: integer
+        duplicateEvents:
+          type: integer
+        scannedUrls:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: string
+        skippedUrls:
+          type: integer
+          description: URL отсечённые фильтром до загрузки
+        rejectedPlaceholders:
+          type: integer
+          description: Строки с неизвестен/null и без реального ФИО
+
+    ParsingEventRecord:
+      type: object
+      required: [id, conference, speakerName, sourceUrl, eventDate, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        conference:
+          type: string
+        speakerName:
+          type: string
+        company:
+          type: string
+          nullable: true
+        sourceUrl:
+          type: string
+        eventDate:
+          type: string
+          format: date
+        region:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/ParsingStatus'
+        speakerId:
+          type: integer
+          format: int64
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ParsingEventPatchRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/ParsingStatus'
+        speakerId:
+          type: integer
+          format: int64
+        topic:
+          type: string
+        note:
+          type: string
 
     ProblemDetail:
       type: object

@@ -5,7 +5,6 @@ import ru.shaxowskiy.javaspeakerclub.entity.User;
 import ru.shaxowskiy.javaspeakerclub.security.AppRole;
 
 import java.util.Optional;
-import java.util.Set;
 
 public interface UserService {
     User registerUser(String username, String password, String firstName, String lastName, String surName);
@@ -13,5 +12,5 @@ public interface UserService {
     Optional<User> findById(Long id);
     User replaceUserRole(Long userId, AppRole role);
     Optional<User> findByUsername(String username);
-    User patchCurrentUser(ProfilePatchRequest request, Set<String> providedFields);
+    User patchCurrentUser(ProfilePatchRequest request);
 }

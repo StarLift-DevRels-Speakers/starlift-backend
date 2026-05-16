@@ -12,12 +12,14 @@ import org.jooq.impl.Internal;
 import org.jooq.impl.QOM.ForeignKeyRule;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.LecturesRecord;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.ParsingEventsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerRolesRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserMediaRecord;
@@ -37,6 +39,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<LecturesRecord> CONSTRAINT_61 = Internal.createUniqueKey(Lectures.LECTURES, DSL.name("CONSTRAINT_61"), new TableField[] { Lectures.LECTURES.ID }, true);
+    public static final UniqueKey<ParsingEventsRecord> CONSTRAINT_8 = Internal.createUniqueKey(ParsingEvents.PARSING_EVENTS, DSL.name("CONSTRAINT_8"), new TableField[] { ParsingEvents.PARSING_EVENTS.ID }, true);
     public static final UniqueKey<SpeakerRolesRecord> CONSTRAINT_F = Internal.createUniqueKey(SpeakerRoles.SPEAKER_ROLES, DSL.name("CONSTRAINT_F"), new TableField[] { SpeakerRoles.SPEAKER_ROLES.ID }, true);
     public static final UniqueKey<TalksRecord> CONSTRAINT_69 = Internal.createUniqueKey(Talks.TALKS, DSL.name("CONSTRAINT_69"), new TableField[] { Talks.TALKS.ID }, true);
     public static final UniqueKey<UserMediaRecord> CONSTRAINT_72 = Internal.createUniqueKey(UserMedia.USER_MEDIA, DSL.name("CONSTRAINT_72"), new TableField[] { UserMedia.USER_MEDIA.ID }, true);
@@ -52,6 +55,7 @@ public class Keys {
 
     public static final ForeignKey<LecturesRecord, TalksRecord> FK_LECTURES_TALKS_TALK_ID = Internal.createForeignKey(Lectures.LECTURES, DSL.name("fk_lectures_talks_talk_id"), new TableField[] { Lectures.LECTURES.TALK_ID }, Keys.CONSTRAINT_69, new TableField[] { Talks.TALKS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<LecturesRecord, UsersRecord> FK_LECTURES_USERS_SPEAKER_ID = Internal.createForeignKey(Lectures.LECTURES, DSL.name("fk_lectures_users_speaker_id"), new TableField[] { Lectures.LECTURES.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<ParsingEventsRecord, UsersRecord> FK_PARSING_EVENTS_USERS_SPEAKER_ID = Internal.createForeignKey(ParsingEvents.PARSING_EVENTS, DSL.name("fk_parsing_events_users_speaker_id"), new TableField[] { ParsingEvents.PARSING_EVENTS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<SpeakerRolesRecord, UsersRecord> FK_SPEAKER_ROLES_USERS_SPEAKER_ID = Internal.createForeignKey(SpeakerRoles.SPEAKER_ROLES, DSL.name("fk_speaker_roles_users_speaker_id"), new TableField[] { SpeakerRoles.SPEAKER_ROLES.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<TalksRecord, UsersRecord> FK_TALKS_USERS_SPEAKER_ID = Internal.createForeignKey(Talks.TALKS, DSL.name("fk_talks_users_speaker_id"), new TableField[] { Talks.TALKS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<UserMediaRecord, UsersRecord> FK_USER_MEDIA_USERS_USER_ID = Internal.createForeignKey(UserMedia.USER_MEDIA, DSL.name("fk_user_media_users_user_id"), new TableField[] { UserMedia.USER_MEDIA.USER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);

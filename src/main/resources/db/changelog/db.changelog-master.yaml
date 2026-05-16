@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/0009_add_user_name_fields.yaml
   - include:
       file: db/changelog/0010_add_users_avatar_media_key.yaml
+  - include:
+      file: db/changelog/0011_create_parsing_events_table.yaml
