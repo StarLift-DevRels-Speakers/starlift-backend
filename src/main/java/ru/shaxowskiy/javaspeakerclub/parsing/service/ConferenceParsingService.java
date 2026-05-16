@@ -2,7 +2,9 @@ package ru.shaxowskiy.javaspeakerclub.parsing.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,6 +26,7 @@ import ru.shaxowskiy.javaspeakerclub.service.TalkService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,12 +37,32 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ConferenceParsingService {
+    private static final ZoneId MOSCOW_ZONE = ZoneId.of("Europe/Moscow");
 
     private final ConferenceParsingAgent parsingAgent;
     private final ParsingEventRepository parsingEventRepository;
     private final SpeakerMatchingService speakerMatchingService;
     private final TalkService talkService;
     private final ParsedSpeakerRowValidator speakerRowValidator;
+    @Value("${app.parsing.scheduled-run-cron}")
+    private String scheduledRunCron;
+    @Value("${app.parsing.scheduled-run-enabled:false}")
+    private boolean scheduledRunEnabled;
+
+    @Transactional
+    @Scheduled(cron = "${app.parsing.scheduled-run-cron}", zone = "Europe/Moscow")
+    public void runScheduled() {
+        if (!scheduledRunEnabled) {
+            log.debug("Scheduled parsing run is disabled, cron={}", scheduledRunCron);
+            return;
+        }
+        LocalDate moscowDate = LocalDate.now(MOSCOW_ZONE);
+        try {
+            run(new ParsingRunRequest(moscowDate, null));
+        } catch (Exception e) {
+            log.error("Scheduled parsing run failed for date={} (cron={})", moscowDate, scheduledRunCron, e);
+        }
+    }
 
     @Transactional
     public ParsingRunResponse run(ParsingRunRequest request) {

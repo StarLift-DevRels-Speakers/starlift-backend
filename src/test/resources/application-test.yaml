@@ -20,6 +20,8 @@ app:
   parsing:
     search-api-key: test-search-key
     serper-url: https://google.serper.dev/search
+    scheduled-run-enabled: false
+    scheduled-run-cron: "0 0 22 * * *"
     max-pages-per-run: 5
     max-html-chars: 10000
     max-response-bytes: 1048576
