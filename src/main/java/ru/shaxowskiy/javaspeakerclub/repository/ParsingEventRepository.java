@@ -75,6 +75,17 @@ public class ParsingEventRepository {
                 .fetch();
     }
 
+    public List<ParsingEventsRecord> findSpeakersByDate(LocalDate eventDate) {
+        var condition = DSL.noCondition();
+        if (eventDate != null) {
+            condition = condition.and(ParsingEvents.PARSING_EVENTS.EVENT_DATE.eq(eventDate));
+        }
+        return dsl.selectFrom(ParsingEvents.PARSING_EVENTS)
+                .where(condition)
+                .orderBy(ParsingEvents.PARSING_EVENTS.CREATED_AT.desc())
+                .fetch();
+    }
+
     public Optional<ParsingEventsRecord> updateStatus(
             UUID id,
             String status,

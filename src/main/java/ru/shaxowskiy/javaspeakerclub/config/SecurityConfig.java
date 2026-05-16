@@ -41,7 +41,7 @@ public class SecurityConfig {
                     .accessDeniedHandler(accessDeniedHandler))
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/**/home", "/**/sign-on", "/**/sign-in", "/health", "/api/auth/**", "/api/parsing/run").permitAll()
+                .requestMatchers("/", "/**/home", "/**/sign-on", "/**/sign-in", "/health", "/api/auth/**", "/api/parsing/*").permitAll()
 
                 .requestMatchers(HttpMethod.GET,
                         "/api/talks/**",

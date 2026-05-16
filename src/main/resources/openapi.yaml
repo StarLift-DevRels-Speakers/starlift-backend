@@ -900,11 +900,36 @@ paths:
               $ref: '#/components/schemas/ParsingRunRequest'
       responses:
         '200':
-          description: Результат парсинга
+          description: Запрос принят в обработку
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ParsingRunResponse'
+                $ref: '#/components/schemas/ParsingRunAcceptedResponse'
+
+  /api/parsing/speakers:
+    get:
+      tags: [Parsing]
+      summary: Список спарсенных спикеров
+      operationId: listParsedSpeakers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: Фильтр по дате события
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Спарсенные спикеры
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParsedSpeakerEventResponse'
 
   /api/parsing/events:
     get:
@@ -2132,6 +2157,37 @@ components:
         rejectedPlaceholders:
           type: integer
           description: Строки с неизвестен/null и без реального ФИО
+
+    ParsingRunAcceptedResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: Request successful get. The result will become available for near time
+
+    ParsedSpeakerEventResponse:
+      type: object
+      required: [conference, speakerName, sourceUrl, eventDate, createdAt]
+      properties:
+        conference:
+          type: string
+        speakerName:
+          type: string
+        company:
+          type: string
+          nullable: true
+        sourceUrl:
+          type: string
+        eventDate:
+          type: string
+          format: date
+        region:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
 
     ParsingEventRecord:
       type: object

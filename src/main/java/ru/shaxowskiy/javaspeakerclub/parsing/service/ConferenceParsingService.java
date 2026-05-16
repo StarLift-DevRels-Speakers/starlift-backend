@@ -12,6 +12,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.ParsingEventsRecord;
 import ru.shaxowskiy.javaspeakerclub.parsing.agent.ConferenceParsingAgent;
 import ru.shaxowskiy.javaspeakerclub.parsing.agent.ConferenceParsingAgent.ExtractedCandidate;
 import ru.shaxowskiy.javaspeakerclub.parsing.model.ParsedSpeakerRow;
+import ru.shaxowskiy.javaspeakerclub.parsing.model.ParsedSpeakerEventResponse;
 import ru.shaxowskiy.javaspeakerclub.parsing.model.ParsingEventPatchRequest;
 import ru.shaxowskiy.javaspeakerclub.parsing.model.ParsingEventResponse;
 import ru.shaxowskiy.javaspeakerclub.parsing.model.ParsingRunRequest;
@@ -24,7 +25,9 @@ import ru.shaxowskiy.javaspeakerclub.service.TalkService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -110,6 +113,25 @@ public class ConferenceParsingService {
         return parsingEventRepository.findByFilters(date, statusValue).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParsedSpeakerEventResponse> findParsedSpeakers(LocalDate date) {
+        Map<String, ParsedSpeakerEventResponse> uniqueSpeakers = new LinkedHashMap<>();
+        parsingEventRepository.findSpeakersByDate(date).forEach(record -> {
+            String key = (record.getConference() + "|" + record.getSpeakerName() + "|" + record.getCompany() + "|" + record.getEventDate())
+                    .toLowerCase();
+            uniqueSpeakers.putIfAbsent(key, new ParsedSpeakerEventResponse(
+                    record.getConference(),
+                    record.getSpeakerName(),
+                    record.getCompany(),
+                    record.getSourceUrl(),
+                    record.getEventDate(),
+                    record.getRegion(),
+                    record.getCreatedAt()
+            ));
+        });
+        return new ArrayList<>(uniqueSpeakers.values());
     }
 
     @Transactional

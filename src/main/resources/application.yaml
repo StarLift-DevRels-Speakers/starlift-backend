@@ -18,6 +18,13 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: ${OPENAI_BASE_URL}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
 
 server:
   port: 8080
@@ -34,3 +41,17 @@ security:
     secret: ${JWT_SECRET:change-me}
     access-ttl: 15m
     refresh-ttl: 7d
+
+app:
+  shared-download:
+    base-url: ${SHARED_DOWNLOAD_BASE_URL}
+  parsing:
+    search-api-key: ${PARSING_SEARCH_API_KEY}
+    serper-url: https://google.serper.dev/search
+    max-pages-per-run: 30
+    max-html-chars: 50000
+    max-response-bytes: 5242880
+    serper-results-per-query: 15
+    blocked-domains: []
+    request-timeout: 15s
+    user-agent: "JavaSpeakerClubBot/1.0"
