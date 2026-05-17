@@ -7,6 +7,8 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -25,6 +27,38 @@ public class UserRepository {
         return dsl.selectFrom(Users.USERS)
                 .where(Users.USERS.ID.eq(id))
                 .fetchOptional();
+    }
+
+    public List<UsersRecord> findAll() {
+        return dsl.selectFrom(Users.USERS)
+                .orderBy(Users.USERS.ID.asc())
+                .fetch();
+    }
+
+    public List<UsersRecord> findByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        return dsl.selectFrom(Users.USERS)
+                .where(Users.USERS.ID.in(ids))
+                .fetch();
+    }
+
+    public List<String> findDistinctRegions() {
+        return dsl.selectDistinct(Users.USERS.REGION)
+                .from(Users.USERS)
+                .where(Users.USERS.REGION.isNotNull().and(Users.USERS.REGION.ne("")))
+                .orderBy(Users.USERS.REGION.asc())
+                .fetch(Users.USERS.REGION);
+    }
+
+    public List<String> findDistinctCompanies() {
+        return dsl.selectDistinct(Users.USERS.COMPANY)
+                .from(Users.USERS)
+                .where(Users.USERS.COMPANY.isNotNull().and(Users.USERS.COMPANY.ne("")))
+                .orderBy(Users.USERS.COMPANY.asc())
+                .fetch(Users.USERS.COMPANY);
     }
 
     public UsersRecord save(String username, String encodedPassword, String firstName, String lastName, String surName) {
@@ -59,6 +93,29 @@ public class UserRepository {
                 .set(Users.USERS.LAST_NAME, lastName)
                 .set(Users.USERS.SUR_NAME, surName)
                 .set(Users.USERS.AVATAR_MEDIA_KEY, avatarMediaKey)
+                .where(Users.USERS.ID.eq(id))
+                .execute();
+        return updated > 0 ? findById(id) : Optional.empty();
+    }
+
+    public Optional<UsersRecord> patchDashboardProfile(
+            Long id,
+            String region,
+            String company,
+            String influence,
+            Integer profileCompletion,
+            Boolean topConferenceCandidate,
+            String avatarColor,
+            LocalDateTime lastEvaluationDate
+    ) {
+        int updated = dsl.update(Users.USERS)
+                .set(Users.USERS.REGION, region)
+                .set(Users.USERS.COMPANY, company)
+                .set(Users.USERS.INFLUENCE, influence)
+                .set(Users.USERS.PROFILE_COMPLETION, profileCompletion)
+                .set(Users.USERS.TOP_CONFERENCE_CANDIDATE, topConferenceCandidate)
+                .set(Users.USERS.AVATAR_COLOR, avatarColor)
+                .set(Users.USERS.LAST_EVALUATION_DATE, lastEvaluationDate)
                 .where(Users.USERS.ID.eq(id))
                 .execute();
         return updated > 0 ? findById(id) : Optional.empty();

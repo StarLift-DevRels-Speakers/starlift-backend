@@ -114,6 +114,48 @@ public class ParsingEventRepository {
                 .fetch();
     }
 
+    public List<ParsingEventsRecord> findBySpeakerId(Long speakerId) {
+        return dsl.selectFrom(ParsingEvents.PARSING_EVENTS)
+                .where(ParsingEvents.PARSING_EVENTS.SPEAKER_ID.eq(speakerId))
+                .orderBy(ParsingEvents.PARSING_EVENTS.CREATED_AT.desc())
+                .fetch();
+    }
+
+    public List<ParsingEventsRecord> findBySourceAndStatus(String sourceHost, String status) {
+        var condition = DSL.noCondition();
+
+        if (sourceHost != null && !sourceHost.isBlank()) {
+            condition = condition.and(
+                    ParsingEvents.PARSING_EVENTS.SOURCE_URL.likeIgnoreCase("%" + sourceHost + "%")
+            );
+        }
+
+        if (status != null && !status.isBlank()) {
+            condition = condition.and(ParsingEvents.PARSING_EVENTS.STATUS.eq(status));
+        }
+
+        return dsl.selectFrom(ParsingEvents.PARSING_EVENTS)
+                .where(condition)
+                .orderBy(ParsingEvents.PARSING_EVENTS.CREATED_AT.desc())
+                .fetch();
+    }
+
+    public List<String> findDistinctRegions() {
+        return dsl.selectDistinct(ParsingEvents.PARSING_EVENTS.REGION)
+                .from(ParsingEvents.PARSING_EVENTS)
+                .where(ParsingEvents.PARSING_EVENTS.REGION.isNotNull().and(ParsingEvents.PARSING_EVENTS.REGION.ne("")))
+                .orderBy(ParsingEvents.PARSING_EVENTS.REGION.asc())
+                .fetch(ParsingEvents.PARSING_EVENTS.REGION);
+    }
+
+    public List<String> findDistinctCompanies() {
+        return dsl.selectDistinct(ParsingEvents.PARSING_EVENTS.COMPANY)
+                .from(ParsingEvents.PARSING_EVENTS)
+                .where(ParsingEvents.PARSING_EVENTS.COMPANY.isNotNull().and(ParsingEvents.PARSING_EVENTS.COMPANY.ne("")))
+                .orderBy(ParsingEvents.PARSING_EVENTS.COMPANY.asc())
+                .fetch(ParsingEvents.PARSING_EVENTS.COMPANY);
+    }
+
     public record SourceCount(String source, int count) {
     }
 

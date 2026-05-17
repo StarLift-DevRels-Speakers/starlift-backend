@@ -57,14 +57,21 @@ public class SecurityConfig {
 
                 .requestMatchers("/api/media/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
 
+                .requestMatchers("/api/cfp/**").hasAnyRole("DEVREL", "ADMIN")
+
                 .requestMatchers(HttpMethod.GET, "/api/roles/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
                 .requestMatchers("/api/roles/**").hasAnyRole("DEVREL", "ADMIN")
 
                 .requestMatchers(HttpMethod.GET, "/api/reports/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/reports/speaker-dashboard/generate").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
                 .requestMatchers("/api/reports/**").hasAnyRole("DEVREL", "ADMIN")
 
                 .requestMatchers("/api/parsing/**").hasAnyRole("DEVREL", "ADMIN")
 
+                .requestMatchers(HttpMethod.PATCH, "/api/speakers/*/dashboard-profile").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/speakers/*/nps-history").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/speakers/*/achievements").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/speakers/*/cfp-recommendations").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/speakers/**").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers("/api/speakers/**", "/api/me").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")

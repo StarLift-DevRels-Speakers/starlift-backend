@@ -15,6 +15,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.InverseForeignKey;
 import org.jooq.Name;
 import org.jooq.Path;
@@ -35,9 +36,14 @@ import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
+import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations.CfpRecommendationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures.LecturesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents.ParsingEventsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements.SpeakerAchievementsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations.SpeakerCfpRecommendationsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory.SpeakerNpsHistoryPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles.SpeakerRolesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks.TalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia.UserMediaPath;
@@ -105,6 +111,46 @@ public class Users extends TableImpl<UsersRecord> {
      * The column <code>users.nps</code>.
      */
     public final TableField<UsersRecord, BigDecimal> NPS = createField(DSL.name("nps"), SQLDataType.DECIMAL(3, 1).defaultValue(DSL.field(DSL.raw("NULL"), SQLDataType.DECIMAL)), this, "");
+
+    /**
+     * The column <code>users.region</code>.
+     */
+    public final TableField<UsersRecord, String> REGION = createField(DSL.name("region"), SQLDataType.VARCHAR(100).nullable(false).defaultValue(DSL.field(DSL.raw("U&'\\0414\\0440\\0443\\0433\\0438\\0435 \\0440\\0435\\0433\\0438\\043e\\043d\\044b'"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>users.company</code>.
+     */
+    public final TableField<UsersRecord, String> COMPANY = createField(DSL.name("company"), SQLDataType.VARCHAR(255).nullable(false).defaultValue(DSL.field(DSL.raw("'Unknown'"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>users.influence</code>.
+     */
+    public final TableField<UsersRecord, String> INFLUENCE = createField(DSL.name("influence"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'local'"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>users.profile_completion</code>.
+     */
+    public final TableField<UsersRecord, Integer> PROFILE_COMPLETION = createField(DSL.name("profile_completion"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
+    /**
+     * The column <code>users.audience</code>.
+     */
+    public final TableField<UsersRecord, Integer> AUDIENCE = createField(DSL.name("audience"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
+    /**
+     * The column <code>users.last_evaluation_date</code>.
+     */
+    public final TableField<UsersRecord, LocalDateTime> LAST_EVALUATION_DATE = createField(DSL.name("last_evaluation_date"), SQLDataType.LOCALDATETIME(6), this, "");
+
+    /**
+     * The column <code>users.top_conference_candidate</code>.
+     */
+    public final TableField<UsersRecord, Boolean> TOP_CONFERENCE_CANDIDATE = createField(DSL.name("top_conference_candidate"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("FALSE"), SQLDataType.BOOLEAN)), this, "");
+
+    /**
+     * The column <code>users.avatar_color</code>.
+     */
+    public final TableField<UsersRecord, String> AVATAR_COLOR = createField(DSL.name("avatar_color"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'#0ea5e9'"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>users.created_date</code>.
@@ -184,6 +230,11 @@ public class Users extends TableImpl<UsersRecord> {
     }
 
     @Override
+    public List<Index> getIndexes() {
+        return Arrays.asList(Indexes.IDX_USERS_COMPANY, Indexes.IDX_USERS_INFLUENCE, Indexes.IDX_USERS_REGION);
+    }
+
+    @Override
     public Identity<UsersRecord, Long> getIdentity() {
         return (Identity<UsersRecord, Long>) super.getIdentity();
     }
@@ -221,6 +272,45 @@ public class Users extends TableImpl<UsersRecord> {
             _parsingEvents = new ParsingEventsPath(this, null, Keys.FK_PARSING_EVENTS_USERS_SPEAKER_ID.getInverseKey());
 
         return _parsingEvents;
+    }
+
+    private transient SpeakerAchievementsPath _speakerAchievements;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>speaker_achievements</code> table
+     */
+    public SpeakerAchievementsPath speakerAchievements() {
+        if (_speakerAchievements == null)
+            _speakerAchievements = new SpeakerAchievementsPath(this, null, Keys.FK_SPEAKER_ACHIEVEMENTS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _speakerAchievements;
+    }
+
+    private transient SpeakerCfpRecommendationsPath _speakerCfpRecommendations;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>speaker_cfp_recommendations</code> table
+     */
+    public SpeakerCfpRecommendationsPath speakerCfpRecommendations() {
+        if (_speakerCfpRecommendations == null)
+            _speakerCfpRecommendations = new SpeakerCfpRecommendationsPath(this, null, Keys.FK_SPEAKER_CFP_RECOMMENDATIONS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _speakerCfpRecommendations;
+    }
+
+    private transient SpeakerNpsHistoryPath _speakerNpsHistory;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>speaker_nps_history</code> table
+     */
+    public SpeakerNpsHistoryPath speakerNpsHistory() {
+        if (_speakerNpsHistory == null)
+            _speakerNpsHistory = new SpeakerNpsHistoryPath(this, null, Keys.FK_SPEAKER_NPS_HISTORY_USERS_SPEAKER_ID.getInverseKey());
+
+        return _speakerNpsHistory;
     }
 
     private transient SpeakerRolesPath _speakerRoles;
@@ -272,10 +362,21 @@ public class Users extends TableImpl<UsersRecord> {
         return _userRoles;
     }
 
+    /**
+     * Get the implicit many-to-many join path to the
+     * <code>cfp_recommendations</code> table
+     */
+    public CfpRecommendationsPath cfpRecommendations() {
+        return speakerCfpRecommendations().cfpRecommendations();
+    }
+
     @Override
     public List<Check<UsersRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("CONSTRAINT_6A6"), "(\"nps\" >= CAST(0 AS NUMERIC(1)))\n    AND (\"nps\" <= 10.0)", true)
+            Internal.createCheck(this, DSL.name("CONSTRAINT_6A6"), "(\"nps\" >= CAST(0 AS NUMERIC(1)))\n    AND (\"nps\" <= 10.0)", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_6A68"), "\"influence\" IN('local', 'regional', 'federal', 'international')", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_6A68E"), "(\"profile_completion\" >= 0)\n    AND (\"profile_completion\" <= 100)", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_6A68E0"), "\"audience\" >= 0", true)
         );
     }
 

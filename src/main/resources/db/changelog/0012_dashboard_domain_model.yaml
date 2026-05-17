@@ -1,0 +1,600 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0012-01
+      author: loonklage
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: region
+                  type: VARCHAR(100)
+                  defaultValue: Другие регионы
+                  constraints:
+                    nullable: false
+              - column:
+                  name: company
+                  type: VARCHAR(255)
+                  defaultValue: Unknown
+                  constraints:
+                    nullable: false
+              - column:
+                  name: influence
+                  type: VARCHAR(20)
+                  defaultValue: local
+                  constraints:
+                    nullable: false
+              - column:
+                  name: profile_completion
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: audience
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_evaluation_date
+                  type: TIMESTAMP
+              - column:
+                  name: top_conference_candidate
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: avatar_color
+                  type: VARCHAR(20)
+                  defaultValue: "#0ea5e9"
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: |
+              ALTER TABLE users ADD CONSTRAINT chk_users_influence
+                CHECK (influence IN ('local', 'regional', 'federal', 'international'));
+              ALTER TABLE users ADD CONSTRAINT chk_users_profile_completion
+                CHECK (profile_completion >= 0 AND profile_completion <= 100);
+              ALTER TABLE users ADD CONSTRAINT chk_users_audience
+                CHECK (audience >= 0);
+        - createIndex:
+            tableName: users
+            indexName: idx_users_region
+            columns:
+              - column:
+                  name: region
+        - createIndex:
+            tableName: users
+            indexName: idx_users_company
+            columns:
+              - column:
+                  name: company
+        - createIndex:
+            tableName: users
+            indexName: idx_users_influence
+            columns:
+              - column:
+                  name: influence
+
+  - changeSet:
+      id: 0012-02
+      author: loonklage
+      changes:
+        - createTable:
+            tableName: speaker_nps_history
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: speaker_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nps
+                  type: DECIMAL(3,1)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: measured_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source
+                  type: VARCHAR(50)
+                  defaultValue: manual
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: speaker_nps_history
+            baseColumnNames: speaker_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_speaker_nps_history_users_speaker_id
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE speaker_nps_history ADD CONSTRAINT chk_speaker_nps_history_nps
+                CHECK (nps >= 0 AND nps <= 10.0);
+        - createIndex:
+            tableName: speaker_nps_history
+            indexName: idx_speaker_nps_history_speaker_id
+            columns:
+              - column:
+                  name: speaker_id
+        - createIndex:
+            tableName: speaker_nps_history
+            indexName: idx_speaker_nps_history_measured_at
+            columns:
+              - column:
+                  name: measured_at
+
+  - changeSet:
+      id: 0012-03
+      author: loonklage
+      changes:
+        - createTable:
+            tableName: speaker_achievements
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: speaker_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(1024)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: current_value
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_value
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: speaker_achievements
+            baseColumnNames: speaker_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_speaker_achievements_users_speaker_id
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE speaker_achievements ADD CONSTRAINT chk_speaker_achievements_current
+                CHECK (current_value >= 0);
+              ALTER TABLE speaker_achievements ADD CONSTRAINT chk_speaker_achievements_target
+                CHECK (target_value > 0);
+        - createIndex:
+            tableName: speaker_achievements
+            indexName: idx_speaker_achievements_speaker_id
+            columns:
+              - column:
+                  name: speaker_id
+
+  - changeSet:
+      id: 0012-04
+      author: loonklage
+      changes:
+        - createTable:
+            tableName: cfp_recommendations
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: city
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: influence_level
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: topic
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deadline
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: host_company
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: url
+                  type: VARCHAR(1024)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: |
+              ALTER TABLE cfp_recommendations ADD CONSTRAINT chk_cfp_recommendations_level
+                CHECK (influence_level IN ('local', 'regional', 'federal', 'international'));
+        - createIndex:
+            tableName: cfp_recommendations
+            indexName: idx_cfp_recommendations_city
+            columns:
+              - column:
+                  name: city
+        - createIndex:
+            tableName: cfp_recommendations
+            indexName: idx_cfp_recommendations_influence_level
+            columns:
+              - column:
+                  name: influence_level
+        - createIndex:
+            tableName: cfp_recommendations
+            indexName: idx_cfp_recommendations_deadline
+            columns:
+              - column:
+                  name: deadline
+
+  - changeSet:
+      id: 0012-05
+      author: loonklage
+      changes:
+        - createTable:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column:
+                  name: recommendation_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tag
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: cfp_recommendation_tags
+            columnNames: recommendation_id, tag
+            constraintName: pk_cfp_recommendation_tags
+        - addForeignKeyConstraint:
+            baseTableName: cfp_recommendation_tags
+            baseColumnNames: recommendation_id
+            referencedTableName: cfp_recommendations
+            referencedColumnNames: id
+            constraintName: fk_cfp_recommendation_tags_recommendation_id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: cfp_recommendation_tags
+            indexName: idx_cfp_recommendation_tags_tag
+            columns:
+              - column:
+                  name: tag
+
+  - changeSet:
+      id: 0012-06
+      author: loonklage
+      changes:
+        - createTable:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: speaker_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: recommendation_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: match_score
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: speaker_cfp_recommendations
+            baseColumnNames: speaker_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_speaker_cfp_recommendations_users_speaker_id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: speaker_cfp_recommendations
+            baseColumnNames: recommendation_id
+            referencedTableName: cfp_recommendations
+            referencedColumnNames: id
+            constraintName: fk_speaker_cfp_recommendations_recommendation_id
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE speaker_cfp_recommendations ADD CONSTRAINT chk_speaker_cfp_recommendations_match_score
+                CHECK (match_score >= 0 AND match_score <= 100);
+        - addUniqueConstraint:
+            tableName: speaker_cfp_recommendations
+            columnNames: speaker_id, recommendation_id
+            constraintName: uq_speaker_cfp_recommendations_pair
+        - createIndex:
+            tableName: speaker_cfp_recommendations
+            indexName: idx_speaker_cfp_recommendations_speaker_id
+            columns:
+              - column:
+                  name: speaker_id
+        - createIndex:
+            tableName: speaker_cfp_recommendations
+            indexName: idx_speaker_cfp_recommendations_match_score
+            columns:
+              - column:
+                  name: match_score
+
+  - changeSet:
+      id: 0012-07
+      author: loonklage
+      changes:
+        - update:
+            tableName: users
+            columns:
+              - column: {name: region, value: Москва}
+              - column: {name: company, value: Aurora Tech}
+              - column: {name: influence, value: federal}
+              - column: {name: profile_completion, valueNumeric: 92}
+              - column: {name: audience, valueNumeric: 540}
+              - column: {name: top_conference_candidate, valueBoolean: true}
+              - column: {name: avatar_color, value: "#0ea5e9"}
+              - column: {name: last_evaluation_date, valueDate: "2025-12-20T12:00:00"}
+            where: id = 1
+        - update:
+            tableName: users
+            columns:
+              - column: {name: region, value: Санкт-Петербург}
+              - column: {name: company, value: Borealis Cloud}
+              - column: {name: influence, value: regional}
+              - column: {name: profile_completion, valueNumeric: 78}
+              - column: {name: audience, valueNumeric: 380}
+              - column: {name: top_conference_candidate, valueBoolean: false}
+              - column: {name: avatar_color, value: "#22c55e"}
+              - column: {name: last_evaluation_date, valueDate: "2025-09-14T18:00:00"}
+            where: id = 2
+        - update:
+            tableName: users
+            columns:
+              - column: {name: region, value: Казань}
+              - column: {name: company, value: Delta Data}
+              - column: {name: influence, value: international}
+              - column: {name: profile_completion, valueNumeric: 65}
+              - column: {name: audience, valueNumeric: 720}
+              - column: {name: top_conference_candidate, valueBoolean: true}
+              - column: {name: avatar_color, value: "#a855f7"}
+              - column: {name: last_evaluation_date, valueDate: "2025-05-21T09:30:00"}
+            where: id = 3
+
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: nps, valueNumeric: 7.9}
+              - column: {name: measured_at, valueDate: "2025-02-01T00:00:00"}
+              - column: {name: source, value: survey}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: nps, valueNumeric: 8.5}
+              - column: {name: measured_at, valueDate: "2025-12-20T00:00:00"}
+              - column: {name: source, value: survey}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: nps, valueNumeric: 7.8}
+              - column: {name: measured_at, valueDate: "2025-01-15T00:00:00"}
+              - column: {name: source, value: survey}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: nps, valueNumeric: 7.3}
+              - column: {name: measured_at, valueDate: "2025-09-14T00:00:00"}
+              - column: {name: source, value: survey}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: nps, valueNumeric: 8.4}
+              - column: {name: measured_at, valueDate: "2025-03-10T00:00:00"}
+              - column: {name: source, value: survey}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: nps, valueNumeric: 9.1}
+              - column: {name: measured_at, valueDate: "2025-11-27T00:00:00"}
+              - column: {name: source, value: survey}
+
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 72a0fa32-5555-4f15-9ca0-06d9981380a1}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: title, value: Публичные выступления}
+              - column: {name: description, value: Провести не менее 12 публичных выступлений за год}
+              - column: {name: current_value, valueNumeric: 10}
+              - column: {name: target_value, valueNumeric: 12}
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 72a0fa32-5555-4f15-9ca0-06d9981380a2}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: title, value: Средний NPS}
+              - column: {name: description, value: Достичь среднего NPS 85+}
+              - column: {name: current_value, valueNumeric: 85}
+              - column: {name: target_value, valueNumeric: 85}
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 72a0fa32-5555-4f15-9ca0-06d9981380a3}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: title, value: Выступления на конференциях}
+              - column: {name: description, value: Набрать 6 выступлений на конференциях в год}
+              - column: {name: current_value, valueNumeric: 4}
+              - column: {name: target_value, valueNumeric: 6}
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 72a0fa32-5555-4f15-9ca0-06d9981380a4}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: title, value: Международный трек}
+              - column: {name: description, value: Получить 3 международных слота}
+              - column: {name: current_value, valueNumeric: 2}
+              - column: {name: target_value, valueNumeric: 3}
+
+        - insert:
+            tableName: cfp_recommendations
+            columns:
+              - column: {name: id, value: 9cf5db65-1111-4cf4-85fb-e9efad329301}
+              - column: {name: title, value: Java Summit 2026}
+              - column: {name: city, value: Москва}
+              - column: {name: influence_level, value: federal}
+              - column: {name: topic, value: Modern Java}
+              - column: {name: deadline, valueDate: "2026-06-30"}
+              - column: {name: host_company, value: JVM Russia}
+              - column: {name: url, value: "https://example.org/cfp/java-summit-2026"}
+              - column: {name: active, valueBoolean: true}
+        - insert:
+            tableName: cfp_recommendations
+            columns:
+              - column: {name: id, value: 9cf5db65-1111-4cf4-85fb-e9efad329302}
+              - column: {name: title, value: CloudConf North}
+              - column: {name: city, value: Санкт-Петербург}
+              - column: {name: influence_level, value: regional}
+              - column: {name: topic, value: Cloud Native}
+              - column: {name: deadline, valueDate: "2026-07-10"}
+              - column: {name: host_company, value: North Tech}
+              - column: {name: url, value: "https://example.org/cfp/cloudconf-north"}
+              - column: {name: active, valueBoolean: true}
+        - insert:
+            tableName: cfp_recommendations
+            columns:
+              - column: {name: id, value: 9cf5db65-1111-4cf4-85fb-e9efad329303}
+              - column: {name: title, value: International Architecture Days}
+              - column: {name: city, value: Берлин}
+              - column: {name: influence_level, value: international}
+              - column: {name: topic, value: Architecture}
+              - column: {name: deadline, valueDate: "2026-08-20"}
+              - column: {name: host_company, value: Arch Group}
+              - column: {name: url, value: "https://example.org/cfp/iad-2026"}
+              - column: {name: active, valueBoolean: true}
+
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329301}
+              - column: {name: tag, value: java}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329301}
+              - column: {name: tag, value: spring}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329302}
+              - column: {name: tag, value: cloud}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329303}
+              - column: {name: tag, value: architecture}
+
+        - insert:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329301}
+              - column: {name: match_score, valueNumeric: 94}
+        - insert:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329303}
+              - column: {name: match_score, valueNumeric: 88}
+        - insert:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329302}
+              - column: {name: match_score, valueNumeric: 86}
+        - insert:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: recommendation_id, value: 9cf5db65-1111-4cf4-85fb-e9efad329303}
+              - column: {name: match_score, valueNumeric: 91}

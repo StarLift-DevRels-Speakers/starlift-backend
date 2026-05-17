@@ -36,6 +36,17 @@ public class TalkRepository {
                 .fetch();
     }
 
+    public List<TalksRecord> findBySpeakerIds(List<Long> speakerIds) {
+        if (speakerIds == null || speakerIds.isEmpty()) {
+            return List.of();
+        }
+
+        return dsl.selectFrom(Talks.TALKS)
+                .where(Talks.TALKS.SPEAKER_ID.in(speakerIds))
+                .orderBy(Talks.TALKS.SPEAKER_ID.asc(), Talks.TALKS.TALK_DATE.desc())
+                .fetch();
+    }
+
     public List<TalksRecord> findByConferenceType(String conferenceType) {
         return dsl.selectFrom(Talks.TALKS)
                 .where(Talks.TALKS.CONFERENCE_TYPE.eq(conferenceType))

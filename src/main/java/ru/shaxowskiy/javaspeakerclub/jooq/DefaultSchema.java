@@ -12,8 +12,13 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
@@ -35,6 +40,16 @@ public class DefaultSchema extends SchemaImpl {
     public static final DefaultSchema DEFAULT_SCHEMA = new DefaultSchema();
 
     /**
+     * The table <code>cfp_recommendation_tags</code>.
+     */
+    public final CfpRecommendationTags CFP_RECOMMENDATION_TAGS = CfpRecommendationTags.CFP_RECOMMENDATION_TAGS;
+
+    /**
+     * The table <code>cfp_recommendations</code>.
+     */
+    public final CfpRecommendations CFP_RECOMMENDATIONS = CfpRecommendations.CFP_RECOMMENDATIONS;
+
+    /**
      * The table <code>lectures</code>.
      */
     public final Lectures LECTURES = Lectures.LECTURES;
@@ -43,6 +58,21 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>parsing_events</code>.
      */
     public final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
+
+    /**
+     * The table <code>speaker_achievements</code>.
+     */
+    public final SpeakerAchievements SPEAKER_ACHIEVEMENTS = SpeakerAchievements.SPEAKER_ACHIEVEMENTS;
+
+    /**
+     * The table <code>speaker_cfp_recommendations</code>.
+     */
+    public final SpeakerCfpRecommendations SPEAKER_CFP_RECOMMENDATIONS = SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS;
+
+    /**
+     * The table <code>speaker_nps_history</code>.
+     */
+    public final SpeakerNpsHistory SPEAKER_NPS_HISTORY = SpeakerNpsHistory.SPEAKER_NPS_HISTORY;
 
     /**
      * The table <code>speaker_roles</code>.
@@ -85,8 +115,13 @@ public class DefaultSchema extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            CfpRecommendationTags.CFP_RECOMMENDATION_TAGS,
+            CfpRecommendations.CFP_RECOMMENDATIONS,
             Lectures.LECTURES,
             ParsingEvents.PARSING_EVENTS,
+            SpeakerAchievements.SPEAKER_ACHIEVEMENTS,
+            SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS,
+            SpeakerNpsHistory.SPEAKER_NPS_HISTORY,
             SpeakerRoles.SPEAKER_ROLES,
             Talks.TALKS,
             UserMedia.USER_MEDIA,

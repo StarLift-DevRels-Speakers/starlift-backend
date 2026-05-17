@@ -4,8 +4,13 @@
 package ru.shaxowskiy.javaspeakerclub.jooq;
 
 
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
@@ -20,6 +25,16 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 public class Tables {
 
     /**
+     * The table <code>cfp_recommendation_tags</code>.
+     */
+    public static final CfpRecommendationTags CFP_RECOMMENDATION_TAGS = CfpRecommendationTags.CFP_RECOMMENDATION_TAGS;
+
+    /**
+     * The table <code>cfp_recommendations</code>.
+     */
+    public static final CfpRecommendations CFP_RECOMMENDATIONS = CfpRecommendations.CFP_RECOMMENDATIONS;
+
+    /**
      * The table <code>lectures</code>.
      */
     public static final Lectures LECTURES = Lectures.LECTURES;
@@ -28,6 +43,21 @@ public class Tables {
      * The table <code>parsing_events</code>.
      */
     public static final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
+
+    /**
+     * The table <code>speaker_achievements</code>.
+     */
+    public static final SpeakerAchievements SPEAKER_ACHIEVEMENTS = SpeakerAchievements.SPEAKER_ACHIEVEMENTS;
+
+    /**
+     * The table <code>speaker_cfp_recommendations</code>.
+     */
+    public static final SpeakerCfpRecommendations SPEAKER_CFP_RECOMMENDATIONS = SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS;
+
+    /**
+     * The table <code>speaker_nps_history</code>.
+     */
+    public static final SpeakerNpsHistory SPEAKER_NPS_HISTORY = SpeakerNpsHistory.SPEAKER_NPS_HISTORY;
 
     /**
      * The table <code>speaker_roles</code>.
