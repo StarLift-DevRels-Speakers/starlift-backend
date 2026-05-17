@@ -21,3 +21,7 @@ databaseChangeLog:
       file: db/changelog/0010_add_users_avatar_media_key.yaml
   - include:
       file: db/changelog/0011_create_parsing_events_table.yaml
+  - include:
+      file: db/changelog/0012_dashboard_domain_model.yaml
+  - include:
+      file: db/changelog/0013_dashboard_fake_seed.yaml

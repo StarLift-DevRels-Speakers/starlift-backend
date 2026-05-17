@@ -9,12 +9,18 @@ import org.jooq.OrderField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 
 
 /**
@@ -27,14 +33,26 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index IDX_CFP_RECOMMENDATION_TAGS_TAG = Internal.createIndex(DSL.name("idx_cfp_recommendation_tags_tag"), CfpRecommendationTags.CFP_RECOMMENDATION_TAGS, new OrderField[] { CfpRecommendationTags.CFP_RECOMMENDATION_TAGS.TAG }, false);
+    public static final Index IDX_CFP_RECOMMENDATIONS_CITY = Internal.createIndex(DSL.name("idx_cfp_recommendations_city"), CfpRecommendations.CFP_RECOMMENDATIONS, new OrderField[] { CfpRecommendations.CFP_RECOMMENDATIONS.CITY }, false);
+    public static final Index IDX_CFP_RECOMMENDATIONS_DEADLINE = Internal.createIndex(DSL.name("idx_cfp_recommendations_deadline"), CfpRecommendations.CFP_RECOMMENDATIONS, new OrderField[] { CfpRecommendations.CFP_RECOMMENDATIONS.DEADLINE }, false);
+    public static final Index IDX_CFP_RECOMMENDATIONS_INFLUENCE_LEVEL = Internal.createIndex(DSL.name("idx_cfp_recommendations_influence_level"), CfpRecommendations.CFP_RECOMMENDATIONS, new OrderField[] { CfpRecommendations.CFP_RECOMMENDATIONS.INFLUENCE_LEVEL }, false);
     public static final Index IDX_LECTURES_SPEAKER_ID = Internal.createIndex(DSL.name("idx_lectures_speaker_id"), Lectures.LECTURES, new OrderField[] { Lectures.LECTURES.SPEAKER_ID }, false);
     public static final Index IDX_LECTURES_TALK_ID = Internal.createIndex(DSL.name("idx_lectures_talk_id"), Lectures.LECTURES, new OrderField[] { Lectures.LECTURES.TALK_ID }, false);
     public static final Index IDX_PARSING_EVENTS_DEDUP = Internal.createIndex(DSL.name("idx_parsing_events_dedup"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.DEDUP_KEY }, true);
     public static final Index IDX_PARSING_EVENTS_EVENT_DATE = Internal.createIndex(DSL.name("idx_parsing_events_event_date"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.EVENT_DATE }, false);
     public static final Index IDX_PARSING_EVENTS_STATUS = Internal.createIndex(DSL.name("idx_parsing_events_status"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.STATUS }, false);
+    public static final Index IDX_SPEAKER_ACHIEVEMENTS_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_achievements_speaker_id"), SpeakerAchievements.SPEAKER_ACHIEVEMENTS, new OrderField[] { SpeakerAchievements.SPEAKER_ACHIEVEMENTS.SPEAKER_ID }, false);
+    public static final Index IDX_SPEAKER_CFP_RECOMMENDATIONS_MATCH_SCORE = Internal.createIndex(DSL.name("idx_speaker_cfp_recommendations_match_score"), SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, new OrderField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.MATCH_SCORE }, false);
+    public static final Index IDX_SPEAKER_CFP_RECOMMENDATIONS_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_cfp_recommendations_speaker_id"), SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, new OrderField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.SPEAKER_ID }, false);
+    public static final Index IDX_SPEAKER_NPS_HISTORY_MEASURED_AT = Internal.createIndex(DSL.name("idx_speaker_nps_history_measured_at"), SpeakerNpsHistory.SPEAKER_NPS_HISTORY, new OrderField[] { SpeakerNpsHistory.SPEAKER_NPS_HISTORY.MEASURED_AT }, false);
+    public static final Index IDX_SPEAKER_NPS_HISTORY_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_nps_history_speaker_id"), SpeakerNpsHistory.SPEAKER_NPS_HISTORY, new OrderField[] { SpeakerNpsHistory.SPEAKER_NPS_HISTORY.SPEAKER_ID }, false);
     public static final Index IDX_SPEAKER_ROLES_NAME = Internal.createIndex(DSL.name("idx_speaker_roles_name"), SpeakerRoles.SPEAKER_ROLES, new OrderField[] { SpeakerRoles.SPEAKER_ROLES.NAME }, false);
     public static final Index IDX_SPEAKER_ROLES_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_roles_speaker_id"), SpeakerRoles.SPEAKER_ROLES, new OrderField[] { SpeakerRoles.SPEAKER_ROLES.SPEAKER_ID }, false);
     public static final Index IDX_TALKS_SPEAKER_ID = Internal.createIndex(DSL.name("idx_talks_speaker_id"), Talks.TALKS, new OrderField[] { Talks.TALKS.SPEAKER_ID }, false);
     public static final Index IDX_USER_MEDIA_USER_ID = Internal.createIndex(DSL.name("idx_user_media_user_id"), UserMedia.USER_MEDIA, new OrderField[] { UserMedia.USER_MEDIA.USER_ID }, false);
     public static final Index IDX_USER_ROLES_USER_ID = Internal.createIndex(DSL.name("idx_user_roles_user_id"), UserRoles.USER_ROLES, new OrderField[] { UserRoles.USER_ROLES.USER_ID }, false);
+    public static final Index IDX_USERS_COMPANY = Internal.createIndex(DSL.name("idx_users_company"), Users.USERS, new OrderField[] { Users.USERS.COMPANY }, false);
+    public static final Index IDX_USERS_INFLUENCE = Internal.createIndex(DSL.name("idx_users_influence"), Users.USERS, new OrderField[] { Users.USERS.INFLUENCE }, false);
+    public static final Index IDX_USERS_REGION = Internal.createIndex(DSL.name("idx_users_region"), Users.USERS, new OrderField[] { Users.USERS.REGION }, false);
 }
