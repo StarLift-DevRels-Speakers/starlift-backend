@@ -12,6 +12,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
@@ -63,6 +64,11 @@ public class Tables {
      * The table <code>speaker_roles</code>.
      */
     public static final SpeakerRoles SPEAKER_ROLES = SpeakerRoles.SPEAKER_ROLES;
+
+    /**
+     * The table <code>talk_feedback</code>.
+     */
+    public static final TalkFeedback TALK_FEEDBACK = TalkFeedback.TALK_FEEDBACK;
 
     /**
      * The table <code>talks</code>.

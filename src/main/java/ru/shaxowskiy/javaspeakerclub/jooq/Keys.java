@@ -19,6 +19,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
@@ -31,6 +32,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerAchievementsReco
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerCfpRecommendationsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerNpsHistoryRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerRolesRecord;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalkFeedbackRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserMediaRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserRolesRecord;
@@ -57,6 +59,7 @@ public class Keys {
     public static final UniqueKey<SpeakerCfpRecommendationsRecord> UQ_SPEAKER_CFP_RECOMMENDATIONS_PAIR = Internal.createUniqueKey(SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, DSL.name("uq_speaker_cfp_recommendations_pair"), new TableField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.SPEAKER_ID, SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.RECOMMENDATION_ID }, true);
     public static final UniqueKey<SpeakerNpsHistoryRecord> CONSTRAINT_A = Internal.createUniqueKey(SpeakerNpsHistory.SPEAKER_NPS_HISTORY, DSL.name("CONSTRAINT_A"), new TableField[] { SpeakerNpsHistory.SPEAKER_NPS_HISTORY.ID }, true);
     public static final UniqueKey<SpeakerRolesRecord> CONSTRAINT_F = Internal.createUniqueKey(SpeakerRoles.SPEAKER_ROLES, DSL.name("CONSTRAINT_F"), new TableField[] { SpeakerRoles.SPEAKER_ROLES.ID }, true);
+    public static final UniqueKey<TalkFeedbackRecord> CONSTRAINT_E = Internal.createUniqueKey(TalkFeedback.TALK_FEEDBACK, DSL.name("CONSTRAINT_E"), new TableField[] { TalkFeedback.TALK_FEEDBACK.ID }, true);
     public static final UniqueKey<TalksRecord> CONSTRAINT_69 = Internal.createUniqueKey(Talks.TALKS, DSL.name("CONSTRAINT_69"), new TableField[] { Talks.TALKS.ID }, true);
     public static final UniqueKey<UserMediaRecord> CONSTRAINT_72 = Internal.createUniqueKey(UserMedia.USER_MEDIA, DSL.name("CONSTRAINT_72"), new TableField[] { UserMedia.USER_MEDIA.ID }, true);
     public static final UniqueKey<UserMediaRecord> CONSTRAINT_72F = Internal.createUniqueKey(UserMedia.USER_MEDIA, DSL.name("CONSTRAINT_72F"), new TableField[] { UserMedia.USER_MEDIA.MEDIA_MINIO_KEY }, true);
@@ -78,6 +81,7 @@ public class Keys {
     public static final ForeignKey<SpeakerCfpRecommendationsRecord, UsersRecord> FK_SPEAKER_CFP_RECOMMENDATIONS_USERS_SPEAKER_ID = Internal.createForeignKey(SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, DSL.name("fk_speaker_cfp_recommendations_users_speaker_id"), new TableField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<SpeakerNpsHistoryRecord, UsersRecord> FK_SPEAKER_NPS_HISTORY_USERS_SPEAKER_ID = Internal.createForeignKey(SpeakerNpsHistory.SPEAKER_NPS_HISTORY, DSL.name("fk_speaker_nps_history_users_speaker_id"), new TableField[] { SpeakerNpsHistory.SPEAKER_NPS_HISTORY.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<SpeakerRolesRecord, UsersRecord> FK_SPEAKER_ROLES_USERS_SPEAKER_ID = Internal.createForeignKey(SpeakerRoles.SPEAKER_ROLES, DSL.name("fk_speaker_roles_users_speaker_id"), new TableField[] { SpeakerRoles.SPEAKER_ROLES.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<TalkFeedbackRecord, TalksRecord> FK_TALK_FEEDBACK_TALKS_TALK_ID = Internal.createForeignKey(TalkFeedback.TALK_FEEDBACK, DSL.name("fk_talk_feedback_talks_talk_id"), new TableField[] { TalkFeedback.TALK_FEEDBACK.TALK_ID }, Keys.CONSTRAINT_69, new TableField[] { Talks.TALKS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<TalksRecord, UsersRecord> FK_TALKS_USERS_SPEAKER_ID = Internal.createForeignKey(Talks.TALKS, DSL.name("fk_talks_users_speaker_id"), new TableField[] { Talks.TALKS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<UserMediaRecord, UsersRecord> FK_USER_MEDIA_USERS_USER_ID = Internal.createForeignKey(UserMedia.USER_MEDIA, DSL.name("fk_user_media_users_user_id"), new TableField[] { UserMedia.USER_MEDIA.USER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<UserRolesRecord, UsersRecord> FK_USER_ROLES_USERS_USER_ID = Internal.createForeignKey(UserRoles.USER_ROLES, DSL.name("fk_user_roles_users_user_id"), new TableField[] { UserRoles.USER_ROLES.USER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);

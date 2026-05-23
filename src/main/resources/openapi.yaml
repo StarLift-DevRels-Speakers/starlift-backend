@@ -15,6 +15,8 @@ tags:
     description: Профиль текущего пользователя
   - name: Talks
     description: Управление докладами
+  - name: TalkFeedback
+    description: Обратная связь по докладам
   - name: Lectures
     description: Управление лекциями
   - name: Roles
@@ -343,6 +345,83 @@ paths:
           description: Доклад удалён
         '404':
           description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{talkId}/feedback:
+    get:
+      tags: [TalkFeedback]
+      summary: Список обратной связи по докладу
+      operationId: findTalkFeedbackByTalkId
+      parameters:
+        - $ref: '#/components/parameters/TalkPathTalkId'
+      responses:
+        '200':
+          description: Список обратной связи
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TalkFeedbackResponse'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags: [TalkFeedback]
+      summary: Добавить обратную связь по докладу
+      operationId: createTalkFeedback
+      parameters:
+        - $ref: '#/components/parameters/TalkPathTalkId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkFeedbackCreateRequest'
+      responses:
+        '201':
+          description: Обратная связь создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkFeedbackResponse'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{talkId}/feedback/{id}:
+    get:
+      tags: [TalkFeedback]
+      summary: Получить обратную связь по ID в рамках доклада
+      operationId: findTalkFeedbackById
+      parameters:
+        - $ref: '#/components/parameters/TalkPathTalkId'
+        - $ref: '#/components/parameters/TalkFeedbackId'
+      responses:
+        '200':
+          description: Обратная связь найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkFeedbackResponse'
+        '404':
+          description: Доклад или обратная связь не найдены
           content:
             application/json:
               schema:
@@ -1316,6 +1395,22 @@ components:
         type: string
         format: uuid
 
+    TalkPathTalkId:
+      name: talkId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    TalkFeedbackId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     LectureId:
       name: id
       in: path
@@ -1645,6 +1740,49 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LectureResponse'
+
+    TalkFeedbackCreateRequest:
+      type: object
+      required: [rating, positive, negative, improvementSuggestions]
+      properties:
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+          example: 8
+        positive:
+          type: string
+          example: Хорошая структура и понятные примеры
+        negative:
+          type: string
+          example: Мало времени на вопросы
+        improvementSuggestions:
+          type: string
+          example: Добавить больше практических кейсов
+
+    TalkFeedbackResponse:
+      type: object
+      required: [id, talkId, rating, positive, negative, improvementSuggestions, createdDate]
+      properties:
+        id:
+          type: string
+          format: uuid
+        talkId:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+        positive:
+          type: string
+        negative:
+          type: string
+        improvementSuggestions:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
 
     # ── Lectures ────────────────────────────────────────────────────
 

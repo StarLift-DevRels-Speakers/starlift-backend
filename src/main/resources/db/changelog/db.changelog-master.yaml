@@ -25,3 +25,5 @@ databaseChangeLog:
       file: db/changelog/0012_dashboard_domain_model.yaml
   - include:
       file: db/changelog/0013_dashboard_fake_seed.yaml
+  - include:
+      file: db/changelog/0014_create_talk_feedback_table.yaml

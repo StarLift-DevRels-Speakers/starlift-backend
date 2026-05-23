@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
         }
         String encodedPassword = passwordEncoder.encode(password);
         UsersRecord record = userRepository.save(username, encodedPassword, firstName, lastName, surName);
-        userRoleRepository.assignRole(record.getId(), AppRole.USER);
+        userRoleRepository.assignRole(record.getId(), AppRole.SPEAKER);
         return mapToUser(record);
     }
 

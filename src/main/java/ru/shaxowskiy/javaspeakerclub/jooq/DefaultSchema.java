@@ -20,6 +20,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
@@ -80,6 +81,11 @@ public class DefaultSchema extends SchemaImpl {
     public final SpeakerRoles SPEAKER_ROLES = SpeakerRoles.SPEAKER_ROLES;
 
     /**
+     * The table <code>talk_feedback</code>.
+     */
+    public final TalkFeedback TALK_FEEDBACK = TalkFeedback.TALK_FEEDBACK;
+
+    /**
      * The table <code>talks</code>.
      */
     public final Talks TALKS = Talks.TALKS;
@@ -123,6 +129,7 @@ public class DefaultSchema extends SchemaImpl {
             SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS,
             SpeakerNpsHistory.SPEAKER_NPS_HISTORY,
             SpeakerRoles.SPEAKER_ROLES,
+            TalkFeedback.TALK_FEEDBACK,
             Talks.TALKS,
             UserMedia.USER_MEDIA,
             UserRoles.USER_ROLES,

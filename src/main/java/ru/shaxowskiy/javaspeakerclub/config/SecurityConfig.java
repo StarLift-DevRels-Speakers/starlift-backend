@@ -42,6 +42,8 @@ public class SecurityConfig {
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/**/home", "/**/sign-on", "/**/sign-in", "/health", "/api/auth/**", "/api/parsing/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/talks/*/feedback", "/api/talks/*/feedback/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/talks/*/feedback").permitAll()
 
                 .requestMatchers(HttpMethod.GET,
                         "/api/talks/**",
