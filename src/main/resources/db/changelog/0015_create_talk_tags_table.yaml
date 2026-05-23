@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0015-01
+      author: loonklage
+      changes:
+        - createTable:
+            tableName: talk_tags
+            columns:
+              - column:
+                  name: talk_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tag
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: talk_tags
+            columnNames: talk_id, tag
+            constraintName: pk_talk_tags
+        - addForeignKeyConstraint:
+            baseTableName: talk_tags
+            baseColumnNames: talk_id
+            referencedTableName: talks
+            referencedColumnNames: id
+            constraintName: fk_talk_tags_talk_id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: talk_tags
+            indexName: idx_talk_tags_tag
+            columns:
+              - column:
+                  name: tag

@@ -37,6 +37,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures.LecturesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback.TalkFeedbackPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkTags.TalkTagsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users.UsersPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 
@@ -224,6 +225,18 @@ public class Talks extends TableImpl<TalksRecord> {
             _talkFeedback = new TalkFeedbackPath(this, null, Keys.FK_TALK_FEEDBACK_TALKS_TALK_ID.getInverseKey());
 
         return _talkFeedback;
+    }
+
+    private transient TalkTagsPath _talkTags;
+
+    /**
+     * Get the implicit to-many join path to the <code>talk_tags</code> table
+     */
+    public TalkTagsPath talkTags() {
+        if (_talkTags == null)
+            _talkTags = new TalkTagsPath(this, null, Keys.FK_TALK_TAGS_TALK_ID.getInverseKey());
+
+        return _talkTags;
     }
 
     @Override

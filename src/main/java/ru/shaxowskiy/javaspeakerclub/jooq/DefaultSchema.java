@@ -21,6 +21,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags;
@@ -87,6 +88,11 @@ public class DefaultSchema extends SchemaImpl {
     public final TalkFeedback TALK_FEEDBACK = TalkFeedback.TALK_FEEDBACK;
 
     /**
+     * The table <code>talk_tags</code>.
+     */
+    public final TalkTags TALK_TAGS = TalkTags.TALK_TAGS;
+
+    /**
      * The table <code>talks</code>.
      */
     public final Talks TALKS = Talks.TALKS;
@@ -136,6 +142,7 @@ public class DefaultSchema extends SchemaImpl {
             SpeakerNpsHistory.SPEAKER_NPS_HISTORY,
             SpeakerRoles.SPEAKER_ROLES,
             TalkFeedback.TALK_FEEDBACK,
+            TalkTags.TALK_TAGS,
             Talks.TALKS,
             UserMedia.USER_MEDIA,
             UserProfileTags.USER_PROFILE_TAGS,

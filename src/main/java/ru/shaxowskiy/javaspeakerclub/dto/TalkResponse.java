@@ -18,5 +18,6 @@ public record TalkResponse(
         String activityName,
         LocalDateTime activityDate,
         LocalDateTime createdDate,
+        List<String> tags,
         List<LectureResponse> lectures
 ) {}

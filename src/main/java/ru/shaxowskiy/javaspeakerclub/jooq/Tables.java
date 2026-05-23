@@ -13,6 +13,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags;
@@ -70,6 +71,11 @@ public class Tables {
      * The table <code>talk_feedback</code>.
      */
     public static final TalkFeedback TALK_FEEDBACK = TalkFeedback.TALK_FEEDBACK;
+
+    /**
+     * The table <code>talk_tags</code>.
+     */
+    public static final TalkTags TALK_TAGS = TalkTags.TALK_TAGS;
 
     /**
      * The table <code>talks</code>.

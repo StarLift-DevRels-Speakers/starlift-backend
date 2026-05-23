@@ -60,6 +60,16 @@ CREATE TABLE talks (
 
 CREATE INDEX idx_talks_speaker_id ON talks (speaker_id);
 
+CREATE TABLE talk_tags (
+  talk_id UUID NOT NULL,
+  tag VARCHAR(120) NOT NULL,
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_talk_tags PRIMARY KEY (talk_id, tag),
+  CONSTRAINT fk_talk_tags_talk_id FOREIGN KEY (talk_id) REFERENCES talks(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_talk_tags_tag ON talk_tags (tag);
+
 CREATE TABLE lectures (
   id UUID PRIMARY KEY,
   title VARCHAR(500) NOT NULL,

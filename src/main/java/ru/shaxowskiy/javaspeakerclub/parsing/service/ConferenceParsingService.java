@@ -210,7 +210,8 @@ public class ConferenceParsingService {
                 "CONFERENCE",
                 "OFFLINE",
                 event.getConference(),
-                eventDateTime
+                eventDateTime,
+                null
         ));
     }
 

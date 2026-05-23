@@ -18,6 +18,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags;
@@ -52,6 +53,7 @@ public class Indexes {
     public static final Index IDX_SPEAKER_ROLES_NAME = Internal.createIndex(DSL.name("idx_speaker_roles_name"), SpeakerRoles.SPEAKER_ROLES, new OrderField[] { SpeakerRoles.SPEAKER_ROLES.NAME }, false);
     public static final Index IDX_SPEAKER_ROLES_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_roles_speaker_id"), SpeakerRoles.SPEAKER_ROLES, new OrderField[] { SpeakerRoles.SPEAKER_ROLES.SPEAKER_ID }, false);
     public static final Index IDX_TALK_FEEDBACK_TALK_ID = Internal.createIndex(DSL.name("idx_talk_feedback_talk_id"), TalkFeedback.TALK_FEEDBACK, new OrderField[] { TalkFeedback.TALK_FEEDBACK.TALK_ID }, false);
+    public static final Index IDX_TALK_TAGS_TAG = Internal.createIndex(DSL.name("idx_talk_tags_tag"), TalkTags.TALK_TAGS, new OrderField[] { TalkTags.TALK_TAGS.TAG }, false);
     public static final Index IDX_TALKS_SPEAKER_ID = Internal.createIndex(DSL.name("idx_talks_speaker_id"), Talks.TALKS, new OrderField[] { Talks.TALKS.SPEAKER_ID }, false);
     public static final Index IDX_USER_MEDIA_USER_ID = Internal.createIndex(DSL.name("idx_user_media_user_id"), UserMedia.USER_MEDIA, new OrderField[] { UserMedia.USER_MEDIA.USER_ID }, false);
     public static final Index IDX_USER_PROFILE_TAGS_TAG = Internal.createIndex(DSL.name("idx_user_profile_tags_tag"), UserProfileTags.USER_PROFILE_TAGS, new OrderField[] { UserProfileTags.USER_PROFILE_TAGS.TAG }, false);

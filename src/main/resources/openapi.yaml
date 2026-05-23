@@ -334,6 +334,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+    patch:
+      tags: [Talks]
+      summary: Частично обновить доклад
+      operationId: patchTalk
+      parameters:
+        - $ref: '#/components/parameters/TalkId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkUpdateRequest'
+      responses:
+        '200':
+          description: Доклад обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkResponse'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
     delete:
       tags: [Talks]
       summary: Удалить доклад
@@ -343,6 +369,59 @@ paths:
       responses:
         '204':
           description: Доклад удалён
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{id}/tags:
+    post:
+      tags: [Talks]
+      summary: Добавить теги докладу
+      operationId: addTalkTags
+      parameters:
+        - $ref: '#/components/parameters/TalkId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkTagsAddRequest'
+      responses:
+        '200':
+          description: Доклад обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkResponse'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{id}/tags/{tag}:
+    delete:
+      tags: [Talks]
+      summary: Удалить тег доклада
+      operationId: deleteTalkTag
+      parameters:
+        - $ref: '#/components/parameters/TalkId'
+        - name: tag
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Доклад обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkResponse'
         '404':
           description: Доклад не найден
           content:
@@ -1711,6 +1790,10 @@ components:
         activityDate:
           type: string
           format: date-time
+        tags:
+          type: array
+          items:
+            type: string
 
     TalkUpdateRequest:
       type: object
@@ -1729,6 +1812,19 @@ components:
         activityDate:
           type: string
           format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+
+    TalkTagsAddRequest:
+      type: object
+      required: [tags]
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
 
     TalkResponse:
       type: object
@@ -1767,6 +1863,10 @@ components:
         createdDate:
           type: string
           format: date-time
+        tags:
+          type: array
+          items:
+            type: string
         lectures:
           type: array
           items:
