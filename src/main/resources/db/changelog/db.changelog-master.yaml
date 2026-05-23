@@ -27,3 +27,5 @@ databaseChangeLog:
       file: db/changelog/0013_dashboard_fake_seed.yaml
   - include:
       file: db/changelog/0014_create_talk_feedback_table.yaml
+  - include:
+      file: db/changelog/0015_add_profile_about_company_role_and_tags.yaml

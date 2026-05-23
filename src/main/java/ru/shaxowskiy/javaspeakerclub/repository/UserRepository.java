@@ -86,12 +86,18 @@ public class UserRepository {
             String firstName,
             String lastName,
             String surName,
+            String about,
+            String company,
+            String companyRole,
             String avatarMediaKey
     ) {
         int updated = dsl.update(Users.USERS)
                 .set(Users.USERS.FIRST_NAME, firstName)
                 .set(Users.USERS.LAST_NAME, lastName)
                 .set(Users.USERS.SUR_NAME, surName)
+                .set(Users.USERS.ABOUT, about)
+                .set(Users.USERS.COMPANY, company)
+                .set(Users.USERS.COMPANY_ROLE, companyRole)
                 .set(Users.USERS.AVATAR_MEDIA_KEY, avatarMediaKey)
                 .where(Users.USERS.ID.eq(id))
                 .execute();

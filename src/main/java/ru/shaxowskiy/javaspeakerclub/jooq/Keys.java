@@ -22,6 +22,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.CfpRecommendationTagsRecord;
@@ -35,6 +36,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerRolesRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalkFeedbackRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserMediaRecord;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserProfileTagsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserRolesRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 
@@ -63,6 +65,7 @@ public class Keys {
     public static final UniqueKey<TalksRecord> CONSTRAINT_69 = Internal.createUniqueKey(Talks.TALKS, DSL.name("CONSTRAINT_69"), new TableField[] { Talks.TALKS.ID }, true);
     public static final UniqueKey<UserMediaRecord> CONSTRAINT_72 = Internal.createUniqueKey(UserMedia.USER_MEDIA, DSL.name("CONSTRAINT_72"), new TableField[] { UserMedia.USER_MEDIA.ID }, true);
     public static final UniqueKey<UserMediaRecord> CONSTRAINT_72F = Internal.createUniqueKey(UserMedia.USER_MEDIA, DSL.name("CONSTRAINT_72F"), new TableField[] { UserMedia.USER_MEDIA.MEDIA_MINIO_KEY }, true);
+    public static final UniqueKey<UserProfileTagsRecord> PK_USER_PROFILE_TAGS = Internal.createUniqueKey(UserProfileTags.USER_PROFILE_TAGS, DSL.name("pk_user_profile_tags"), new TableField[] { UserProfileTags.USER_PROFILE_TAGS.USER_ID, UserProfileTags.USER_PROFILE_TAGS.TAG }, true);
     public static final UniqueKey<UserRolesRecord> CONSTRAINT_7 = Internal.createUniqueKey(UserRoles.USER_ROLES, DSL.name("CONSTRAINT_7"), new TableField[] { UserRoles.USER_ROLES.ID }, true);
     public static final UniqueKey<UserRolesRecord> UQ_USER_ROLES_USER_ROLE = Internal.createUniqueKey(UserRoles.USER_ROLES, DSL.name("uq_user_roles_user_role"), new TableField[] { UserRoles.USER_ROLES.USER_ID, UserRoles.USER_ROLES.ROLE }, true);
     public static final UniqueKey<UsersRecord> CONSTRAINT_6 = Internal.createUniqueKey(Users.USERS, DSL.name("CONSTRAINT_6"), new TableField[] { Users.USERS.ID }, true);
@@ -84,5 +87,6 @@ public class Keys {
     public static final ForeignKey<TalkFeedbackRecord, TalksRecord> FK_TALK_FEEDBACK_TALKS_TALK_ID = Internal.createForeignKey(TalkFeedback.TALK_FEEDBACK, DSL.name("fk_talk_feedback_talks_talk_id"), new TableField[] { TalkFeedback.TALK_FEEDBACK.TALK_ID }, Keys.CONSTRAINT_69, new TableField[] { Talks.TALKS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<TalksRecord, UsersRecord> FK_TALKS_USERS_SPEAKER_ID = Internal.createForeignKey(Talks.TALKS, DSL.name("fk_talks_users_speaker_id"), new TableField[] { Talks.TALKS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<UserMediaRecord, UsersRecord> FK_USER_MEDIA_USERS_USER_ID = Internal.createForeignKey(UserMedia.USER_MEDIA, DSL.name("fk_user_media_users_user_id"), new TableField[] { UserMedia.USER_MEDIA.USER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<UserProfileTagsRecord, UsersRecord> FK_USER_PROFILE_TAGS_USERS_USER_ID = Internal.createForeignKey(UserProfileTags.USER_PROFILE_TAGS, DSL.name("fk_user_profile_tags_users_user_id"), new TableField[] { UserProfileTags.USER_PROFILE_TAGS.USER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<UserRolesRecord, UsersRecord> FK_USER_ROLES_USERS_USER_ID = Internal.createForeignKey(UserRoles.USER_ROLES, DSL.name("fk_user_roles_users_user_id"), new TableField[] { UserRoles.USER_ROLES.USER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
 }

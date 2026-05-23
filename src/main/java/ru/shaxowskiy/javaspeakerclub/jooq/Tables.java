@@ -15,6 +15,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 
@@ -79,6 +80,11 @@ public class Tables {
      * The table <code>user_media</code>.
      */
     public static final UserMedia USER_MEDIA = UserMedia.USER_MEDIA;
+
+    /**
+     * The table <code>user_profile_tags</code>.
+     */
+    public static final UserProfileTags USER_PROFILE_TAGS = UserProfileTags.USER_PROFILE_TAGS;
 
     /**
      * The table <code>user_roles</code>.

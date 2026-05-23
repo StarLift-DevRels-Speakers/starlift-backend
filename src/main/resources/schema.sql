@@ -7,8 +7,10 @@ CREATE TABLE users (
   avatar_media_key VARCHAR(1024),
   password VARCHAR(255) NOT NULL,
   nps DECIMAL(3,1) DEFAULT NULL CHECK (nps >= 0 AND nps <= 10.0),
+  about TEXT,
   region VARCHAR(100) NOT NULL DEFAULT 'Другие регионы',
   company VARCHAR(255) NOT NULL DEFAULT 'Unknown',
+  company_role VARCHAR(255),
   influence VARCHAR(20) NOT NULL DEFAULT 'local' CHECK (influence IN ('local', 'regional', 'federal', 'international')),
   profile_completion INTEGER NOT NULL DEFAULT 0 CHECK (profile_completion >= 0 AND profile_completion <= 100),
   audience INTEGER NOT NULL DEFAULT 0 CHECK (audience >= 0),
@@ -32,6 +34,16 @@ CREATE TABLE user_roles (
 );
 
 CREATE INDEX idx_user_roles_user_id ON user_roles (user_id);
+
+CREATE TABLE user_profile_tags (
+  user_id BIGINT NOT NULL,
+  tag VARCHAR(100) NOT NULL,
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_user_profile_tags PRIMARY KEY (user_id, tag),
+  CONSTRAINT fk_user_profile_tags_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_profile_tags_tag ON user_profile_tags (tag);
 
 CREATE TABLE talks (
   id UUID PRIMARY KEY,

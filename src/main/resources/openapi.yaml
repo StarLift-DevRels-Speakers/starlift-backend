@@ -1582,6 +1582,23 @@ components:
           type: string
           nullable: true
           example: Smith
+        about:
+          type: string
+          nullable: true
+          example: Java backend developer and conference speaker
+        company:
+          type: string
+          nullable: true
+          example: Acme Corp
+        companyRole:
+          type: string
+          nullable: true
+          example: Senior Java Engineer
+        tags:
+          type: array
+          items:
+            type: string
+          example: [java, spring, architecture]
         avatarUrl:
           type: string
           nullable: true
@@ -1623,6 +1640,20 @@ components:
         surName:
           type: [string, 'null']
           example: Smith
+        about:
+          type: [string, 'null']
+          example: Java backend developer and conference speaker
+        company:
+          type: [string, 'null']
+          example: Acme Corp
+        companyRole:
+          type: [string, 'null']
+          example: Senior Java Engineer
+        tags:
+          type: [array, 'null']
+          items:
+            type: string
+          example: [java, spring, architecture]
         avatarMediaKey:
           type: [string, 'null']
           writeOnly: true

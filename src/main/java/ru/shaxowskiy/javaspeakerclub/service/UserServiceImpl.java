@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.shaxowskiy.javaspeakerclub.dto.ProfilePatchRequest;
 import ru.shaxowskiy.javaspeakerclub.entity.User;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
+import ru.shaxowskiy.javaspeakerclub.repository.UserProfileTagRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRoleRepository;
 import ru.shaxowskiy.javaspeakerclub.security.AppRole;
@@ -25,6 +26,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserProfileTagRepository userProfileTagRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final MinioService minioService;
@@ -85,19 +87,34 @@ public class UserServiceImpl implements UserService {
         String mergedFirstName = request.firstName() != null ? request.firstName() : currentUserRecord.getFirstName();
         String mergedLastName = request.lastName() != null ? request.lastName() : currentUserRecord.getLastName();
         String mergedSurName = request.surName() != null ? request.surName() : currentUserRecord.getSurName();
+        String mergedAbout = request.about() != null ? request.about() : currentUserRecord.getAbout();
+        String mergedCompany = request.company() != null ? request.company() : currentUserRecord.getCompany();
+        String mergedCompanyRole = request.companyRole() != null
+                ? request.companyRole()
+                : currentUserRecord.getCompanyRole();
         String mergedAvatarMediaKey = request.avatarMediaKey() != null
                 ? request.avatarMediaKey()
                 : currentUserRecord.getAvatarMediaKey();
 
-        return userRepository.patchProfile(
+        User patchedUser = userRepository.patchProfile(
                         currentUserRecord.getId(),
                         mergedFirstName,
                         mergedLastName,
                         mergedSurName,
+                        mergedAbout,
+                        mergedCompany,
+                        mergedCompanyRole,
                         mergedAvatarMediaKey
                 )
                 .map(this::mapToUser)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (request.tags() != null) {
+            userProfileTagRepository.replaceTags(currentUserRecord.getId(), request.tags());
+            patchedUser.setTags(userProfileTagRepository.findByUserId(currentUserRecord.getId()));
+        }
+
+        return patchedUser;
     }
 
     private User mapToUser(UsersRecord record) {
@@ -110,6 +127,9 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(record.getFirstName());
         user.setLastName(record.getLastName());
         user.setSurName(record.getSurName());
+        user.setAbout(record.getAbout());
+        user.setCompany(record.getCompany());
+        user.setCompanyRole(record.getCompanyRole());
         user.setAvatarUrl(buildAvatarUrl(record.getAvatarMediaKey()));
         user.setPassword(record.getPassword());
         // created_date / last_modified_date могут быть null, если БД проставляет значения по умолчанию
@@ -127,6 +147,7 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .map(Enum::name)
                 .toList());
+        user.setTags(userProfileTagRepository.findByUserId(record.getId()));
         return user;
     }
 

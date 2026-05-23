@@ -47,6 +47,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory.SpeakerNpsHis
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles.SpeakerRolesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks.TalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia.UserMediaPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags.UserProfileTagsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles.UserRolesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 
@@ -113,6 +114,11 @@ public class Users extends TableImpl<UsersRecord> {
     public final TableField<UsersRecord, BigDecimal> NPS = createField(DSL.name("nps"), SQLDataType.DECIMAL(3, 1).defaultValue(DSL.field(DSL.raw("NULL"), SQLDataType.DECIMAL)), this, "");
 
     /**
+     * The column <code>users.about</code>.
+     */
+    public final TableField<UsersRecord, String> ABOUT = createField(DSL.name("about"), SQLDataType.CLOB, this, "");
+
+    /**
      * The column <code>users.region</code>.
      */
     public final TableField<UsersRecord, String> REGION = createField(DSL.name("region"), SQLDataType.VARCHAR(100).nullable(false).defaultValue(DSL.field(DSL.raw("U&'\\0414\\0440\\0443\\0433\\0438\\0435 \\0440\\0435\\0433\\0438\\043e\\043d\\044b'"), SQLDataType.VARCHAR)), this, "");
@@ -121,6 +127,11 @@ public class Users extends TableImpl<UsersRecord> {
      * The column <code>users.company</code>.
      */
     public final TableField<UsersRecord, String> COMPANY = createField(DSL.name("company"), SQLDataType.VARCHAR(255).nullable(false).defaultValue(DSL.field(DSL.raw("'Unknown'"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>users.company_role</code>.
+     */
+    public final TableField<UsersRecord, String> COMPANY_ROLE = createField(DSL.name("company_role"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>users.influence</code>.
@@ -348,6 +359,19 @@ public class Users extends TableImpl<UsersRecord> {
             _userMedia = new UserMediaPath(this, null, Keys.FK_USER_MEDIA_USERS_USER_ID.getInverseKey());
 
         return _userMedia;
+    }
+
+    private transient UserProfileTagsPath _userProfileTags;
+
+    /**
+     * Get the implicit to-many join path to the <code>user_profile_tags</code>
+     * table
+     */
+    public UserProfileTagsPath userProfileTags() {
+        if (_userProfileTags == null)
+            _userProfileTags = new UserProfileTagsPath(this, null, Keys.FK_USER_PROFILE_TAGS_USERS_USER_ID.getInverseKey());
+
+        return _userProfileTags;
     }
 
     private transient UserRolesPath _userRoles;
