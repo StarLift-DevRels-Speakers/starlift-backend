@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: speaker-club
+  labels:
+    app.kubernetes.io/name: java-speaker-club
+    app.kubernetes.io/part-of: speaker-club
