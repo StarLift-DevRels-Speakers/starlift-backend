@@ -65,7 +65,7 @@ public class RoleController {
         return roleService.findSpeakerById(id);
     }
 
-    @PutMapping("/speakers/{id}/nps")
+    @PatchMapping("/speakers/{id}/nps")
     public SpeakerResponse updateNps(@PathVariable Long id, @RequestBody NpsUpdateRequest request) {
         return roleService.updateNps(id, request.nps());
     }
