@@ -1682,7 +1682,7 @@ components:
           type: string
           nullable: true
           format: uri
-          description: Ссылка на аватар через shared-download прокси (временная)
+          description: Временная presigned ссылка на аватар в MinIO
         roles:
           type: array
           items:

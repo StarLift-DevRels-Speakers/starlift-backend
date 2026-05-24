@@ -11,6 +11,8 @@ import ru.shaxowskiy.javaspeakerclub.exception.StorageException;
 import ru.shaxowskiy.javaspeakerclub.exception.UnsupportedMediaTypeException;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -82,7 +84,7 @@ public class MinioService {
 
     public String getPresignedUrl(String objectKey) {
         try {
-            return minioClient.getPresignedObjectUrl(
+            String internalUrl = minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
                             .bucket(s3Properties.getBucket())
@@ -90,6 +92,7 @@ public class MinioService {
                             .expiry(1, TimeUnit.HOURS)
                             .build()
             );
+            return rewriteToPublicEndpoint(internalUrl);
         } catch (Exception e) {
             throw new StorageException("Failed to generate presigned URL for: " + objectKey, e);
         }
@@ -131,6 +134,29 @@ public class MinioService {
             throw new UnsupportedMediaTypeException(
                     "Unsupported file type: " + contentType
                             + ". Allowed types: " + ALLOWED_CONTENT_TYPES);
+        }
+    }
+
+    private String rewriteToPublicEndpoint(String sourceUrl) {
+        String publicEndpoint = s3Properties.getPublicEndpoint();
+        if (publicEndpoint == null || publicEndpoint.isBlank()) {
+            return sourceUrl;
+        }
+        try {
+            URI source = URI.create(sourceUrl);
+            URI publicUri = URI.create(publicEndpoint);
+            return new URI(
+                    publicUri.getScheme(),
+                    publicUri.getUserInfo(),
+                    publicUri.getHost(),
+                    publicUri.getPort(),
+                    source.getPath(),
+                    source.getQuery(),
+                    source.getFragment()
+            ).toString();
+        } catch (IllegalArgumentException | URISyntaxException ex) {
+            log.warn("Failed to rewrite MinIO URL to public endpoint {}", publicEndpoint, ex);
+            return sourceUrl;
         }
     }
 }

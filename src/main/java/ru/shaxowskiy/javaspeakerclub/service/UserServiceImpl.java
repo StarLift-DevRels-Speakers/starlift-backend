@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.shaxowskiy.javaspeakerclub.dto.ProfilePatchRequest;
 import ru.shaxowskiy.javaspeakerclub.entity.User;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
+import ru.shaxowskiy.javaspeakerclub.repository.UserMediaRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserProfileTagRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRoleRepository;
@@ -28,9 +29,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserProfileTagRepository userProfileTagRepository;
     private final UserRoleRepository userRoleRepository;
+    private final UserMediaRepository userMediaRepository;
     private final PasswordEncoder passwordEncoder;
     private final MinioService minioService;
-    private final SharedDownloadUrlService sharedDownloadUrlService;
 
     @Override
     public User registerUser(String username, String password, String firstName, String lastName, String surName) {
@@ -92,9 +93,7 @@ public class UserServiceImpl implements UserService {
         String mergedCompanyRole = request.companyRole() != null
                 ? request.companyRole()
                 : currentUserRecord.getCompanyRole();
-        String mergedAvatarMediaKey = request.avatarMediaKey() != null
-                ? request.avatarMediaKey()
-                : currentUserRecord.getAvatarMediaKey();
+        String mergedAvatarMediaKey = mergeAvatarMediaKey(currentUserRecord.getId(), request, currentUserRecord);
 
         User patchedUser = userRepository.patchProfile(
                         currentUserRecord.getId(),
@@ -156,11 +155,24 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         try {
-            String presignedUrl = minioService.getPresignedUrl(avatarMediaKey);
-            return sharedDownloadUrlService.wrapPresignedUrl(presignedUrl);
+            return minioService.getPresignedUrl(avatarMediaKey);
         } catch (RuntimeException ex) {
             log.warn("Failed to build avatar URL for key {}", avatarMediaKey, ex);
             return null;
         }
+    }
+
+    private String mergeAvatarMediaKey(Long currentUserId, ProfilePatchRequest request, UsersRecord currentUserRecord) {
+        if (request.avatarMediaKey() == null) {
+            return currentUserRecord.getAvatarMediaKey();
+        }
+        String requestedAvatarMediaKey = request.avatarMediaKey().trim();
+        if (requestedAvatarMediaKey.isEmpty()) {
+            return null;
+        }
+        if (!userMediaRepository.existsByUserIdAndMediaMinioKey(currentUserId, requestedAvatarMediaKey)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "avatarMediaKey does not belong to current user");
+        }
+        return requestedAvatarMediaKey;
     }
 }
