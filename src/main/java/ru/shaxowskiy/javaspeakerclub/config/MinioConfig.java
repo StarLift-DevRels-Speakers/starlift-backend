@@ -16,7 +16,7 @@ public class MinioConfig {
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
-                .endpoint(s3Properties.getEndpoint())
+                .endpoint(s3Properties.getEndpoint(), 9000, true)
                 .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
                 .build();
     }
