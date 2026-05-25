@@ -129,6 +129,7 @@ public class UserServiceImpl implements UserService {
         user.setAbout(record.getAbout());
         user.setCompany(record.getCompany());
         user.setCompanyRole(record.getCompanyRole());
+        user.setRegion(record.getRegion());
         user.setAvatarUrl(buildAvatarUrl(record.getAvatarMediaKey()));
         user.setPassword(record.getPassword());
         // created_date / last_modified_date могут быть null, если БД проставляет значения по умолчанию

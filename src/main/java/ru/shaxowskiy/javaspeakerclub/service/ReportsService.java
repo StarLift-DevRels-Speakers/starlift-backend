@@ -786,6 +786,7 @@ public class ReportsService {
                 record.getConference(),
                 Optional.ofNullable(record.getSpeakerId()).orElse(0L),
                 safe(record.getSpeakerName()),
+                safe(record.getCompany()),
                 extractSourceHost(record.getSourceUrl()),
                 fromParsingStatus(record.getStatus()),
                 safe(record.getRegion()),

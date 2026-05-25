@@ -18,11 +18,14 @@ import ru.shaxowskiy.javaspeakerclub.service.UserService;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class ProfileController {
+
+    private static final String DEFAULT_CITY = "Не указан";
 
     private final UserService userService;
     private final TalkRepository talkRepository;
@@ -38,7 +41,7 @@ public class ProfileController {
             java.time.LocalDateTime createdDate
     ) {}
 
-    public record MeResponse(User me, List<TalkDto> talks) {}
+    public record MeResponse(User me, List<TalkDto> talks, Set<String> cities) {}
 
     @GetMapping("/me")
     public MeResponse me(Authentication authentication) {
@@ -72,7 +75,8 @@ public class ProfileController {
                 ))
                 .toList();
 
-        return new MeResponse(me, talkDtos);
+        Set<String> cities = resolveCities(me);
+        return new MeResponse(me, talkDtos, cities);
     }
 
     @PatchMapping("/me")
@@ -85,6 +89,17 @@ public class ProfileController {
 
         userService.patchCurrentUser(request);
         return me(authentication);
+    }
+
+    private Set<String> resolveCities(User me) {
+        String city = me.getRegion();
+        if (city != null) {
+            city = city.trim();
+        }
+        if (city == null || city.isEmpty()) {
+            city = DEFAULT_CITY;
+        }
+        return Set.of(city);
     }
 }
 

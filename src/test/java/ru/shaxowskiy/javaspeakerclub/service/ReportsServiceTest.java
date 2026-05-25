@@ -213,6 +213,8 @@ class ReportsServiceTest {
 
         assertThat(report.rating().speakers()).hasSize(1);
         assertThat(report.rating().speakers().getFirst().region()).isEqualTo("Москва");
+        assertThat(report.parsing().events()).hasSize(1);
+        assertThat(report.parsing().events().getFirst().company()).isEqualTo("Aurora Tech");
         assertThat(report.summary().activeSpeakers()).isEqualTo(1);
     }
 

@@ -23,6 +23,8 @@ public class User {
 
     private String companyRole;
 
+    private String region;
+
     private String avatarUrl;
 
     private String password;

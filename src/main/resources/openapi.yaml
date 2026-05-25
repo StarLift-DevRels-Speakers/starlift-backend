@@ -5,8 +5,8 @@ info:
   version: 2.0.0
 
 servers:
-  - url: http://localhost:8080
-    description: Local development
+  - url: https://douspeak.duckdns.org:444
+    description:
 
 tags:
   - name: Auth
@@ -1705,6 +1705,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MeTalkDto'
+        cities:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+          example: [Не указан]
 
     ProfilePatchRequest:
       type: object
@@ -2603,7 +2609,7 @@ components:
 
     ParsingEvent:
       type: object
-      required: [id, conference, speakerId, speakerName, source, status, region, date, note]
+      required: [id, conference, speakerId, speakerName, company, source, status, region, date, note]
       properties:
         id:
           type: string
@@ -2613,6 +2619,8 @@ components:
           type: integer
           format: int64
         speakerName:
+          type: string
+        company:
           type: string
         source:
           type: string

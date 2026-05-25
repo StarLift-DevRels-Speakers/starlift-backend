@@ -255,6 +255,7 @@ public final class ReportModels {
             String conference,
             Long speakerId,
             String speakerName,
+            String company,
             String source,
             ParsingStatus status,
             String region,
