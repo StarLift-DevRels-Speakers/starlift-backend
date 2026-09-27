@@ -15,6 +15,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
@@ -30,6 +31,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.CfpRecommendationTagsRe
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.CfpRecommendationsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.LecturesRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.ParsingEventsRecord;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.ProducerPlansRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerAchievementsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerCfpRecommendationsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerNpsHistoryRecord;
@@ -58,6 +60,7 @@ public class Keys {
     public static final UniqueKey<CfpRecommendationsRecord> CONSTRAINT_6D = Internal.createUniqueKey(CfpRecommendations.CFP_RECOMMENDATIONS, DSL.name("CONSTRAINT_6D"), new TableField[] { CfpRecommendations.CFP_RECOMMENDATIONS.ID }, true);
     public static final UniqueKey<LecturesRecord> CONSTRAINT_61 = Internal.createUniqueKey(Lectures.LECTURES, DSL.name("CONSTRAINT_61"), new TableField[] { Lectures.LECTURES.ID }, true);
     public static final UniqueKey<ParsingEventsRecord> CONSTRAINT_8 = Internal.createUniqueKey(ParsingEvents.PARSING_EVENTS, DSL.name("CONSTRAINT_8"), new TableField[] { ParsingEvents.PARSING_EVENTS.ID }, true);
+    public static final UniqueKey<ProducerPlansRecord> CONSTRAINT_B = Internal.createUniqueKey(ProducerPlans.PRODUCER_PLANS, DSL.name("CONSTRAINT_B"), new TableField[] { ProducerPlans.PRODUCER_PLANS.ID }, true);
     public static final UniqueKey<SpeakerAchievementsRecord> CONSTRAINT_9 = Internal.createUniqueKey(SpeakerAchievements.SPEAKER_ACHIEVEMENTS, DSL.name("CONSTRAINT_9"), new TableField[] { SpeakerAchievements.SPEAKER_ACHIEVEMENTS.ID }, true);
     public static final UniqueKey<SpeakerCfpRecommendationsRecord> CONSTRAINT_4 = Internal.createUniqueKey(SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, DSL.name("CONSTRAINT_4"), new TableField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.ID }, true);
     public static final UniqueKey<SpeakerCfpRecommendationsRecord> UQ_SPEAKER_CFP_RECOMMENDATIONS_PAIR = Internal.createUniqueKey(SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, DSL.name("uq_speaker_cfp_recommendations_pair"), new TableField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.SPEAKER_ID, SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.RECOMMENDATION_ID }, true);
@@ -82,6 +85,7 @@ public class Keys {
     public static final ForeignKey<LecturesRecord, TalksRecord> FK_LECTURES_TALKS_TALK_ID = Internal.createForeignKey(Lectures.LECTURES, DSL.name("fk_lectures_talks_talk_id"), new TableField[] { Lectures.LECTURES.TALK_ID }, Keys.CONSTRAINT_69, new TableField[] { Talks.TALKS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<LecturesRecord, UsersRecord> FK_LECTURES_USERS_SPEAKER_ID = Internal.createForeignKey(Lectures.LECTURES, DSL.name("fk_lectures_users_speaker_id"), new TableField[] { Lectures.LECTURES.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<ParsingEventsRecord, UsersRecord> FK_PARSING_EVENTS_USERS_SPEAKER_ID = Internal.createForeignKey(ParsingEvents.PARSING_EVENTS, DSL.name("fk_parsing_events_users_speaker_id"), new TableField[] { ParsingEvents.PARSING_EVENTS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<ProducerPlansRecord, UsersRecord> FK_PRODUCER_PLANS_USERS_SPEAKER_ID = Internal.createForeignKey(ProducerPlans.PRODUCER_PLANS, DSL.name("fk_producer_plans_users_speaker_id"), new TableField[] { ProducerPlans.PRODUCER_PLANS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<SpeakerAchievementsRecord, UsersRecord> FK_SPEAKER_ACHIEVEMENTS_USERS_SPEAKER_ID = Internal.createForeignKey(SpeakerAchievements.SPEAKER_ACHIEVEMENTS, DSL.name("fk_speaker_achievements_users_speaker_id"), new TableField[] { SpeakerAchievements.SPEAKER_ACHIEVEMENTS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<SpeakerCfpRecommendationsRecord, CfpRecommendationsRecord> FK_SPEAKER_CFP_RECOMMENDATIONS_RECOMMENDATION_ID = Internal.createForeignKey(SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, DSL.name("fk_speaker_cfp_recommendations_recommendation_id"), new TableField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.RECOMMENDATION_ID }, Keys.CONSTRAINT_6D, new TableField[] { CfpRecommendations.CFP_RECOMMENDATIONS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<SpeakerCfpRecommendationsRecord, UsersRecord> FK_SPEAKER_CFP_RECOMMENDATIONS_USERS_SPEAKER_ID = Internal.createForeignKey(SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, DSL.name("fk_speaker_cfp_recommendations_users_speaker_id"), new TableField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);

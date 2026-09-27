@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalkFeedbackRecord;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,6 +23,17 @@ public class TalkFeedbackRepository {
                 .where(TalkFeedback.TALK_FEEDBACK.TALK_ID.eq(talkId))
                 .orderBy(TalkFeedback.TALK_FEEDBACK.CREATED_DATE.desc())
                 .fetch();
+    }
+
+    public List<TalkFeedbackRecord> findBySpeakerIdSince(Long speakerId, LocalDateTime since) {
+        return dsl.select(TalkFeedback.TALK_FEEDBACK.fields())
+                .from(TalkFeedback.TALK_FEEDBACK)
+                .join(Talks.TALKS)
+                .on(Talks.TALKS.ID.eq(TalkFeedback.TALK_FEEDBACK.TALK_ID))
+                .where(Talks.TALKS.SPEAKER_ID.eq(speakerId))
+                .and(TalkFeedback.TALK_FEEDBACK.CREATED_DATE.ge(since))
+                .orderBy(TalkFeedback.TALK_FEEDBACK.CREATED_DATE.desc())
+                .fetchInto(TalkFeedbackRecord.class);
     }
 
     public Optional<TalkFeedbackRecord> findByIdAndTalkId(UUID id, UUID talkId) {

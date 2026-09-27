@@ -13,6 +13,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
@@ -45,6 +46,7 @@ public class Indexes {
     public static final Index IDX_PARSING_EVENTS_DEDUP = Internal.createIndex(DSL.name("idx_parsing_events_dedup"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.DEDUP_KEY }, true);
     public static final Index IDX_PARSING_EVENTS_EVENT_DATE = Internal.createIndex(DSL.name("idx_parsing_events_event_date"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.EVENT_DATE }, false);
     public static final Index IDX_PARSING_EVENTS_STATUS = Internal.createIndex(DSL.name("idx_parsing_events_status"), ParsingEvents.PARSING_EVENTS, new OrderField[] { ParsingEvents.PARSING_EVENTS.STATUS }, false);
+    public static final Index IDX_PRODUCER_PLANS_SPEAKER_CREATED = Internal.createIndex(DSL.name("idx_producer_plans_speaker_created"), ProducerPlans.PRODUCER_PLANS, new OrderField[] { ProducerPlans.PRODUCER_PLANS.SPEAKER_ID, ProducerPlans.PRODUCER_PLANS.CREATED_DATE }, false);
     public static final Index IDX_SPEAKER_ACHIEVEMENTS_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_achievements_speaker_id"), SpeakerAchievements.SPEAKER_ACHIEVEMENTS, new OrderField[] { SpeakerAchievements.SPEAKER_ACHIEVEMENTS.SPEAKER_ID }, false);
     public static final Index IDX_SPEAKER_CFP_RECOMMENDATIONS_MATCH_SCORE = Internal.createIndex(DSL.name("idx_speaker_cfp_recommendations_match_score"), SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, new OrderField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.MATCH_SCORE }, false);
     public static final Index IDX_SPEAKER_CFP_RECOMMENDATIONS_SPEAKER_ID = Internal.createIndex(DSL.name("idx_speaker_cfp_recommendations_speaker_id"), SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS, new OrderField[] { SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS.SPEAKER_ID }, false);

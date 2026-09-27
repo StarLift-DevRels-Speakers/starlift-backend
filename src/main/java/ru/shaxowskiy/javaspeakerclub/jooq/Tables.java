@@ -8,6 +8,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
@@ -46,6 +47,11 @@ public class Tables {
      * The table <code>parsing_events</code>.
      */
     public static final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
+
+    /**
+     * The table <code>producer_plans</code>.
+     */
+    public static final ProducerPlans PRODUCER_PLANS = ProducerPlans.PRODUCER_PLANS;
 
     /**
      * The table <code>speaker_achievements</code>.

@@ -41,6 +41,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations.CfpRecommendationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures.LecturesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents.ParsingEventsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans.ProducerPlansPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements.SpeakerAchievementsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations.SpeakerCfpRecommendationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory.SpeakerNpsHistoryPath;
@@ -283,6 +284,19 @@ public class Users extends TableImpl<UsersRecord> {
             _parsingEvents = new ParsingEventsPath(this, null, Keys.FK_PARSING_EVENTS_USERS_SPEAKER_ID.getInverseKey());
 
         return _parsingEvents;
+    }
+
+    private transient ProducerPlansPath _producerPlans;
+
+    /**
+     * Get the implicit to-many join path to the <code>producer_plans</code>
+     * table
+     */
+    public ProducerPlansPath producerPlans() {
+        if (_producerPlans == null)
+            _producerPlans = new ProducerPlansPath(this, null, Keys.FK_PRODUCER_PLANS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _producerPlans;
     }
 
     private transient SpeakerAchievementsPath _speakerAchievements;
