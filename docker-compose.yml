@@ -70,7 +70,8 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    # minio/minio и minio/mc больше не публикуются (Docker Hub/Quay) — берём форк pgsty с фиксированными тегами
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     container_name: minio-s3
     networks:
       app-net:
@@ -92,7 +93,7 @@ services:
       retries: 5
 
   minio-init:
-    image: minio/mc:latest
+    image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
     container_name: minio-init
     networks:
       - app-net
