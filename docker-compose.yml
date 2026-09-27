@@ -40,7 +40,8 @@ services:
       S3_BUCKET: lectures-media
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: change-me-to-256-bit
+      # HS256 требует секрет не короче 32 байт, иначе вход падает с 500
+      JWT_SECRET: ${JWT_SECRET:-local-dev-only-jwt-secret-change-me-32-bytes}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-not-set}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
