@@ -56,3 +56,14 @@ app:
     blocked-domains: []
     request-timeout: 15s
     user-agent: "JavaSpeakerClubBot/1.0"
+  producer:
+    prompt-version: producer-v1
+    temperature: 0.2
+    min-theme-mentions: 3
+    max-steps: 3
+    max-themes-per-kind: 4
+    min-feedback-for-plan: 3
+    feedback-window-days: 365
+    max-feedback-items: 80
+    recent-talks-limit: 12
+    regenerate-all-limit: 10
