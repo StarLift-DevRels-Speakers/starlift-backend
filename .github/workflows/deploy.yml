@@ -14,6 +14,5 @@ jobs:
 
       - name: Build and Restart Docker Containers
         run: |
-          sudo su
           docker compose up -d --build
           docker image prune -f
