@@ -79,6 +79,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/speakers/**", "/api/me").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
 
                 .requestMatchers("/api/producer/report", "/api/producer/plans/**").hasAnyRole("DEVREL", "ADMIN")
+                .requestMatchers("/api/producer/events", "/api/producer/events/**", "/api/producer/metrics").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers("/api/producer/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
 
                 .anyRequest().hasRole("ADMIN")

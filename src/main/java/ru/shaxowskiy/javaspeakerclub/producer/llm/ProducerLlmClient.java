@@ -6,5 +6,8 @@ public interface ProducerLlmClient {
 
     ProducerPlanDraft generatePlan(String systemPrompt, String userMessage);
 
+    /** Ответ модели — JSON-объект заданного типа (разбор описания мероприятия). */
+    <T> T generate(String systemPrompt, String userMessage, Class<T> type);
+
     String modelName();
 }

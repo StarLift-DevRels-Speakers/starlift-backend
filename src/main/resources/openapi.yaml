@@ -7,6 +7,8 @@ info:
 servers:
   - url: https://douspeak.duckdns.org:444
     description:
+  - url: http://localhost:8080
+    description: Локальный запуск
 
 tags:
   - name: Auth
@@ -29,6 +31,10 @@ tags:
     description: Администрирование ролей пользователей
   - name: Producer
     description: ИИ-продюсер спикера — персональный план по отзывам, докладам и CFP с проверяемыми доказательствами
+  - name: Producer · Организатор
+    description: ИИ-продюсер для организатора — описать мероприятие, подобрать спикеров с объяснением, пригласить
+  - name: Producer · Спикер
+    description: ИИ-продюсер для спикера — профиль экспертизы, подбор мероприятий и CFP, ответы на приглашения
 
 paths:
 
@@ -1594,8 +1600,389 @@ paths:
               schema:
                 type: string
 
+  # ── Producer · Организатор: мероприятие → спикеры ───────────────────
+
+  /api/producer/events:
+    post:
+      tags: [Producer · Организатор]
+      summary: Описать мероприятие текстом или формой — ИИ разберёт параметры и задаст уточняющие вопросы
+      operationId: createProducerEvent
+      description: >-
+        Модель выписывает из описания параметры с цитатой: confirmed — сказано прямо или указано организатором,
+        inferred — вывод ИИ по контексту, unknown — данных нет (значение не подставляется). Значение без точной
+        цитаты из описания отбрасывается. Вопросы задаются только по критичным неизвестным параметрам.
+        Если описание разобрать не удалось, карточка собирается из полей формы.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreateRequest'
+      responses:
+        '201':
+          description: Карточка мероприятия
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCard'
+        '400':
+          description: Пустой запрос или неизвестный параметр
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Нужна роль DEVREL или ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    get:
+      tags: [Producer · Организатор]
+      summary: Мои мероприятия
+      operationId: listProducerEvents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Мероприятия организатора (ADMIN видит все)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventListItem'
+
+  /api/producer/events/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ProducerEventId'
+    get:
+      tags: [Producer · Организатор]
+      summary: Карточка мероприятия
+      operationId: getProducerEvent
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Карточка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCard'
+        '403':
+          description: Мероприятие другого организатора
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    patch:
+      tags: [Producer · Организатор]
+      summary: Ответить на уточняющие вопросы или изменить требования
+      operationId: updateProducerEvent
+      description: >-
+        Ответ на вопрос делает параметр подтверждённым. Пропуск вопроса не останавливает подбор, но снижает
+        уверенность. После изменений карточка показывает, что поменялось с прошлого подбора.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdateRequest'
+      responses:
+        '200':
+          description: Обновлённая карточка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCard'
+
+  /api/producer/events/{id}/match:
+    parameters:
+      - $ref: '#/components/parameters/ProducerEventId'
+    post:
+      tags: [Producer · Организатор]
+      summary: Подобрать спикеров под мероприятие
+      operationId: matchProducerEventSpeakers
+      description: >-
+        Многофакторный подбор: подтверждённый опыт (доклады) важнее заявленного, свежий важнее старого, отзывы
+        учитываются только по докладам на темы мероприятия. Кандидат, не выполнивший обязательное требование,
+        исключается с причиной. Каждая рекомендация — с объяснением, ограничениями, недостающими данными и
+        уверенностью. aiSummary — короткий пересказ от модели, есть, только если прошёл проверку по фактам.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Кандидаты по группам релевантности
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerMatchResult'
+    get:
+      tags: [Producer · Организатор]
+      summary: Последний подбор по мероприятию
+      operationId: getProducerEventMatch
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Последний результат подбора
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerMatchResult'
+        '404':
+          description: Подбор ещё не запускался
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/producer/events/{id}/candidates/{expertId}/actions:
+    parameters:
+      - $ref: '#/components/parameters/ProducerEventId'
+      - name: expertId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    post:
+      tags: [Producer · Организатор]
+      summary: Действие с кандидатом — shortlist, приглашение, «не подходит», выступление состоялось
+      operationId: producerCandidateAction
+      description: >-
+        Всё сохраняется в историю как факт. Приглашение того, кто уже выступал у этого организатора, дополнительно
+        записывается как повторное приглашение. «Выступление состоялось» — только после принятого приглашения.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateActionRequest'
+      responses:
+        '200':
+          description: Действие записано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateActionResponse'
+        '409':
+          description: Действие не по порядку (например, повторное приглашение до ответа)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/producer/events/{id}/cfp:
+    parameters:
+      - $ref: '#/components/parameters/ProducerEventId'
+    post:
+      tags: [Producer · Организатор]
+      summary: Открыть CFP мероприятия — оно появится в подборе мероприятий у спикеров
+      operationId: publishProducerEventCfp
+      description: Поля CFP берутся из карточки мероприятия; в требования попадают только явно обязательные.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CfpPublishRequest'
+      responses:
+        '200':
+          description: CFP открыт
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CfpPublishResponse'
+
+  /api/producer/events/{id}/history:
+    parameters:
+      - $ref: '#/components/parameters/ProducerEventId'
+    get:
+      tags: [Producer · Организатор]
+      summary: История по мероприятию — рекомендации ИИ и действия людей
+      operationId: getProducerEventHistory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: От новых к старым; kind = fact — действие человека, kind = ai — рекомендация ИИ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoryItem'
+
+  /api/producer/metrics:
+    get:
+      tags: [Producer · Организатор]
+      summary: Метрики качества — воронки от рекомендации до выступления и заявки (DEVREL, ADMIN)
+      operationId: getProducerMetrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Воронки и доли
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerMetrics'
+
+  # ── Producer · Спикер: эксперт → мероприятия и CFP ──────────────────
+
+  /api/producer/me/profile:
+    get:
+      tags: [Producer · Спикер]
+      summary: Мой профиль эксперта — подтверждённая, возможная и смежная экспертиза и чего не хватает
+      operationId: getMyExpertProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpertProfile'
+
+  /api/producer/me/preferences:
+    put:
+      tags: [Producer · Спикер]
+      summary: Мои предпочтения — языки, форматы, онлайн или офлайн, интересы
+      operationId: saveMyExpertPreferences
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferencesRequest'
+      responses:
+        '200':
+          description: Обновлённый профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpertProfile'
+
+  /api/producer/me/events:
+    post:
+      tags: [Producer · Спикер]
+      summary: Подобрать мне мероприятия и открытые CFP
+      operationId: recommendMyEvents
+      description: >-
+        По реальной экспертизе, а не по должности. Требования CFP берутся только из источника: чего там нет,
+        перечислено в unknowns. Критическое несоответствие (язык, офлайн в другом городе) не даёт уверенной рекомендации.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Мероприятия по группам релевантности
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventRecommendationResult'
+
+  /api/producer/me/events/{cfpId}/actions:
+    parameters:
+      - name: cfpId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Producer · Спикер]
+      summary: Отметить действие с мероприятием — посмотрел, открыл CFP, подал заявку, не подходит
+      operationId: myEventAction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventActionRequest'
+      responses:
+        '200':
+          description: Действие записано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResponse'
+
+  /api/producer/me/invitations:
+    get:
+      tags: [Producer · Спикер]
+      summary: Мои приглашения — от кого, почему позвали меня и статус
+      operationId: getMyInvitations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Приглашения, свежие первыми
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvitationView'
+
+  /api/producer/me/invitations/{eventId}/response:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Producer · Спикер]
+      summary: Ответить на приглашение — принять, отклонить или попросить уточнение
+      operationId: respondToInvitation
+      description: Отказ сохраняется как факт, но в будущих подборах не считается негативом.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationResponseRequest'
+      responses:
+        '200':
+          description: Приглашение с новым статусом
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationView'
+        '404':
+          description: Приглашения на это мероприятие нет
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
 components:
   parameters:
+    ProducerEventId:
+      name: id
+      in: path
+      required: true
+      description: id мероприятия организатора
+      schema:
+        type: string
+        format: uuid
     TalkId:
       name: id
       in: path
@@ -3367,3 +3754,789 @@ components:
                 type: string
               reason:
                 type: string
+
+    # ── Producer · подбор ───────────────────────────────────────────
+
+    EventCreateRequest:
+      type: object
+      description: Хотя бы одно из полей title, description или params.
+      example:
+        title: Mobile Day
+        description: >-
+          Ищем спикеров на митап Mobile Day в Москве 20 ноября. Тема — мобильная разработка и продуктовая
+          аналитика мобильных приложений. Аудитория — опытные мобильные разработчики и продакт-менеджеры.
+          Нужен практический доклад на 30 минут на русском языке. Спикер обязательно должен иметь опыт
+          в мобильной разработке.
+      properties:
+        title:
+          type: string
+          example: Mobile Day
+        description:
+          type: string
+          description: Описание в свободной форме — ИИ выпишет из него параметры
+          example: >-
+            Ищем спикеров на митап Mobile Day в Москве 20 ноября. Тема — мобильная разработка и продуктовая
+            аналитика мобильных приложений. Аудитория — опытные мобильные разработчики и продакт-менеджеры.
+            Нужен практический доклад на 30 минут на русском языке. Спикер обязательно должен иметь опыт
+            в мобильной разработке.
+        params:
+          type: object
+          description: >-
+            Поля формы, ключи — параметры карточки: topics, subtopics, audience, audienceLevel, goal, industry,
+            eventFormat, talkType, talkDuration, attendance, city, language, date, speakerRequirements, constraints, wishes
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example: {}
+        tags:
+          type: array
+          items:
+            type: string
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionRequest'
+
+    CriterionRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          example: Опыт в мобильной аналитике
+        kind:
+          type: string
+          enum: [mandatory, desirable]
+        check:
+          type: string
+          enum: [language, city, attendance, competency, industry, topic, format, audience, other]
+        value:
+          type: string
+          example: мобильная аналитика
+
+    EventUpdateRequest:
+      type: object
+      description: null — поле не меняется
+      example:
+        answers:
+          attendance: только офлайн
+          audienceLevel: опытные
+        skip: [talkType]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          description: Новое описание разбирается заново
+        params:
+          type: object
+          description: Пустой список очищает параметр
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        answers:
+          type: object
+          description: Ответы на уточняющие вопросы, ключ — key вопроса
+          additionalProperties:
+            type: string
+          example:
+            attendance: только офлайн
+            audienceLevel: опытные
+        skip:
+          type: array
+          description: Пропущенные вопросы
+          items:
+            type: string
+          example: [speakerRequirements]
+        addCriteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/CriterionRequest'
+        removeCriteria:
+          type: array
+          description: id требований
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    EventCard:
+      type: object
+      properties:
+        title:
+          type: string
+        status:
+          type: string
+          enum: [analyzed, matched]
+        summary:
+          type: array
+          description: Параметры одной строкой — значение и откуда оно (подтверждено, вывод ИИ по описанию, неизвестно)
+          items:
+            type: string
+          example:
+            - 'Уровень аудитории: опытные (вывод ИИ по описанию)'
+            - 'География (город): Москва (подтверждено)'
+        questions:
+          type: array
+          description: Уточняющие вопросы по критичным неизвестным параметрам (не больше app.producer.matching.max-questions)
+          items:
+            $ref: '#/components/schemas/EventQuestion'
+        params:
+          type: array
+          description: Все параметры п. 5.1 ТЗ; неизвестные — в конце списка
+          items:
+            $ref: '#/components/schemas/EventParam'
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventCriterion'
+        tags:
+          type: array
+          items:
+            type: string
+        notes:
+          type: array
+          description: Что отброшено при разборе, противоречия описания и формы
+          items:
+            type: string
+        changesSinceLastMatching:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+          nullable: true
+        id:
+          type: string
+          format: uuid
+        updatedDate:
+          type: string
+          format: date-time
+
+    EventParam:
+      type: object
+      properties:
+        key:
+          type: string
+          example: audienceLevel
+        label:
+          type: string
+          example: Уровень аудитории
+        values:
+          type: array
+          items:
+            type: string
+          example: [senior]
+        status:
+          type: string
+          enum: [confirmed, inferred, unknown]
+          description: confirmed — указано прямо, inferred — вывод ИИ по контексту, unknown — данных нет
+        source:
+          type: string
+          nullable: true
+          enum: [organizer, answer, description]
+        quote:
+          type: string
+          nullable: true
+          description: Дословный фрагмент описания, из которого взято значение
+          example: опытные мобильные разработчики
+
+    EventCriterion:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        kind:
+          type: string
+          enum: [mandatory, desirable]
+        check:
+          type: string
+        value:
+          type: string
+          nullable: true
+        interpretation:
+          type: boolean
+          description: true — обязательность определил ИИ, а не организатор
+        source:
+          type: string
+        quote:
+          type: string
+          nullable: true
+
+    EventQuestion:
+      type: object
+      properties:
+        key:
+          type: string
+          example: attendance
+        question:
+          type: string
+          example: Допустимо ли онлайн-выступление?
+        options:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [open, answered, skipped]
+        answer:
+          type: string
+          nullable: true
+
+    EventListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+        openQuestions:
+          type: integer
+        updatedDate:
+          type: string
+          format: date-time
+
+    RecommendationConfidence:
+      type: object
+      description: Уверенность отдельно от релевантности — насколько надёжно подтверждены данные для вывода
+      properties:
+        level:
+          type: string
+          enum: [high, medium, low]
+        reasons:
+          type: array
+          items:
+            type: string
+
+    TalkRef:
+      type: object
+      properties:
+        id:
+          type: string
+        topic:
+          type: string
+        event:
+          type: string
+        date:
+          type: string
+          format: date
+        format:
+          type: string
+        matchedTopics:
+          type: array
+          items:
+            type: string
+
+    SpeakerMatchResult:
+      type: object
+      properties:
+        eventTitle:
+          type: string
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidateGroup'
+        excluded:
+          type: array
+          description: Не выполнено обязательное требование — исключён, но видно почему
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              reasons:
+                type: array
+                items:
+                  type: string
+              expertId:
+                type: integer
+                format: int64
+        notes:
+          type: array
+          items:
+            type: string
+        eventSummary:
+          type: array
+          items:
+            type: string
+        consideredCount:
+          type: integer
+        eventId:
+          type: string
+        runId:
+          type: string
+          description: Запуск в журнале — по нему видно вход, рассмотренных кандидатов и версию алгоритма
+        generatedAt:
+          type: string
+          format: date-time
+
+    CandidateGroup:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Высокая релевантность
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+        comparisons:
+          type: array
+          description: Чем отличаются близкие кандидаты — без «лучшего спикера»
+          items:
+            type: string
+        code:
+          type: string
+          enum: [high, potential, needs_check]
+        description:
+          type: string
+
+    Candidate:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+          nullable: true
+        aiSummary:
+          type: string
+          nullable: true
+        whyFits:
+          type: array
+          items:
+            type: string
+        limitations:
+          type: array
+          items:
+            type: string
+        missingData:
+          type: array
+          items:
+            type: string
+        confidence:
+          $ref: '#/components/schemas/RecommendationConfidence'
+        matchedCriteria:
+          type: array
+          items:
+            type: string
+        keyExpertise:
+          type: array
+          items:
+            type: string
+        relevantTalks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TalkRef'
+        feedbackInfluence:
+          type: string
+          nullable: true
+        region:
+          type: string
+        expertId:
+          type: integer
+          format: int64
+
+    CandidateActionRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [shortlisted, invited, marked_irrelevant, talk_given]
+        note:
+          type: string
+          example: Будем рады видеть вас с докладом про мобильную аналитику
+
+    CandidateActionResponse:
+      type: object
+      properties:
+        expertName:
+          type: string
+        action:
+          type: string
+        label:
+          type: string
+        invitationStatus:
+          type: string
+          nullable: true
+          example: Отправлено
+        alsoRecorded:
+          type: array
+          items:
+            type: string
+        date:
+          type: string
+          format: date-time
+
+    CfpPublishRequest:
+      type: object
+      properties:
+        deadline:
+          type: string
+          format: date
+        url:
+          type: string
+          example: https://example.com/mobile-day/cfp
+        level:
+          type: string
+          enum: [local, regional, federal, international]
+
+    CfpPublishResponse:
+      type: object
+      properties:
+        cfpId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        deadline:
+          type: string
+          format: date
+        requirements:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    HistoryItem:
+      type: object
+      properties:
+        label:
+          type: string
+          example: Приглашение принято
+        expertName:
+          type: string
+        kind:
+          type: string
+          enum: [fact, ai]
+        action:
+          type: string
+        confidence:
+          type: string
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        expertId:
+          type: integer
+          format: int64
+
+    ProducerMetrics:
+      type: object
+      properties:
+        organizerFunnel:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricStep'
+        expertFunnel:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricStep'
+        quality:
+          type: array
+          items:
+            type: object
+            properties:
+              metric:
+                type: string
+              part:
+                type: integer
+              total:
+                type: integer
+              percent:
+                type: integer
+                nullable: true
+
+    MetricStep:
+      type: object
+      properties:
+        step:
+          type: string
+          example: Приглашение отправлено
+        count:
+          type: integer
+        conversion:
+          type: integer
+          nullable: true
+          description: Процент от предыдущего шага
+
+    ExpertProfile:
+      type: object
+      properties:
+        expert:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            name:
+              type: string
+            role:
+              type: string
+            company:
+              type: string
+            region:
+              type: string
+            stage:
+              type: string
+        expertise:
+          type: array
+          items:
+            type: object
+            properties:
+              area:
+                type: string
+              level:
+                type: string
+                enum: [confirmed, potential, adjacent, insufficient_data]
+                description: confirmed — есть доклады, potential — только заявлено, adjacent — смежная область, insufficient_data — подтвердить нечем
+              evidence:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    id:
+                      type: string
+                      nullable: true
+                    label:
+                      type: string
+                    date:
+                      type: string
+                      format: date
+                      nullable: true
+              lastConfirmed:
+                type: string
+                format: date
+                nullable: true
+        publicExperience:
+          type: object
+        feedback:
+          type: object
+          description: Отзывы с автором (организатор или участник) и контекстом доклада; противоречия не скрываются
+        history:
+          type: object
+        preferences:
+          type: object
+        gaps:
+          type: array
+          description: Существенные пробелы — что дополнить, чтобы рекомендации были точнее
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        dataCompleteness:
+          type: string
+          enum: [high, medium, low]
+
+    PreferencesRequest:
+      type: object
+      properties:
+        languages:
+          type: array
+          items:
+            type: string
+          example: [русский, английский]
+        formats:
+          type: array
+          items:
+            type: string
+          example: [доклад, воркшоп]
+        onlineOk:
+          type: boolean
+          nullable: true
+        offlineOk:
+          type: boolean
+          nullable: true
+        interests:
+          type: array
+          items:
+            type: string
+          example: [мобильная аналитика]
+        limitations:
+          type: string
+          nullable: true
+
+    EventRecommendationResult:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendedEventGroup'
+        profileGaps:
+          type: array
+          items:
+            type: string
+        notes:
+          type: array
+          items:
+            type: string
+        consideredCount:
+          type: integer
+        expertId:
+          type: integer
+          format: int64
+        runId:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+
+    RecommendedEventGroup:
+      type: object
+      properties:
+        title:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecommendedEvent'
+        comparisons:
+          type: array
+          items:
+            type: string
+        code:
+          type: string
+          enum: [high, potential, needs_check]
+        description:
+          type: string
+
+    RecommendedEvent:
+      type: object
+      properties:
+        title:
+          type: string
+        aiSummary:
+          type: string
+          nullable: true
+        whyFits:
+          type: array
+          items:
+            type: string
+        cfp:
+          type: object
+          properties:
+            present:
+              type: boolean
+            deadline:
+              type: string
+              format: date
+            daysLeft:
+              type: integer
+            url:
+              type: string
+        limitations:
+          type: array
+          items:
+            type: string
+        unknowns:
+          type: array
+          description: Чего нет в данных CFP — не додумывается
+          items:
+            type: string
+        confidence:
+          $ref: '#/components/schemas/RecommendationConfidence'
+        requirements:
+          type: array
+          items:
+            type: string
+        relevantExperience:
+          type: array
+          items:
+            $ref: '#/components/schemas/TalkRef'
+        description:
+          type: string
+        cfpId:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          nullable: true
+          description: Заполнен, если CFP открыл организатор платформы
+
+    EventActionRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [viewed_event, opened_cfp, applied, marked_irrelevant]
+        note:
+          type: string
+
+    ActionResponse:
+      type: object
+      properties:
+        action:
+          type: string
+        label:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+    InvitationView:
+      type: object
+      properties:
+        eventTitle:
+          type: string
+        statusLabel:
+          type: string
+          example: Отправлено
+        whyYou:
+          type: array
+          description: Почему пригласили — объяснение из подбора
+          items:
+            type: string
+        aiSummary:
+          type: string
+          nullable: true
+        event:
+          type: array
+          description: Известные параметры мероприятия
+          items:
+            type: string
+        organizer:
+          type: string
+        status:
+          type: string
+          enum: [sent, accepted, declined, needs_clarification]
+        note:
+          type: string
+          nullable: true
+        invitedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        eventId:
+          type: string
+
+    InvitationResponseRequest:
+      type: object
+      properties:
+        response:
+          type: string
+          enum: [accepted, declined, needs_clarification]
+        note:
+          type: string
+          example: С радостью выступлю

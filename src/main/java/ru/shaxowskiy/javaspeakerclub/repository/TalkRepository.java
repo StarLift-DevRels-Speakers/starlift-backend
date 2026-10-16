@@ -98,6 +98,13 @@ public class TalkRepository {
                 .fetch(TalkTags.TALK_TAGS.TAG);
     }
 
+    public List<String> findDistinctTags() {
+        return dsl.selectDistinct(TalkTags.TALK_TAGS.TAG)
+                .from(TalkTags.TALK_TAGS)
+                .orderBy(TalkTags.TALK_TAGS.TAG.asc())
+                .fetch(TalkTags.TALK_TAGS.TAG);
+    }
+
     public Map<UUID, List<String>> findTagsByTalkIds(List<UUID> talkIds) {
         if (talkIds == null || talkIds.isEmpty()) {
             return Map.of();

@@ -14,6 +14,8 @@ public class ProducerJson {
     private final JsonMapper mapper = JsonMapper.builder()
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            // Модель иногда отвечает строкой там, где ждём список: "value": "офлайн".
+            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
             .build();
 
     public String write(Object value) {

@@ -119,6 +119,34 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
         return (LocalDateTime) get(6);
     }
 
+    /**
+     * Setter for <code>talk_feedback.author_type</code>.
+     */
+    public void setAuthorType(String value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.author_type</code>.
+     */
+    public String getAuthorType() {
+        return (String) get(7);
+    }
+
+    /**
+     * Setter for <code>talk_feedback.source</code>.
+     */
+    public void setSource(String value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.source</code>.
+     */
+    public String getSource() {
+        return (String) get(8);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -142,7 +170,7 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
     /**
      * Create a detached, initialised TalkFeedbackRecord
      */
-    public TalkFeedbackRecord(UUID id, UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions, LocalDateTime createdDate) {
+    public TalkFeedbackRecord(UUID id, UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions, LocalDateTime createdDate, String authorType, String source) {
         super(TalkFeedback.TALK_FEEDBACK);
 
         setId(id);
@@ -152,6 +180,8 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
         setNegative(negative);
         setImprovementSuggestions(improvementSuggestions);
         setCreatedDate(createdDate);
+        setAuthorType(authorType);
+        setSource(source);
         resetTouchedOnNotNull();
     }
 }

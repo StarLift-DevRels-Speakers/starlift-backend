@@ -35,3 +35,7 @@ databaseChangeLog:
       file: db/changelog/0016_create_producer_plans_table.yaml
   - include:
       file: db/changelog/0017_producer_demo_seed.yaml
+  - include:
+      file: db/changelog/0018_producer_matching.yaml
+  - include:
+      file: db/changelog/0019_producer_matching_api.yaml

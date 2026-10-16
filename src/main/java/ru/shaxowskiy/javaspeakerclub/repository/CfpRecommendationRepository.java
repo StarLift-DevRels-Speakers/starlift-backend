@@ -119,6 +119,13 @@ public class CfpRecommendationRepository {
                 .fetch();
     }
 
+    public List<CfpRecommendationsRecord> findActive() {
+        return dsl.selectFrom(CfpRecommendations.CFP_RECOMMENDATIONS)
+                .where(CfpRecommendations.CFP_RECOMMENDATIONS.ACTIVE.eq(true))
+                .orderBy(CfpRecommendations.CFP_RECOMMENDATIONS.DEADLINE.asc().nullsLast())
+                .fetch();
+    }
+
     public Optional<CfpRecommendationsRecord> findById(UUID recommendationId) {
         return dsl.selectFrom(CfpRecommendations.CFP_RECOMMENDATIONS)
                 .where(CfpRecommendations.CFP_RECOMMENDATIONS.ID.eq(recommendationId))
@@ -162,6 +169,83 @@ public class CfpRecommendationRepository {
 
         replaceTags(recommendationId, input.tags());
         return findById(recommendationId);
+    }
+
+    /** CFP, открытый организатором для своего мероприятия на платформе: поля подбора берутся из карточки мероприятия. */
+    public record EventCfpInput(
+            UUID eventRequestId,
+            String title,
+            String city,
+            String influenceLevel,
+            String topic,
+            LocalDate deadline,
+            String hostCompany,
+            String url,
+            String description,
+            String talkFormat,
+            String language,
+            String audienceLevel,
+            String attendance,
+            Integer talkDuration,
+            String requirements,
+            List<String> tags
+    ) {
+    }
+
+    public Optional<CfpRecommendationsRecord> findByEventRequestId(UUID eventRequestId) {
+        return dsl.selectFrom(CfpRecommendations.CFP_RECOMMENDATIONS)
+                .where(CfpRecommendations.CFP_RECOMMENDATIONS.EVENT_REQUEST_ID.eq(eventRequestId))
+                .fetchOptional();
+    }
+
+    public CfpRecommendationsRecord upsertForEvent(EventCfpInput input) {
+        CfpRecommendations cfp = CfpRecommendations.CFP_RECOMMENDATIONS;
+        UUID id = findByEventRequestId(input.eventRequestId())
+                .map(CfpRecommendationsRecord::getId)
+                .orElse(null);
+        if (id == null) {
+            id = UUID.randomUUID();
+            dsl.insertInto(cfp)
+                    .set(cfp.ID, id)
+                    .set(cfp.EVENT_REQUEST_ID, input.eventRequestId())
+                    .set(cfp.TITLE, input.title())
+                    .set(cfp.CITY, input.city())
+                    .set(cfp.INFLUENCE_LEVEL, input.influenceLevel())
+                    .set(cfp.TOPIC, input.topic())
+                    .set(cfp.DEADLINE, input.deadline())
+                    .set(cfp.HOST_COMPANY, input.hostCompany())
+                    .set(cfp.URL, input.url())
+                    .set(cfp.ACTIVE, true)
+                    .set(cfp.DESCRIPTION, input.description())
+                    .set(cfp.TALK_FORMAT, input.talkFormat())
+                    .set(cfp.LANGUAGE, input.language())
+                    .set(cfp.AUDIENCE_LEVEL, input.audienceLevel())
+                    .set(cfp.ATTENDANCE, input.attendance())
+                    .set(cfp.TALK_DURATION, input.talkDuration())
+                    .set(cfp.REQUIREMENTS, input.requirements())
+                    .execute();
+        } else {
+            dsl.update(cfp)
+                    .set(cfp.TITLE, input.title())
+                    .set(cfp.CITY, input.city())
+                    .set(cfp.INFLUENCE_LEVEL, input.influenceLevel())
+                    .set(cfp.TOPIC, input.topic())
+                    .set(cfp.DEADLINE, input.deadline())
+                    .set(cfp.HOST_COMPANY, input.hostCompany())
+                    .set(cfp.URL, input.url())
+                    .set(cfp.ACTIVE, true)
+                    .set(cfp.DESCRIPTION, input.description())
+                    .set(cfp.TALK_FORMAT, input.talkFormat())
+                    .set(cfp.LANGUAGE, input.language())
+                    .set(cfp.AUDIENCE_LEVEL, input.audienceLevel())
+                    .set(cfp.ATTENDANCE, input.attendance())
+                    .set(cfp.TALK_DURATION, input.talkDuration())
+                    .set(cfp.REQUIREMENTS, input.requirements())
+                    .where(cfp.ID.eq(id))
+                    .execute();
+        }
+        replaceTags(id, input.tags());
+        return findById(id).orElseThrow();
     }
 
     public boolean softDelete(UUID recommendationId) {

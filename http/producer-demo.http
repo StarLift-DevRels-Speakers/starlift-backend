@@ -79,3 +79,79 @@ GET {{host}}/api/producer/report
 Authorization: Bearer {{devrelToken}}
 
 >> producer-report.html
+
+### ── Подбор по ТЗ: организатор → спикеры ─────────────────────────────
+
+### 11. Организатор описывает мероприятие текстом: ИИ выпишет параметры с цитатами и задаст вопросы
+POST {{host}}/api/producer/events
+Authorization: Bearer {{devrelToken}}
+Content-Type: application/json
+
+{
+  "title": "Mobile Day",
+  "description": "Ищем спикеров на митап Mobile Day в Москве 20 ноября. Тема — мобильная разработка и продуктовая аналитика мобильных приложений. Аудитория — опытные мобильные разработчики и продакт-менеджеры. Нужен практический доклад на 30 минут на русском языке. Спикер обязательно должен иметь опыт в мобильной разработке."
+}
+
+> {% client.global.set("eventId", response.body.id); %}
+
+### 12. Отвечаем на уточняющий вопрос, остальные пропускаем — уверенность подбора снизится, но он не остановится
+PATCH {{host}}/api/producer/events/{{eventId}}
+Authorization: Bearer {{devrelToken}}
+Content-Type: application/json
+
+{
+  "answers": {"attendance": "только офлайн"},
+  "skip": ["speakerRequirements"]
+}
+
+### 13. Подбор спикеров: группы, объяснение, ограничения и уверенность по каждому
+POST {{host}}/api/producer/events/{{eventId}}/match
+Authorization: Bearer {{devrelToken}}
+
+> {%
+    const anna = response.body.groups.flatMap(group => group.items).find(item => item.name === "Анна Левина");
+    if (anna) client.global.set("annaId", anna.expertId);
+%}
+
+### 14. Приглашаем Анну
+POST {{host}}/api/producer/events/{{eventId}}/candidates/{{annaId}}/actions
+Authorization: Bearer {{devrelToken}}
+Content-Type: application/json
+
+{"action": "invited", "note": "Будем рады видеть вас с докладом про мобильную аналитику"}
+
+### 15. Анна видит приглашение и почему позвали именно её
+GET {{host}}/api/producer/me/invitations
+Authorization: Bearer {{annaToken}}
+
+### 16. Анна принимает приглашение
+POST {{host}}/api/producer/me/invitations/{{eventId}}/response
+Authorization: Bearer {{annaToken}}
+Content-Type: application/json
+
+{"response": "accepted", "note": "С радостью выступлю"}
+
+### 17. Организатор открывает CFP мероприятия — оно попадёт в подбор мероприятий спикерам
+POST {{host}}/api/producer/events/{{eventId}}/cfp
+Authorization: Bearer {{devrelToken}}
+Content-Type: application/json
+
+{"deadline": "2026-11-10", "level": "regional", "url": "https://example.com/mobile-day/cfp"}
+
+### ── Подбор по ТЗ: спикер → мероприятия ──────────────────────────────
+
+### 18. Профиль Анны: подтверждённая, возможная и смежная экспертиза, чего не хватает
+GET {{host}}/api/producer/me/profile
+Authorization: Bearer {{annaToken}}
+
+### 19. Мероприятия и CFP для Анны: почему подходит, дедлайн, что неизвестно, уверенность
+POST {{host}}/api/producer/me/events
+Authorization: Bearer {{annaToken}}
+
+### 20. История по мероприятию и метрики качества
+GET {{host}}/api/producer/events/{{eventId}}/history
+Authorization: Bearer {{devrelToken}}
+
+###
+GET {{host}}/api/producer/metrics
+Authorization: Bearer {{devrelToken}}

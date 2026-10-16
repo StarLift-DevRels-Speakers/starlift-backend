@@ -38,6 +38,10 @@ public class SpeakerAccessGuard {
         return findCurrentUser(requireAuthentication()).getId();
     }
 
+    public boolean isAdmin() {
+        return hasRole(requireAuthentication(), AppRole.ADMIN);
+    }
+
     private Authentication requireAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null || auth.getName().isBlank()) {

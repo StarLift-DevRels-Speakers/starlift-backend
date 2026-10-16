@@ -97,6 +97,16 @@ public class TalkFeedback extends TableImpl<TalkFeedbackRecord> {
      */
     public final TableField<TalkFeedbackRecord, LocalDateTime> CREATED_DATE = createField(DSL.name("created_date"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
 
+    /**
+     * The column <code>talk_feedback.author_type</code>.
+     */
+    public final TableField<TalkFeedbackRecord, String> AUTHOR_TYPE = createField(DSL.name("author_type"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'participant'"), SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>talk_feedback.source</code>.
+     */
+    public final TableField<TalkFeedbackRecord, String> SOURCE = createField(DSL.name("source"), SQLDataType.VARCHAR(50).nullable(false).defaultValue(DSL.field(DSL.raw("'platform'"), SQLDataType.VARCHAR)), this, "");
+
     private TalkFeedback(Name alias, Table<TalkFeedbackRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -194,7 +204,8 @@ public class TalkFeedback extends TableImpl<TalkFeedbackRecord> {
     @Override
     public List<Check<TalkFeedbackRecord>> getChecks() {
         return Arrays.asList(
-            Internal.createCheck(this, DSL.name("CONSTRAINT_E2"), "(\"rating\" >= 0)\n    AND (\"rating\" <= 10)", true)
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2"), "(\"rating\" >= 0)\n    AND (\"rating\" <= 10)", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D"), "\"author_type\" IN('participant', 'organizer', 'other')", true)
         );
     }
 

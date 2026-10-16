@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags;
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,6 +18,24 @@ public class UserProfileTagRepository {
         return dsl.select(UserProfileTags.USER_PROFILE_TAGS.TAG)
                 .from(UserProfileTags.USER_PROFILE_TAGS)
                 .where(UserProfileTags.USER_PROFILE_TAGS.USER_ID.eq(userId))
+                .orderBy(UserProfileTags.USER_PROFILE_TAGS.TAG.asc())
+                .fetch(UserProfileTags.USER_PROFILE_TAGS.TAG);
+    }
+
+    public Map<Long, List<String>> findByUserIds(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+        return dsl.select(UserProfileTags.USER_PROFILE_TAGS.USER_ID, UserProfileTags.USER_PROFILE_TAGS.TAG)
+                .from(UserProfileTags.USER_PROFILE_TAGS)
+                .where(UserProfileTags.USER_PROFILE_TAGS.USER_ID.in(userIds))
+                .orderBy(UserProfileTags.USER_PROFILE_TAGS.TAG.asc())
+                .fetchGroups(UserProfileTags.USER_PROFILE_TAGS.USER_ID, UserProfileTags.USER_PROFILE_TAGS.TAG);
+    }
+
+    public List<String> findDistinctTags() {
+        return dsl.selectDistinct(UserProfileTags.USER_PROFILE_TAGS.TAG)
+                .from(UserProfileTags.USER_PROFILE_TAGS)
                 .orderBy(UserProfileTags.USER_PROFILE_TAGS.TAG.asc())
                 .fetch(UserProfileTags.USER_PROFILE_TAGS.TAG);
     }

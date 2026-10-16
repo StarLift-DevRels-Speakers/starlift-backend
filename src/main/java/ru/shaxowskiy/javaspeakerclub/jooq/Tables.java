@@ -6,9 +6,13 @@ package ru.shaxowskiy.javaspeakerclub.jooq;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ExpertPreferences;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerInteractions;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerRuns;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
@@ -39,6 +43,16 @@ public class Tables {
     public static final CfpRecommendations CFP_RECOMMENDATIONS = CfpRecommendations.CFP_RECOMMENDATIONS;
 
     /**
+     * The table <code>event_requests</code>.
+     */
+    public static final EventRequests EVENT_REQUESTS = EventRequests.EVENT_REQUESTS;
+
+    /**
+     * The table <code>expert_preferences</code>.
+     */
+    public static final ExpertPreferences EXPERT_PREFERENCES = ExpertPreferences.EXPERT_PREFERENCES;
+
+    /**
      * The table <code>lectures</code>.
      */
     public static final Lectures LECTURES = Lectures.LECTURES;
@@ -49,9 +63,19 @@ public class Tables {
     public static final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
 
     /**
+     * The table <code>producer_interactions</code>.
+     */
+    public static final ProducerInteractions PRODUCER_INTERACTIONS = ProducerInteractions.PRODUCER_INTERACTIONS;
+
+    /**
      * The table <code>producer_plans</code>.
      */
     public static final ProducerPlans PRODUCER_PLANS = ProducerPlans.PRODUCER_PLANS;
+
+    /**
+     * The table <code>producer_runs</code>.
+     */
+    public static final ProducerRuns PRODUCER_RUNS = ProducerRuns.PRODUCER_RUNS;
 
     /**
      * The table <code>speaker_achievements</code>.

@@ -14,9 +14,13 @@ import org.jooq.impl.SchemaImpl;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ExpertPreferences;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerInteractions;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerRuns;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
@@ -54,6 +58,16 @@ public class DefaultSchema extends SchemaImpl {
     public final CfpRecommendations CFP_RECOMMENDATIONS = CfpRecommendations.CFP_RECOMMENDATIONS;
 
     /**
+     * The table <code>event_requests</code>.
+     */
+    public final EventRequests EVENT_REQUESTS = EventRequests.EVENT_REQUESTS;
+
+    /**
+     * The table <code>expert_preferences</code>.
+     */
+    public final ExpertPreferences EXPERT_PREFERENCES = ExpertPreferences.EXPERT_PREFERENCES;
+
+    /**
      * The table <code>lectures</code>.
      */
     public final Lectures LECTURES = Lectures.LECTURES;
@@ -64,9 +78,19 @@ public class DefaultSchema extends SchemaImpl {
     public final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
 
     /**
+     * The table <code>producer_interactions</code>.
+     */
+    public final ProducerInteractions PRODUCER_INTERACTIONS = ProducerInteractions.PRODUCER_INTERACTIONS;
+
+    /**
      * The table <code>producer_plans</code>.
      */
     public final ProducerPlans PRODUCER_PLANS = ProducerPlans.PRODUCER_PLANS;
+
+    /**
+     * The table <code>producer_runs</code>.
+     */
+    public final ProducerRuns PRODUCER_RUNS = ProducerRuns.PRODUCER_RUNS;
 
     /**
      * The table <code>speaker_achievements</code>.
@@ -141,9 +165,13 @@ public class DefaultSchema extends SchemaImpl {
         return Arrays.asList(
             CfpRecommendationTags.CFP_RECOMMENDATION_TAGS,
             CfpRecommendations.CFP_RECOMMENDATIONS,
+            EventRequests.EVENT_REQUESTS,
+            ExpertPreferences.EXPERT_PREFERENCES,
             Lectures.LECTURES,
             ParsingEvents.PARSING_EVENTS,
+            ProducerInteractions.PRODUCER_INTERACTIONS,
             ProducerPlans.PRODUCER_PLANS,
+            ProducerRuns.PRODUCER_RUNS,
             SpeakerAchievements.SPEAKER_ACHIEVEMENTS,
             SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS,
             SpeakerNpsHistory.SPEAKER_NPS_HISTORY,
