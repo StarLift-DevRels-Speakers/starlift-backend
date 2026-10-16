@@ -2,11 +2,11 @@ name: Docker Deployment
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ develop ]
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, x64]
 
     steps:
       - name: Checkout code
