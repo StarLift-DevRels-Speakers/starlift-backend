@@ -3619,13 +3619,23 @@ components:
           nullable: true
           allOf:
             - $ref: '#/components/schemas/ProducerPlanValidation'
+        confidence:
+          nullable: true
+          description: Насколько план опирается на достаточные данные (считает код по числу и свежести отзывов и выступлений)
+          allOf:
+            - $ref: '#/components/schemas/RecommendationConfidence'
+        gaps:
+          type: array
+          description: Чего не хватает в данных спикера
+          items:
+            type: string
         model:
           type: string
           nullable: true
           example: gpt-4o-mini
         promptVersion:
           type: string
-          example: producer-v1
+          example: producer-v2
         createdDate:
           type: string
           format: date-time

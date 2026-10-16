@@ -14,6 +14,7 @@ public record ProducerProperties(
         @DefaultValue("3") int minFeedbackForPlan,
         @DefaultValue("0.2") double temperature,
         @DefaultValue("10") int regenerateAllLimit,
-        @DefaultValue("producer-v1") String promptVersion
+        @DefaultValue("5") int maxCfpItems,
+        @DefaultValue("producer-v2") String promptVersion
 ) {
 }

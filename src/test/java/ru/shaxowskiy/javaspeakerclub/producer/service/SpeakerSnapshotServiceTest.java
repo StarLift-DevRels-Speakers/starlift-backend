@@ -29,6 +29,7 @@ class SpeakerSnapshotServiceTest {
 
     private final LocalDateTime now = LocalDateTime.now();
     private UUID annaFutureCfp;
+    private UUID oldCfp;
     private UUID bobFeedback;
 
     @BeforeEach
@@ -54,7 +55,8 @@ class SpeakerSnapshotServiceTest {
 
         annaFutureCfp = data.cfp("Mobile Frontier", "international", LocalDate.now().plusDays(30));
         data.link(1L, annaFutureCfp, 89);
-        data.link(1L, data.cfp("Old Conf", "federal", LocalDate.now().minusDays(1)), 70);
+        oldCfp = data.cfp("Old Conf", "federal", LocalDate.now().minusDays(1));
+        data.link(1L, oldCfp, 70);
         data.link(2L, data.cfp("Bob Conf", "regional", LocalDate.now().plusDays(10)), 60);
     }
 
@@ -83,9 +85,18 @@ class SpeakerSnapshotServiceTest {
         assertThat(snapshot.nps().previous()).isEqualTo(82);
         assertThat(snapshot.nps().delta()).isEqualTo(6);
 
+        // CFP подбираются по опыту спикера, а не по ручной привязке: тема «Product» совпадает с докладом «Метрики продукта».
         assertThat(snapshot.cfps()).extracting(SpeakerSnapshot.CfpItem::id)
-                .containsExactly(annaFutureCfp.toString());
-        assertThat(snapshot.cfps().getFirst().level()).isEqualTo("international");
+                .contains(annaFutureCfp.toString())
+                .doesNotContain(oldCfp.toString());
+        SpeakerSnapshot.CfpItem frontier = snapshot.cfps().stream()
+                .filter(item -> item.id().equals(annaFutureCfp.toString()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(frontier.level()).isEqualTo("international");
+        assertThat(frontier.whyFits()).isNotEmpty();
+        assertThat(frontier.confidence()).isIn("high", "medium", "low");
+        assertThat(snapshot.feedback()).allSatisfy(item -> assertThat(item.talkTopic()).isNotBlank());
     }
 
     @Test
