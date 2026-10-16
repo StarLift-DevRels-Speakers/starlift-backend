@@ -1,0 +1,26 @@
+name: Docker Deployment
+
+# Скрипт срабатывает автоматически при каждом push в ветку main
+on:
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  deploy:
+    # Указываем GitHub запускать команды именно на вашей настроенной ВМ
+    runs-on: self-hosted
+
+    steps:
+      # Шаг 1: Скачиваем свежий код из репозитория (включая docker-compose.yml) на ВМ
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Шаг 2: Выполняем команды Docker в терминале вашей ВМ
+      - name: Build and Restart Docker Containers
+        run: |
+          # Пересобираем образы и запускаем контейнеры в фоновом режиме
+          docker compose up -d --build
+          
+          # Очищаем систему от старых неиспользуемых слоев Docker, чтобы не забивать диск ВМ
+          docker image prune -f
+
