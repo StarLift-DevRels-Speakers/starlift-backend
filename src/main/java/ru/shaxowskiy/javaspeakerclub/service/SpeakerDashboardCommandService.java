@@ -2,8 +2,6 @@ package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,6 +21,7 @@ import ru.shaxowskiy.javaspeakerclub.repository.CfpRecommendationRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.SpeakerAchievementRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.SpeakerNpsHistoryRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
+import ru.shaxowskiy.javaspeakerclub.security.SpeakerAccessGuard;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -37,10 +36,11 @@ public class SpeakerDashboardCommandService {
     private final SpeakerNpsHistoryRepository speakerNpsHistoryRepository;
     private final SpeakerAchievementRepository speakerAchievementRepository;
     private final CfpRecommendationRepository cfpRecommendationRepository;
+    private final SpeakerAccessGuard speakerAccessGuard;
 
     @Transactional
     public SpeakerDashboardProfileResponse patchDashboardProfile(Long speakerId, SpeakerDashboardProfilePatchRequest request) {
-        assertCanManageSpeaker(speakerId);
+        speakerAccessGuard.assertCanManageSpeaker(speakerId);
         UsersRecord current = userRepository.findById(speakerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Speaker not found: " + speakerId));
 
@@ -73,7 +73,7 @@ public class SpeakerDashboardCommandService {
 
     @Transactional
     public SpeakerNpsHistoryResponse createNpsHistory(Long speakerId, SpeakerNpsHistoryCreateRequest request) {
-        assertCanManageSpeaker(speakerId);
+        speakerAccessGuard.assertCanManageSpeaker(speakerId);
         validateNps(request.nps());
 
         userRepository.findById(speakerId)
@@ -90,7 +90,7 @@ public class SpeakerDashboardCommandService {
 
     @Transactional
     public List<SpeakerAchievementResponse> replaceAchievements(Long speakerId, List<SpeakerAchievementUpsertRequest> request) {
-        assertCanManageSpeaker(speakerId);
+        speakerAccessGuard.assertCanManageSpeaker(speakerId);
         userRepository.findById(speakerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Speaker not found: " + speakerId));
 
@@ -110,7 +110,7 @@ public class SpeakerDashboardCommandService {
 
     @Transactional
     public List<SpeakerCfpLinkResponse> replaceSpeakerCfpLinks(Long speakerId, List<SpeakerCfpLinkUpsertRequest> request) {
-        assertCanManageSpeaker(speakerId);
+        speakerAccessGuard.assertCanManageSpeaker(speakerId);
         userRepository.findById(speakerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Speaker not found: " + speakerId));
 
@@ -143,35 +143,6 @@ public class SpeakerDashboardCommandService {
                 LocalDateTime.now(),
                 source == null || source.isBlank() ? "manual" : source.trim()
         );
-    }
-
-    private void assertCanManageSpeaker(Long speakerId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
-        }
-
-        boolean admin = hasRole(auth, "ROLE_ADMIN");
-        boolean devrel = hasRole(auth, "ROLE_DEVREL");
-        if (admin || devrel) {
-            return;
-        }
-
-        boolean speaker = hasRole(auth, "ROLE_SPEAKER");
-        if (!speaker) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Insufficient permissions");
-        }
-
-        UsersRecord me = userRepository.findByUsername(auth.getName())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Current user not found"));
-
-        if (!me.getId().equals(speakerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Speaker can only update own data");
-        }
-    }
-
-    private boolean hasRole(Authentication auth, String role) {
-        return auth.getAuthorities().stream().anyMatch(granted -> role.equals(granted.getAuthority()));
     }
 
     private int computeProfileCompletion(

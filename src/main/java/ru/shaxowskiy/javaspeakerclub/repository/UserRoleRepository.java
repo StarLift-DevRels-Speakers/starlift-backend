@@ -35,6 +35,14 @@ public class UserRoleRepository {
                 .toList();
     }
 
+    public List<Long> findUserIdsByRole(AppRole role) {
+        return dsl.select(USER_ID)
+                .from(USER_ROLES)
+                .where(ROLE.eq(role.name()))
+                .orderBy(USER_ID.asc())
+                .fetch(USER_ID);
+    }
+
     public void assignRole(Long userId, AppRole role) {
         dsl.insertInto(USER_ROLES)
                 .set(USER_ID, userId)

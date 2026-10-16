@@ -16,6 +16,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
@@ -61,6 +62,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>parsing_events</code>.
      */
     public final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
+
+    /**
+     * The table <code>producer_plans</code>.
+     */
+    public final ProducerPlans PRODUCER_PLANS = ProducerPlans.PRODUCER_PLANS;
 
     /**
      * The table <code>speaker_achievements</code>.
@@ -137,6 +143,7 @@ public class DefaultSchema extends SchemaImpl {
             CfpRecommendations.CFP_RECOMMENDATIONS,
             Lectures.LECTURES,
             ParsingEvents.PARSING_EVENTS,
+            ProducerPlans.PRODUCER_PLANS,
             SpeakerAchievements.SPEAKER_ACHIEVEMENTS,
             SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS,
             SpeakerNpsHistory.SPEAKER_NPS_HISTORY,

@@ -203,3 +203,19 @@ CREATE TABLE speaker_cfp_recommendations (
 
 CREATE INDEX idx_speaker_cfp_recommendations_speaker_id ON speaker_cfp_recommendations (speaker_id);
 CREATE INDEX idx_speaker_cfp_recommendations_match_score ON speaker_cfp_recommendations (match_score);
+
+CREATE TABLE producer_plans (
+  id UUID PRIMARY KEY,
+  speaker_id BIGINT NOT NULL,
+  status VARCHAR(30) NOT NULL CHECK (status IN ('ready', 'insufficient_data', 'failed')),
+  plan_json TEXT,
+  snapshot_json TEXT,
+  validation_json TEXT,
+  model VARCHAR(100),
+  prompt_version VARCHAR(50),
+  error TEXT,
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_producer_plans_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_producer_plans_speaker_created ON producer_plans (speaker_id, created_date);

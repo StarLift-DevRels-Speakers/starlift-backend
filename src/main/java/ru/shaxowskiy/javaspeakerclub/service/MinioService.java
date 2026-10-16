@@ -2,8 +2,8 @@ package ru.shaxowskiy.javaspeakerclub.service;
 
 import io.minio.*;
 import io.minio.http.Method;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.shaxowskiy.javaspeakerclub.config.S3Properties;
@@ -11,15 +11,12 @@ import ru.shaxowskiy.javaspeakerclub.exception.StorageException;
 import ru.shaxowskiy.javaspeakerclub.exception.UnsupportedMediaTypeException;
 
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MinioService {
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
@@ -32,7 +29,16 @@ public class MinioService {
     );
 
     private final MinioClient minioClient;
+    private final MinioClient presignMinioClient;
     private final S3Properties s3Properties;
+
+    public MinioService(MinioClient minioClient,
+                        @Qualifier("presignMinioClient") MinioClient presignMinioClient,
+                        S3Properties s3Properties) {
+        this.minioClient = minioClient;
+        this.presignMinioClient = presignMinioClient;
+        this.s3Properties = s3Properties;
+    }
 
     /**
      * Uploads file to MinIO bucket under {@code folder/uuid_originalFilename}.
@@ -82,9 +88,13 @@ public class MinioService {
         }
     }
 
+    /**
+     * Returns a one-hour GET URL on the public endpoint.
+     * The signature covers the host, so the URL must be used as is.
+     */
     public String getPresignedUrl(String objectKey) {
         try {
-            String internalUrl = minioClient.getPresignedObjectUrl(
+            return presignMinioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
                             .bucket(s3Properties.getBucket())
@@ -92,7 +102,6 @@ public class MinioService {
                             .expiry(1, TimeUnit.HOURS)
                             .build()
             );
-            return rewriteToPublicEndpoint(internalUrl);
         } catch (Exception e) {
             throw new StorageException("Failed to generate presigned URL for: " + objectKey, e);
         }
@@ -134,29 +143,6 @@ public class MinioService {
             throw new UnsupportedMediaTypeException(
                     "Unsupported file type: " + contentType
                             + ". Allowed types: " + ALLOWED_CONTENT_TYPES);
-        }
-    }
-
-    private String rewriteToPublicEndpoint(String sourceUrl) {
-        String publicEndpoint = s3Properties.getPublicEndpoint();
-        if (publicEndpoint == null || publicEndpoint.isBlank()) {
-            return sourceUrl;
-        }
-        try {
-            URI source = URI.create(sourceUrl);
-            URI publicUri = URI.create(publicEndpoint);
-            return new URI(
-                    publicUri.getScheme(),
-                    publicUri.getUserInfo(),
-                    publicUri.getHost(),
-                    publicUri.getPort(),
-                    source.getPath(),
-                    source.getQuery(),
-                    source.getFragment()
-            ).toString();
-        } catch (IllegalArgumentException | URISyntaxException ex) {
-            log.warn("Failed to rewrite MinIO URL to public endpoint {}", publicEndpoint, ex);
-            return sourceUrl;
         }
     }
 }

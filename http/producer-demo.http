@@ -1,0 +1,81 @@
+### Демо ИИ-продюсера без фронта (IntelliJ HTTP Client).
+### Нужны демо-данные: APP_LIQUIBASE_CONTEXTS=demo и ключ LLM в .env (см. .env.example).
+### Окружение выбирается в IDEA: local или stand (http-client.env.json).
+
+### 1. Входим Анной Левиной (демо-спикер)
+POST {{host}}/api/auth/sign-in
+Content-Type: application/json
+
+{
+  "username": "anna.levina",
+  "password": "{{demoPassword}}"
+}
+
+> {% client.global.set("annaToken", response.body.accessToken); %}
+
+### 2. Собираем план продюсера (один вызов LLM, 5–20 секунд)
+POST {{host}}/api/producer/me/plan
+Authorization: Bearer {{annaToken}}
+
+### 3. Смотрим последний сохранённый план
+GET {{host}}/api/producer/me/plan
+Authorization: Bearer {{annaToken}}
+
+### 4–6. Живой момент: три слушателя пишут одно и то же (отзывы анонимные).
+### В сиде уже есть два таких отзыва — ниже порога в 3, поэтому темы в плане пока нет.
+POST {{host}}/api/talks/{{annaTalkId}}/feedback
+Content-Type: application/json
+
+{
+  "rating": 6,
+  "positive": "Интересная тема",
+  "negative": "Непонятно, как применить это у нас, в маленькой команде",
+  "improvementSuggestions": "Добавить пошаговый план внедрения"
+}
+
+###
+POST {{host}}/api/talks/{{annaTalkId}}/feedback
+Content-Type: application/json
+
+{
+  "rating": 7,
+  "positive": "Хорошие примеры",
+  "negative": "Не хватило практики: что делать в понедельник, чтобы внедрить у себя",
+  "improvementSuggestions": "Чек-лист для старта"
+}
+
+###
+POST {{host}}/api/talks/{{annaTalkId}}/feedback
+Content-Type: application/json
+
+{
+  "rating": 6,
+  "positive": "Полезно",
+  "negative": "Всё круто, но непонятно, как это применить в нашей компании",
+  "improvementSuggestions": "Разобрать внедрение на примере небольшой команды"
+}
+
+### 7. Пересобираем план — должна появиться новая зона роста со ссылками на эти отзывы
+POST {{host}}/api/producer/me/plan
+Authorization: Bearer {{annaToken}}
+
+### 8. Входим DevRel
+POST {{host}}/api/auth/sign-in
+Content-Type: application/json
+
+{
+  "username": "demo.devrel",
+  "password": "{{demoPassword}}"
+}
+
+> {% client.global.set("devrelToken", response.body.accessToken); %}
+
+### 9. Пересобираем планы всех спикеров (по одному вызову LLM на спикера)
+POST {{host}}/api/producer/plans/regenerate-all
+Authorization: Bearer {{devrelToken}}
+
+### 10. HTML-отчёт прогона: сверка с эталоном и всё, что отбросил валидатор. Откройте сохранённый файл в браузере.
+GET {{host}}/api/producer/report
+Authorization: Bearer {{devrelToken}}
+
+>> producer-report.html

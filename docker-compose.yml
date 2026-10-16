@@ -40,7 +40,13 @@ services:
       S3_BUCKET: lectures-media
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: change-me-to-256-bit
+      # HS256 требует секрет не короче 32 байт, иначе вход падает с 500
+      JWT_SECRET: ${JWT_SECRET:-local-dev-only-jwt-secret-change-me-32-bytes}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-not-set}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      PARSING_SEARCH_API_KEY: ${PARSING_SEARCH_API_KEY:-not-set}
+      APP_LIQUIBASE_CONTEXTS: ${APP_LIQUIBASE_CONTEXTS:-}
 
   postgres:
     image: postgres:15
@@ -64,7 +70,8 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    # minio/minio и minio/mc больше не публикуются (Docker Hub/Quay) — берём форк pgsty с фиксированными тегами
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     container_name: minio-s3
     networks:
       app-net:
@@ -86,7 +93,7 @@ services:
       retries: 5
 
   minio-init:
-    image: minio/mc:latest
+    image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
     container_name: minio-init
     networks:
       - app-net
