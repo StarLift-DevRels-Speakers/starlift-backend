@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -92,12 +93,12 @@ class ProducerMatchingFlowTest {
         data.tag(metrics, "product");
 
         when(llmClient.modelName()).thenReturn("test-model");
-        when(llmClient.generate(anyString(), anyString(), eq(EventAnalysisDraft.class))).thenReturn(new EventAnalysisDraft(Map.of(
+        when(llmClient.generate(anyString(), anyString(), eq(EventAnalysisDraft.class), any())).thenReturn(new EventAnalysisDraft(Map.of(
                 "topics", new DraftParam(List.of("Android-разработка"), "stated", "Митап про Android-разработку"),
                 "city", new DraftParam(List.of("Москва"), "stated", "в Москве"),
                 "audienceLevel", new DraftParam(List.of("senior"), "inferred", "для опытных разработчиков")
         ), List.of("android"), List.of()));
-        when(llmClient.generate(anyString(), anyString(), eq(RecommendationSummaryWriter.Draft.class)))
+        when(llmClient.generate(anyString(), anyString(), eq(RecommendationSummaryWriter.Draft.class), any()))
                 .thenThrow(new IllegalStateException("model is down"));
     }
 
@@ -205,7 +206,7 @@ class ProducerMatchingFlowTest {
 
     @Test
     void cardIsBuiltFromFormWhenDescriptionCannotBeAnalyzed() throws Exception {
-        when(llmClient.generate(anyString(), anyString(), eq(EventAnalysisDraft.class)))
+        when(llmClient.generate(anyString(), anyString(), eq(EventAnalysisDraft.class), any()))
                 .thenThrow(new IllegalStateException("model is down"));
 
         mockMvc.perform(post("/api/producer/events").with(DEVREL)

@@ -37,6 +37,8 @@ public class RecommendationSummaryWriter {
 
     private static final int MAX_LENGTH = 400;
     private static final int MAX_ATTEMPTS = 2;
+    /** Три пересказа по 300 символов — это примерно 400 токенов; запас на JSON и ссылки на доклады. */
+    private static final int MAX_TOKENS = 700;
     private static final Pattern NUMBER = Pattern.compile("\\d+");
     private static final Pattern FOREIGN_SCRIPT = Pattern.compile("[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}\\p{IsHangul}]");
     private static final List<String> PLACEHOLDERS = List.of("<пояснение>", "<id", "id из входа", "1–2 предложения");
@@ -91,7 +93,7 @@ public class RecommendationSummaryWriter {
         Result result = null;
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
-                draft = llmClient.generate(systemPrompt, request, Draft.class);
+                draft = llmClient.generate(systemPrompt, request, Draft.class, MAX_TOKENS);
             } catch (RuntimeException e) {
                 failure = e;
                 log.warn("Recommendation summaries failed (attempt {}): {}", attempt, e.getMessage());

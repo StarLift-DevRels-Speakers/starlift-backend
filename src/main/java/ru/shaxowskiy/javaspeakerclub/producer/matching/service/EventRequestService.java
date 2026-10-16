@@ -45,6 +45,8 @@ import java.util.UUID;
 public class EventRequestService {
 
     static final String TAGS_KEY = "tags";
+    /** Разбор описания — до 16 параметров с цитатами и требования; больше не нужно, а зацикливание обрывается. */
+    private static final int ANALYSIS_MAX_TOKENS = 1500;
 
     private final EventRequestRepository repository;
     private final ProducerRunRepository runRepository;
@@ -228,7 +230,7 @@ public class EventRequestService {
                 + "Описание:\n" + description;
         try {
             EventAnalysisDraft draft = llmClient.generate(PromptFiles.load(properties.analysisPromptVersion()), user,
-                    EventAnalysisDraft.class);
+                    EventAnalysisDraft.class, ANALYSIS_MAX_TOKENS);
             return new Analysis(draft, List.of(), llmClient.modelName());
         } catch (RuntimeException e) {
             log.warn("Event analysis failed: {}", e.getMessage());

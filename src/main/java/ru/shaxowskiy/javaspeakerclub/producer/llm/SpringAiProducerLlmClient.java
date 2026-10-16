@@ -33,16 +33,16 @@ public class SpringAiProducerLlmClient implements ProducerLlmClient {
 
     @Override
     public ProducerPlanDraft generatePlan(String systemPrompt, String userMessage) {
-        return generate(systemPrompt, userMessage, ProducerPlanDraft.class);
+        return generate(systemPrompt, userMessage, ProducerPlanDraft.class, null);
     }
 
     @Override
-    public <T> T generate(String systemPrompt, String userMessage, Class<T> type) {
+    public <T> T generate(String systemPrompt, String userMessage, Class<T> type, Integer maxTokens) {
         // Сообщения передаём объектами: .system(String) прогоняет текст через шаблонизатор,
         // а в промпте есть фигурные скобки JSON-схемы.
         String content = chatClient.prompt()
                 .messages(new SystemMessage(systemPrompt), new UserMessage(userMessage))
-                .options(ChatOptions.builder().temperature(properties.temperature()).build())
+                .options(ChatOptions.builder().temperature(properties.temperature()).maxTokens(maxTokens).build())
                 .call()
                 .content();
         try {
