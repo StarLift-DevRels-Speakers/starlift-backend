@@ -11,6 +11,22 @@ public class User {
 
     private String username;
 
+    private String firstName;
+
+    private String lastName;
+
+    private String surName;
+
+    private String about;
+
+    private String company;
+
+    private String companyRole;
+
+    private String region;
+
+    private String avatarUrl;
+
     private String password;
 
     private LocalDateTime createdDate;
@@ -18,4 +34,6 @@ public class User {
     private LocalDateTime lastModifiedDate;
 
     private List<String> roles;
+
+    private List<String> tags;
 }

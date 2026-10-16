@@ -15,3 +15,23 @@ databaseChangeLog:
       file: db/changelog/0007_add_user_roles.yaml
   - include:
       file: db/changelog/0008_create_user_media_table.yaml
+  - include:
+      file: db/changelog/0009_add_user_name_fields.yaml
+  - include:
+      file: db/changelog/0010_add_users_avatar_media_key.yaml
+  - include:
+      file: db/changelog/0011_create_parsing_events_table.yaml
+  - include:
+      file: db/changelog/0012_dashboard_domain_model.yaml
+  - include:
+      file: db/changelog/0013_dashboard_fake_seed.yaml
+  - include:
+      file: db/changelog/0014_create_talk_feedback_table.yaml
+  - include:
+      file: db/changelog/0015_create_talk_tags_table.yaml
+  - include:
+      file: db/changelog/0015_add_profile_about_company_role_and_tags.yaml
+  - include:
+      file: db/changelog/0016_create_producer_plans_table.yaml
+  - include:
+      file: db/changelog/0017_producer_demo_seed.yaml

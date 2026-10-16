@@ -8,7 +8,16 @@ import ru.shaxowskiy.javaspeakerclub.dto.NpsUpdateRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.RoleCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.RoleResponse;
 import ru.shaxowskiy.javaspeakerclub.dto.SpeakerResponse;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerAchievementResponse;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerAchievementUpsertRequest;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerCfpLinkResponse;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerCfpLinkUpsertRequest;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerDashboardProfilePatchRequest;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerDashboardProfileResponse;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerNpsHistoryCreateRequest;
+import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerNpsHistoryResponse;
 import ru.shaxowskiy.javaspeakerclub.service.RoleService;
+import ru.shaxowskiy.javaspeakerclub.service.SpeakerDashboardCommandService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,6 +28,7 @@ import java.util.List;
 public class RoleController {
 
     private final RoleService roleService;
+    private final SpeakerDashboardCommandService speakerDashboardCommandService;
 
     @PostMapping("/roles")
     @ResponseStatus(HttpStatus.CREATED)
@@ -55,8 +65,41 @@ public class RoleController {
         return roleService.findSpeakerById(id);
     }
 
-    @PutMapping("/speakers/{id}/nps")
+    @PatchMapping("/speakers/{id}/nps")
     public SpeakerResponse updateNps(@PathVariable Long id, @RequestBody NpsUpdateRequest request) {
         return roleService.updateNps(id, request.nps());
+    }
+
+    @PatchMapping("/speakers/{id}/dashboard-profile")
+    public SpeakerDashboardProfileResponse patchDashboardProfile(
+            @PathVariable Long id,
+            @RequestBody SpeakerDashboardProfilePatchRequest request
+    ) {
+        return speakerDashboardCommandService.patchDashboardProfile(id, request);
+    }
+
+    @PostMapping("/speakers/{id}/nps-history")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SpeakerNpsHistoryResponse createNpsHistory(
+            @PathVariable Long id,
+            @RequestBody SpeakerNpsHistoryCreateRequest request
+    ) {
+        return speakerDashboardCommandService.createNpsHistory(id, request);
+    }
+
+    @PutMapping("/speakers/{id}/achievements")
+    public List<SpeakerAchievementResponse> replaceAchievements(
+            @PathVariable Long id,
+            @RequestBody List<SpeakerAchievementUpsertRequest> request
+    ) {
+        return speakerDashboardCommandService.replaceAchievements(id, request);
+    }
+
+    @PutMapping("/speakers/{id}/cfp-recommendations")
+    public List<SpeakerCfpLinkResponse> replaceSpeakerCfpRecommendations(
+            @PathVariable Long id,
+            @RequestBody List<SpeakerCfpLinkUpsertRequest> request
+    ) {
+        return speakerDashboardCommandService.replaceSpeakerCfpLinks(id, request);
     }
 }

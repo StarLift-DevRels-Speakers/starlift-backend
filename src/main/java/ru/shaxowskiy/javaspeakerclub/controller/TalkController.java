@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkResponse;
+import ru.shaxowskiy.javaspeakerclub.dto.TalkTagsAddRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkUpdateRequest;
 import ru.shaxowskiy.javaspeakerclub.service.TalkService;
 
@@ -41,6 +42,21 @@ public class TalkController {
     @PutMapping("/{id}")
     public TalkResponse update(@PathVariable UUID id, @RequestBody TalkUpdateRequest request) {
         return talkService.update(id, request);
+    }
+
+    @PatchMapping("/{id}")
+    public TalkResponse patch(@PathVariable UUID id, @RequestBody TalkUpdateRequest request) {
+        return talkService.patch(id, request);
+    }
+
+    @PostMapping("/{id}/tags")
+    public TalkResponse addTags(@PathVariable UUID id, @RequestBody TalkTagsAddRequest request) {
+        return talkService.addTags(id, request.tags());
+    }
+
+    @DeleteMapping("/{id}/tags/{tag}")
+    public TalkResponse removeTag(@PathVariable UUID id, @PathVariable String tag) {
+        return talkService.removeTag(id, tag);
     }
 
     @DeleteMapping("/{id}")

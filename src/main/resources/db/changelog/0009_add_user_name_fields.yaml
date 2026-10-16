@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0009
+      author: loonklage
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+              - column:
+                  name: sur_name
+                  type: VARCHAR(255)

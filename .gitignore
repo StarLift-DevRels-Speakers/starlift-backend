@@ -37,3 +37,10 @@ CLAUDE.md
 .mvn
 src/main/generated
 .env
+mvnw
+mvnw.cmd
+
+### Producer demo ###
+http/http-client.private.env.json
+producer-report.html
+http/producer-report.html

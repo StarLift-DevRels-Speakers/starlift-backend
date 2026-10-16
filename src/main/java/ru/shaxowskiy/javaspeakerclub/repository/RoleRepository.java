@@ -9,7 +9,9 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerRolesRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -44,6 +46,33 @@ public class RoleRepository {
                 .fetch();
     }
 
+    public List<String> findDistinctRoleNames() {
+        return dsl.selectDistinct(SpeakerRoles.SPEAKER_ROLES.NAME)
+                .from(SpeakerRoles.SPEAKER_ROLES)
+                .where(SpeakerRoles.SPEAKER_ROLES.NAME.isNotNull().and(SpeakerRoles.SPEAKER_ROLES.NAME.ne("")))
+                .orderBy(SpeakerRoles.SPEAKER_ROLES.NAME.asc())
+                .fetch(SpeakerRoles.SPEAKER_ROLES.NAME);
+    }
+
+    public List<SpeakerRolesRecord> findBySpeakerIds(List<Long> speakerIds) {
+        if (speakerIds == null || speakerIds.isEmpty()) {
+            return List.of();
+        }
+
+        return dsl.selectFrom(SpeakerRoles.SPEAKER_ROLES)
+                .where(SpeakerRoles.SPEAKER_ROLES.SPEAKER_ID.in(speakerIds))
+                .orderBy(SpeakerRoles.SPEAKER_ROLES.SPEAKER_ID.asc(), SpeakerRoles.SPEAKER_ROLES.NAME.asc())
+                .fetch();
+    }
+
+    public Map<Long, List<String>> findRoleNamesGroupedBySpeakerIds(List<Long> speakerIds) {
+        return findBySpeakerIds(speakerIds).stream()
+                .collect(Collectors.groupingBy(
+                        SpeakerRolesRecord::getSpeakerId,
+                        Collectors.mapping(SpeakerRolesRecord::getName, Collectors.toList())
+                ));
+    }
+
     /**
      * Find speakers whose roles contain the given substring (case-insensitive).
      * Returns distinct user records for speakers that have at least one role
@@ -53,6 +82,9 @@ public class RoleRepository {
         return dsl.selectDistinct(
                         Users.USERS.ID,
                         Users.USERS.USERNAME,
+                        Users.USERS.FIRST_NAME,
+                        Users.USERS.LAST_NAME,
+                        Users.USERS.SUR_NAME,
                         Users.USERS.PASSWORD,
                         Users.USERS.NPS,
                         Users.USERS.CREATED_DATE,
@@ -73,6 +105,9 @@ public class RoleRepository {
         return dsl.selectDistinct(
                         Users.USERS.ID,
                         Users.USERS.USERNAME,
+                        Users.USERS.FIRST_NAME,
+                        Users.USERS.LAST_NAME,
+                        Users.USERS.SUR_NAME,
                         Users.USERS.PASSWORD,
                         Users.USERS.NPS,
                         Users.USERS.CREATED_DATE,

@@ -1,0 +1,54 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: java-speaker-club
+  namespace: speaker-club
+  labels:
+    app.kubernetes.io/name: java-speaker-club
+spec:
+  scaleTargetRef:
+    name: java-speaker-club
+  pollingInterval: 30
+  cooldownPeriod: 300
+  minReplicaCount: 2
+  maxReplicaCount: 8
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: java-speaker-club-hpa
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 60
+            - type: Pods
+              value: 2
+              periodSeconds: 60
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 60
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "70"
+    - type: memory
+      metricType: Utilization
+      metadata:
+        value: "80"
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-operated.monitoring.svc.cluster.local:9090
+        metricName: speaker_club_pvc_disk_used_percent
+        threshold: "85"
+        query: |
+          100 * max by (namespace) (
+            kubelet_volume_stats_used_bytes{namespace="speaker-club",persistentvolumeclaim=~"postgres-data-postgres-0|minio-data-minio-0"}
+            /
+            kubelet_volume_stats_capacity_bytes{namespace="speaker-club",persistentvolumeclaim=~"postgres-data-postgres-0|minio-data-minio-0"}
+          )

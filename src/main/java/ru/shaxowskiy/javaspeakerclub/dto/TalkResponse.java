@@ -8,6 +8,9 @@ public record TalkResponse(
         UUID id,
         Long speakerId,
         String speakerUsername,
+        String speakerFirstName,
+        String speakerLastName,
+        String speakerSurName,
         String topic,
         LocalDateTime talkDate,
         String conferenceType,
@@ -15,5 +18,6 @@ public record TalkResponse(
         String activityName,
         LocalDateTime activityDate,
         LocalDateTime createdDate,
+        List<String> tags,
         List<LectureResponse> lectures
 ) {}

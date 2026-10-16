@@ -1,0 +1,18 @@
+{
+  "searchParameters": {
+    "q": "IT конференция",
+    "type": "search"
+  },
+  "organic": [
+    {
+      "title": "JPoint 2026",
+      "link": "https://jpoint.ru/2026/program",
+      "snippet": "Program"
+    },
+    {
+      "title": "Heisenbug",
+      "link": "https://heisenbug.ru/archive",
+      "snippet": "Speakers"
+    }
+  ]
+}

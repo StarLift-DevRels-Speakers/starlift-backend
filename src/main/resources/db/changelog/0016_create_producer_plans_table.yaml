@@ -1,0 +1,67 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0016-01
+      author: producer
+      changes:
+        - createTable:
+            tableName: producer_plans
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: speaker_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: plan_json
+                  type: TEXT
+              - column:
+                  name: snapshot_json
+                  type: TEXT
+              - column:
+                  name: validation_json
+                  type: TEXT
+              - column:
+                  name: model
+                  type: VARCHAR(100)
+              - column:
+                  name: prompt_version
+                  type: VARCHAR(50)
+              - column:
+                  name: error
+                  type: TEXT
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: producer_plans
+            baseColumnNames: speaker_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_producer_plans_users_speaker_id
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE producer_plans ADD CONSTRAINT chk_producer_plans_status
+                CHECK (status IN ('ready', 'insufficient_data', 'failed'));
+        - createIndex:
+            tableName: producer_plans
+            indexName: idx_producer_plans_speaker_created
+            columns:
+              - column:
+                  name: speaker_id
+              - column:
+                  name: created_date

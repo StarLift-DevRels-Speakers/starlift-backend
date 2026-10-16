@@ -5,8 +5,8 @@ info:
   version: 2.0.0
 
 servers:
-  - url: http://localhost:8080
-    description: Local development
+  - url: https://douspeak.duckdns.org:444
+    description:
 
 tags:
   - name: Auth
@@ -15,6 +15,8 @@ tags:
     description: Профиль текущего пользователя
   - name: Talks
     description: Управление докладами
+  - name: TalkFeedback
+    description: Обратная связь по докладам
   - name: Lectures
     description: Управление лекциями
   - name: Roles
@@ -23,6 +25,10 @@ tags:
     description: Поиск спикеров и управление NPS
   - name: Media
     description: Загрузка медиа (в т.ч. без привязки к лекции), скачивание и удаление файлов лекций
+  - name: Users
+    description: Администрирование ролей пользователей
+  - name: Producer
+    description: ИИ-продюсер спикера — персональный план по отзывам, докладам и CFP с проверяемыми доказательствами
 
 paths:
 
@@ -151,6 +157,89 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+    patch:
+      tags: [Profile]
+      summary: Частично обновить профиль текущего пользователя
+      operationId: patchMe
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfilePatchRequest'
+      responses:
+        '200':
+          description: Профиль обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '401':
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/users/{userId}/role:
+    patch:
+      tags: [Users]
+      summary: Заменить роль пользователя на одну указанную
+      operationId: replaceUserRole
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleUpdateRequest'
+      responses:
+        '200':
+          description: Роль пользователя обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRoleUpdateResponse'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '401':
+          description: Пользователь не аутентифицирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
   # ── Talks ───────────────────────────────────────────────────────────
 
@@ -247,6 +336,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+    patch:
+      tags: [Talks]
+      summary: Частично обновить доклад
+      operationId: patchTalk
+      parameters:
+        - $ref: '#/components/parameters/TalkId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkUpdateRequest'
+      responses:
+        '200':
+          description: Доклад обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkResponse'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
     delete:
       tags: [Talks]
       summary: Удалить доклад
@@ -258,6 +373,136 @@ paths:
           description: Доклад удалён
         '404':
           description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{id}/tags:
+    post:
+      tags: [Talks]
+      summary: Добавить теги докладу
+      operationId: addTalkTags
+      parameters:
+        - $ref: '#/components/parameters/TalkId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkTagsAddRequest'
+      responses:
+        '200':
+          description: Доклад обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkResponse'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{id}/tags/{tag}:
+    delete:
+      tags: [Talks]
+      summary: Удалить тег доклада
+      operationId: deleteTalkTag
+      parameters:
+        - $ref: '#/components/parameters/TalkId'
+        - name: tag
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Доклад обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkResponse'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{talkId}/feedback:
+    get:
+      tags: [TalkFeedback]
+      summary: Список обратной связи по докладу
+      operationId: findTalkFeedbackByTalkId
+      parameters:
+        - $ref: '#/components/parameters/TalkPathTalkId'
+      responses:
+        '200':
+          description: Список обратной связи
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TalkFeedbackResponse'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+    post:
+      tags: [TalkFeedback]
+      summary: Добавить обратную связь по докладу
+      operationId: createTalkFeedback
+      parameters:
+        - $ref: '#/components/parameters/TalkPathTalkId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkFeedbackCreateRequest'
+      responses:
+        '201':
+          description: Обратная связь создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkFeedbackResponse'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Доклад не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{talkId}/feedback/{id}:
+    get:
+      tags: [TalkFeedback]
+      summary: Получить обратную связь по ID в рамках доклада
+      operationId: findTalkFeedbackById
+      parameters:
+        - $ref: '#/components/parameters/TalkPathTalkId'
+        - $ref: '#/components/parameters/TalkFeedbackId'
+      responses:
+        '200':
+          description: Обратная связь найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalkFeedbackResponse'
+        '404':
+          description: Доклад или обратная связь не найдены
           content:
             application/json:
               schema:
@@ -416,6 +661,8 @@ paths:
       tags: [Roles]
       summary: Список всех ролей
       operationId: findAllRoles
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Список ролей
@@ -430,6 +677,8 @@ paths:
       tags: [Roles]
       summary: Создать роль
       operationId: createRole
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -455,6 +704,8 @@ paths:
       tags: [Roles]
       summary: Роли спикера по его ID
       operationId: findRolesBySpeakerId
+      security:
+        - bearerAuth: []
       parameters:
         - name: speakerId
           in: path
@@ -477,6 +728,8 @@ paths:
       tags: [Roles]
       summary: Удалить роль
       operationId: deleteRole
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/RoleId'
       responses:
@@ -496,6 +749,8 @@ paths:
       tags: [Speakers]
       summary: Поиск спикеров по роли и NPS
       operationId: findSpeakersByRole
+      security:
+        - bearerAuth: []
       parameters:
         - name: role
           in: query
@@ -532,6 +787,8 @@ paths:
       tags: [Speakers]
       summary: Получить спикера по ID
       operationId: findSpeakerById
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/SpeakerId'
       responses:
@@ -553,6 +810,8 @@ paths:
       tags: [Speakers]
       summary: Обновить NPS спикера
       operationId: updateNps
+      security:
+        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/SpeakerId'
       requestBody:
@@ -570,6 +829,312 @@ paths:
                 $ref: '#/components/schemas/SpeakerResponse'
         '404':
           description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/speakers/{id}/dashboard-profile:
+    patch:
+      tags: [Speakers]
+      summary: Обновить dashboard-профиль спикера
+      description: SPEAKER может обновлять только свой профиль. DEVREL/ADMIN — любой.
+      operationId: patchSpeakerDashboardProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpeakerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeakerDashboardProfilePatchRequest'
+      responses:
+        '200':
+          description: Dashboard-профиль обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerDashboardProfileResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/speakers/{id}/nps-history:
+    post:
+      tags: [Speakers]
+      summary: Добавить запись в историю NPS
+      description: SPEAKER может добавлять историю только себе. DEVREL/ADMIN — любому спикеру.
+      operationId: createSpeakerNpsHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpeakerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeakerNpsHistoryCreateRequest'
+      responses:
+        '201':
+          description: Запись истории создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerNpsHistoryResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/speakers/{id}/achievements:
+    put:
+      tags: [Speakers]
+      summary: Заменить набор достижений спикера
+      description: SPEAKER может изменять только свои достижения. DEVREL/ADMIN — любого спикера.
+      operationId: replaceSpeakerAchievements
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpeakerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SpeakerAchievementUpsertRequest'
+      responses:
+        '200':
+          description: Список достижений после replace
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpeakerAchievementResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/speakers/{id}/cfp-recommendations:
+    put:
+      tags: [Speakers]
+      summary: Заменить привязки спикера к CFP рекомендациям
+      description: SPEAKER может изменять только свои привязки. DEVREL/ADMIN — любого спикера.
+      operationId: replaceSpeakerCfpRecommendations
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SpeakerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SpeakerCfpLinkUpsertRequest'
+      responses:
+        '200':
+          description: Привязки обновлены
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpeakerCfpLinkResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/cfp/recommendations:
+    get:
+      tags: [CFP]
+      summary: Получить список CFP рекомендаций
+      operationId: findAllCfpRecommendations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список рекомендаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CfpRecommendationResponse'
+    post:
+      tags: [CFP]
+      summary: Создать CFP рекомендацию
+      operationId: createCfpRecommendation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CfpRecommendationUpsertRequest'
+      responses:
+        '201':
+          description: Рекомендация создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CfpRecommendationResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/cfp/recommendations/{id}:
+    get:
+      tags: [CFP]
+      summary: Получить CFP рекомендацию по ID
+      operationId: findCfpRecommendationById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Рекомендация найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CfpRecommendationResponse'
+        '404':
+          description: Рекомендация не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags: [CFP]
+      summary: Обновить CFP рекомендацию
+      operationId: updateCfpRecommendation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CfpRecommendationUpsertRequest'
+      responses:
+        '200':
+          description: Рекомендация обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CfpRecommendationResponse'
+        '400':
+          description: Некорректные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Рекомендация не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags: [CFP]
+      summary: Удалить CFP рекомендацию (soft delete)
+      operationId: deleteCfpRecommendation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Рекомендация удалена
+        '404':
+          description: Рекомендация не найдена
           content:
             application/json:
               schema:
@@ -798,9 +1363,256 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  # ── Parsing ─────────────────────────────────────────────────────────
+
+  /api/parsing/run:
+    post:
+      tags: [Parsing]
+      summary: Запустить ИИ-парсинг конференций за дату
+      operationId: runConferenceParsing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParsingRunRequest'
+      responses:
+        '200':
+          description: Запрос принят в обработку
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsingRunAcceptedResponse'
+
+  /api/parsing/speakers:
+    get:
+      tags: [Parsing]
+      summary: Список спарсенных спикеров
+      operationId: listParsedSpeakers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: Фильтр по дате события
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Спарсенные спикеры
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParsedSpeakerEventResponse'
+
+  /api/parsing/events:
+    get:
+      tags: [Parsing]
+      summary: Список событий парсинга для ревью
+      operationId: listParsingEvents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ParsingStatus'
+      responses:
+        '200':
+          description: События парсинга
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParsingEventRecord'
+
+  /api/parsing/events/{id}:
+    patch:
+      tags: [Parsing]
+      summary: Подтвердить или отклонить событие парсинга
+      operationId: patchParsingEvent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParsingEventPatchRequest'
+      responses:
+        '200':
+          description: Обновлённое событие
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsingEventRecord'
+
+  # ── Producer ────────────────────────────────────────────────────────
+
+  /api/producer/me/plan:
+    get:
+      tags: [Producer]
+      summary: Последний план продюсера для текущего спикера
+      operationId: getMyProducerPlan
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Последний сохранённый план (ready, insufficient_data или failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerPlanResponse'
+        '404':
+          description: План ещё не сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      tags: [Producer]
+      summary: Собрать новый план продюсера для текущего спикера
+      operationId: regenerateMyProducerPlan
+      description: >-
+        Синхронно: снимок данных спикера → один вызов LLM → проверка доказательств → сохранение.
+        Обычно 5–20 секунд. Если данных мало, LLM не вызывается и возвращается статус insufficient_data.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Новый план
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerPlanResponse'
+
+  /api/producer/speakers/{speakerId}/plan:
+    parameters:
+      - name: speakerId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags: [Producer]
+      summary: Последний план продюсера для спикера
+      operationId: getSpeakerProducerPlan
+      description: SPEAKER — только свой, DEVREL и ADMIN — любой.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Последний сохранённый план
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerPlanResponse'
+        '403':
+          description: Спикер запрашивает чужой план
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден или план ещё не сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      tags: [Producer]
+      summary: Собрать новый план продюсера для спикера
+      operationId: regenerateSpeakerProducerPlan
+      description: SPEAKER — только свой, DEVREL и ADMIN — любой.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Новый план
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerPlanResponse'
+        '403':
+          description: Спикер запрашивает чужой план
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/producer/plans/regenerate-all:
+    post:
+      tags: [Producer]
+      summary: Пересобрать планы всех спикеров (DEVREL, ADMIN)
+      operationId: regenerateAllProducerPlans
+      description: По одному вызову LLM на спикера, не больше app.producer.regenerate-all-limit спикеров.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Новые планы
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProducerPlanResponse'
+
+  /api/producer/report:
+    get:
+      tags: [Producer]
+      summary: HTML-отчёт по последним планам спикеров (DEVREL, ADMIN)
+      operationId: getProducerReport
+      description: Сводка, планы с доказательствами, сверка демо-спикеров с эталоном и всё, что отбросил валидатор.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: HTML-страница
+          content:
+            text/html:
+              schema:
+                type: string
+
 components:
   parameters:
     TalkId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    TalkPathTalkId:
+      name: talkId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    TalkFeedbackId:
       name: id
       in: path
       required: true
@@ -856,11 +1668,24 @@ components:
       properties:
         username:
           type: string
+          description: Уникальный идентификатор пользователя (логин)
           example: johndoe
         password:
           type: string
           format: password
           example: secret123
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
 
     RoleName:
       type: string
@@ -876,6 +1701,18 @@ components:
         username:
           type: string
           example: johndoe
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
         roles:
           type: array
           items:
@@ -913,6 +1750,25 @@ components:
         refreshToken:
           type: string
 
+    UserRoleUpdateRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleName'
+
+    UserRoleUpdateResponse:
+      type: object
+      required: [userId, roles]
+      properties:
+        userId:
+          type: integer
+          format: int64
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleName'
+
     User:
       type: object
       properties:
@@ -923,6 +1779,40 @@ components:
         username:
           type: string
           example: johndoe
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
+        about:
+          type: string
+          nullable: true
+          example: Java backend developer and conference speaker
+        company:
+          type: string
+          nullable: true
+          example: Acme Corp
+        companyRole:
+          type: string
+          nullable: true
+          example: Senior Java Engineer
+        tags:
+          type: array
+          items:
+            type: string
+          example: [java, spring, architecture]
+        avatarUrl:
+          type: string
+          nullable: true
+          format: uri
+          description: Временная presigned ссылка на аватар в MinIO
         roles:
           type: array
           items:
@@ -945,6 +1835,44 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MeTalkDto'
+        cities:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+          example: [Не указан]
+
+    ProfilePatchRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        firstName:
+          type: [string, 'null']
+          example: John
+        lastName:
+          type: [string, 'null']
+          example: Doe
+        surName:
+          type: [string, 'null']
+          example: Smith
+        about:
+          type: [string, 'null']
+          example: Java backend developer and conference speaker
+        company:
+          type: [string, 'null']
+          example: Acme Corp
+        companyRole:
+          type: [string, 'null']
+          example: Senior Java Engineer
+        tags:
+          type: [array, 'null']
+          items:
+            type: string
+          example: [java, spring, architecture]
+        avatarMediaKey:
+          type: [string, 'null']
+          writeOnly: true
+          description: Input-only ключ объекта в MinIO, полученный после загрузки
 
     MeTalkDto:
       type: object
@@ -998,6 +1926,10 @@ components:
         activityDate:
           type: string
           format: date-time
+        tags:
+          type: array
+          items:
+            type: string
 
     TalkUpdateRequest:
       type: object
@@ -1016,6 +1948,19 @@ components:
         activityDate:
           type: string
           format: date-time
+        tags:
+          type: array
+          items:
+            type: string
+
+    TalkTagsAddRequest:
+      type: object
+      required: [tags]
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
 
     TalkResponse:
       type: object
@@ -1028,6 +1973,15 @@ components:
           format: int64
         speakerUsername:
           type: string
+        speakerFirstName:
+          type: string
+          nullable: true
+        speakerLastName:
+          type: string
+          nullable: true
+        speakerSurName:
+          type: string
+          nullable: true
         topic:
           type: string
         talkDate:
@@ -1045,10 +1999,57 @@ components:
         createdDate:
           type: string
           format: date-time
+        tags:
+          type: array
+          items:
+            type: string
         lectures:
           type: array
           items:
             $ref: '#/components/schemas/LectureResponse'
+
+    TalkFeedbackCreateRequest:
+      type: object
+      required: [rating, positive, negative, improvementSuggestions]
+      properties:
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+          example: 8
+        positive:
+          type: string
+          example: Хорошая структура и понятные примеры
+        negative:
+          type: string
+          example: Мало времени на вопросы
+        improvementSuggestions:
+          type: string
+          example: Добавить больше практических кейсов
+
+    TalkFeedbackResponse:
+      type: object
+      required: [id, talkId, rating, positive, negative, improvementSuggestions, createdDate]
+      properties:
+        id:
+          type: string
+          format: uuid
+        talkId:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 10
+        positive:
+          type: string
+        negative:
+          type: string
+        improvementSuggestions:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
 
     # ── Lectures ────────────────────────────────────────────────────
 
@@ -1157,6 +2158,18 @@ components:
         username:
           type: string
           example: johndoe
+        firstName:
+          type: string
+          nullable: true
+          example: John
+        lastName:
+          type: string
+          nullable: true
+          example: Doe
+        surName:
+          type: string
+          nullable: true
+          example: Smith
         nps:
           type: number
           format: decimal
@@ -1193,6 +2206,226 @@ components:
           type: number
           format: decimal
           example: 9.2
+
+    SpeakerDashboardProfilePatchRequest:
+      type: object
+      properties:
+        region:
+          type: string
+        company:
+          type: string
+        influence:
+          $ref: '#/components/schemas/DashboardInfluence'
+        topConferenceCandidate:
+          type: boolean
+        avatarColor:
+          type: string
+          example: '#0ea5e9'
+        lastEvaluationDate:
+          type: string
+          format: date-time
+
+    SpeakerDashboardProfileResponse:
+      type: object
+      required:
+        - speakerId
+        - region
+        - company
+        - influence
+        - profileCompletion
+        - audience
+        - topConferenceCandidate
+        - avatarColor
+      properties:
+        speakerId:
+          type: integer
+          format: int64
+        region:
+          type: string
+        company:
+          type: string
+        influence:
+          $ref: '#/components/schemas/DashboardInfluence'
+        profileCompletion:
+          type: integer
+          minimum: 0
+          maximum: 100
+        audience:
+          type: integer
+          minimum: 0
+        lastEvaluationDate:
+          type: [string, 'null']
+          format: date-time
+        topConferenceCandidate:
+          type: boolean
+        avatarColor:
+          type: string
+
+    SpeakerNpsHistoryCreateRequest:
+      type: object
+      required: [nps]
+      properties:
+        nps:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 10
+        measuredAt:
+          type: [string, 'null']
+          format: date-time
+        source:
+          type: [string, 'null']
+
+    SpeakerNpsHistoryResponse:
+      type: object
+      required: [id, speakerId, nps, measuredAt, source]
+      properties:
+        id:
+          type: integer
+          format: int64
+        speakerId:
+          type: integer
+          format: int64
+        nps:
+          type: number
+          format: decimal
+        measuredAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+
+    SpeakerAchievementUpsertRequest:
+      type: object
+      required: [title, description, current, target]
+      properties:
+        id:
+          type: [string, 'null']
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        current:
+          type: integer
+          minimum: 0
+        target:
+          type: integer
+          minimum: 1
+
+    SpeakerAchievementResponse:
+      type: object
+      required: [id, speakerId, title, description, current, target, createdDate]
+      properties:
+        id:
+          type: string
+          format: uuid
+        speakerId:
+          type: integer
+          format: int64
+        title:
+          type: string
+        description:
+          type: string
+        current:
+          type: integer
+          minimum: 0
+        target:
+          type: integer
+          minimum: 1
+        createdDate:
+          type: string
+          format: date-time
+
+    SpeakerCfpLinkUpsertRequest:
+      type: object
+      required: [recommendationId, matchScore]
+      properties:
+        recommendationId:
+          type: string
+          format: uuid
+        matchScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+
+    SpeakerCfpLinkResponse:
+      type: object
+      required: [speakerId, recommendationId, matchScore, createdDate]
+      properties:
+        speakerId:
+          type: integer
+          format: int64
+        recommendationId:
+          type: string
+          format: uuid
+        matchScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        createdDate:
+          type: string
+          format: date-time
+
+    CfpRecommendationUpsertRequest:
+      type: object
+      required: [title, city, influenceLevel, topic, deadline, hostCompany, url]
+      properties:
+        title:
+          type: string
+        city:
+          type: string
+        influenceLevel:
+          $ref: '#/components/schemas/DashboardInfluence'
+        topic:
+          type: string
+        deadline:
+          type: string
+          format: date
+        hostCompany:
+          type: string
+        url:
+          type: string
+          format: uri
+        active:
+          type: [boolean, 'null']
+        tags:
+          type: [array, 'null']
+          items:
+            type: string
+
+    CfpRecommendationResponse:
+      type: object
+      required: [id, title, city, influenceLevel, topic, deadline, hostCompany, url, active, tags, createdDate]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        city:
+          type: string
+        influenceLevel:
+          $ref: '#/components/schemas/DashboardInfluence'
+        topic:
+          type: string
+        deadline:
+          type: string
+          format: date
+        hostCompany:
+          type: string
+        url:
+          type: string
+          format: uri
+        active:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        createdDate:
+          type: string
+          format: date-time
 
     MediaUrlResponse:
       type: object
@@ -1506,7 +2739,7 @@ components:
 
     ParsingEvent:
       type: object
-      required: [id, conference, speakerId, speakerName, source, status, region, date, note]
+      required: [id, conference, speakerId, speakerName, company, source, status, region, date, note]
       properties:
         id:
           type: string
@@ -1516,6 +2749,8 @@ components:
           type: integer
           format: int64
         speakerName:
+          type: string
+        company:
           type: string
         source:
           type: string
@@ -1821,6 +3056,135 @@ components:
         parsing:
           $ref: '#/components/schemas/DevRelParsingSection'
 
+    ParsedSpeakerRow:
+      type: object
+      required: [conference, speakerName]
+      properties:
+        conference:
+          type: string
+        speakerName:
+          type: string
+        company:
+          type: string
+          nullable: true
+
+    ParsingRunRequest:
+      type: object
+      required: [date]
+      properties:
+        date:
+          type: string
+          format: date
+        hint:
+          type: string
+
+    ParsingRunResponse:
+      type: object
+      required: [speakers, newEvents, duplicateEvents, scannedUrls, errors, skippedUrls, rejectedPlaceholders]
+      properties:
+        speakers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParsedSpeakerRow'
+        newEvents:
+          type: integer
+        duplicateEvents:
+          type: integer
+        scannedUrls:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: string
+        skippedUrls:
+          type: integer
+          description: URL отсечённые фильтром до загрузки
+        rejectedPlaceholders:
+          type: integer
+          description: Строки с неизвестен/null и без реального ФИО
+
+    ParsingRunAcceptedResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: Request successful get. The result will become available for near time
+
+    ParsedSpeakerEventResponse:
+      type: object
+      required: [conference, speakerName, sourceUrl, eventDate, createdAt]
+      properties:
+        conference:
+          type: string
+        speakerName:
+          type: string
+        company:
+          type: string
+          nullable: true
+        sourceUrl:
+          type: string
+        eventDate:
+          type: string
+          format: date
+        region:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ParsingEventRecord:
+      type: object
+      required: [id, conference, speakerName, sourceUrl, eventDate, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        conference:
+          type: string
+        speakerName:
+          type: string
+        company:
+          type: string
+          nullable: true
+        sourceUrl:
+          type: string
+        eventDate:
+          type: string
+          format: date
+        region:
+          type: string
+          nullable: true
+        status:
+          $ref: '#/components/schemas/ParsingStatus'
+        speakerId:
+          type: integer
+          format: int64
+          nullable: true
+        note:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ParsingEventPatchRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/ParsingStatus'
+        speakerId:
+          type: integer
+          format: int64
+        topic:
+          type: string
+        note:
+          type: string
+
     ProblemDetail:
       type: object
       description: RFC 9457 Problem Details
@@ -1841,3 +3205,165 @@ components:
         instance:
           type: string
           format: uri
+
+    # ── Producer ────────────────────────────────────────────────────
+
+    ProducerPlanResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        speakerId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [ready, insufficient_data, failed]
+        message:
+          type: string
+          nullable: true
+          description: Пояснение для insufficient_data и failed
+        plan:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ProducerPlan'
+        validation:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ProducerPlanValidation'
+        model:
+          type: string
+          nullable: true
+          example: gpt-4o-mini
+        promptVersion:
+          type: string
+          example: producer-v1
+        createdDate:
+          type: string
+          format: date-time
+
+    ProducerPlan:
+      type: object
+      description: План после проверки. Числа, цитаты и подписи доказательств собраны кодом из данных спикера, а не моделью.
+      properties:
+        summary:
+          type: string
+          example: Ты растёшь и готова к международной сцене. Главное, что мешает, — нет времени на вопросы.
+        stage:
+          $ref: '#/components/schemas/ProducerStage'
+        strengths:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProducerTheme'
+        growthAreas:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProducerTheme'
+        steps:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/ProducerStep'
+
+    ProducerStage:
+      type: object
+      properties:
+        current:
+          type: string
+          enum: [local, regional, federal, international]
+        next:
+          type: string
+          nullable: true
+          enum: [regional, federal, international]
+        momentum:
+          type: string
+          enum: [growing, stable, declining, inactive]
+          description: Доклады за последние 90 дней против предыдущих 90
+        nps:
+          type: integer
+          nullable: true
+          description: NPS в шкале 0–100
+        npsDelta:
+          type: integer
+          nullable: true
+        daysSinceLastTalk:
+          type: integer
+          nullable: true
+
+    ProducerTheme:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Не остаётся времени на вопросы
+        mentions:
+          type: integer
+          description: Сколько отзывов подтверждают тему (минимум app.producer.min-theme-mentions)
+          example: 5
+        feedbackIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        quotes:
+          type: array
+          maxItems: 2
+          items:
+            type: object
+            properties:
+              feedbackId:
+                type: string
+                format: uuid
+              text:
+                type: string
+
+    ProducerStep:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Подать заявку на Mobile Frontier 2026
+        why:
+          type: string
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+          description: Не позже дедлайна CFP, если шаг на него ссылается
+        evidence:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ProducerEvidence'
+
+    ProducerEvidence:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [FEEDBACK, TALK, CFP]
+        id:
+          type: string
+        label:
+          type: string
+          example: CFP «Mobile Frontier 2026», дедлайн 22.10.2026
+
+    ProducerPlanValidation:
+      type: object
+      description: Что валидатор принял и что отбросил (ссылки на несуществующие данные, темы ниже порога, лишние шаги)
+      properties:
+        acceptedThemes:
+          type: integer
+        acceptedSteps:
+          type: integer
+        rejections:
+          type: array
+          items:
+            type: object
+            properties:
+              item:
+                type: string
+              reason:
+                type: string

@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0015-01
+      author: loonklage
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: about
+                  type: TEXT
+              - column:
+                  name: company_role
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 0015-02
+      author: loonklage
+      changes:
+        - createTable:
+            tableName: user_profile_tags
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tag
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: user_profile_tags
+            columnNames: user_id, tag
+            constraintName: pk_user_profile_tags
+        - addForeignKeyConstraint:
+            baseTableName: user_profile_tags
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_user_profile_tags_users_user_id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: user_profile_tags
+            indexName: idx_user_profile_tags_tag
+            columns:
+              - column:
+                  name: tag

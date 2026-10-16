@@ -1,0 +1,36 @@
+spring:
+  ai:
+    openai:
+      api-key: test-key
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  liquibase:
+    enabled: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+app:
+  parsing:
+    search-api-key: test-search-key
+    serper-url: https://google.serper.dev/search
+    scheduled-run-enabled: false
+    scheduled-run-cron: "0 0 22 * * *"
+    max-pages-per-run: 5
+    max-html-chars: 10000
+    max-response-bytes: 1048576
+    serper-results-per-query: 10
+    blocked-domains: []
+    request-timeout: 5s
+    user-agent: TestBot
+
+security:
+  jwt:
+    secret: test-secret-test-secret-test-secret
+    issuer: test

@@ -18,6 +18,7 @@ import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
 import ru.shaxowskiy.javaspeakerclub.security.AppRole;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -30,23 +31,19 @@ public class TalkService {
 
     @Transactional(readOnly = true)
     public List<TalkResponse> findAll() {
-        return talkRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+        return toResponses(talkRepository.findAll());
     }
 
     @Transactional(readOnly = true)
     public TalkResponse findById(UUID id) {
         TalksRecord record = talkRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + id));
-        return toResponse(record);
+        return toResponse(record, talkRepository.findTagsByTalkId(id));
     }
 
     @Transactional(readOnly = true)
     public List<TalkResponse> findByConferenceType(String conferenceType) {
-        return talkRepository.findByConferenceType(conferenceType).stream()
-                .map(this::toResponse)
-                .toList();
+        return toResponses(talkRepository.findByConferenceType(conferenceType));
     }
 
     @Transactional
@@ -65,27 +62,40 @@ public class TalkService {
                 request.activityName(),
                 request.activityDate()
         );
-        return toResponse(record);
+        if (request.tags() != null) {
+            talkRepository.replaceTags(record.getId(), request.tags());
+        }
+        return toResponse(record, talkRepository.findTagsByTalkId(record.getId()));
     }
 
     @Transactional
     public TalkResponse update(UUID id, TalkUpdateRequest request) {
-        TalksRecord existing = talkRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + id));
+        return mergeAndUpdate(id, request);
+    }
 
+    @Transactional
+    public TalkResponse patch(UUID id, TalkUpdateRequest request) {
+        return mergeAndUpdate(id, request);
+    }
+
+    @Transactional
+    public TalkResponse addTags(UUID talkId, List<String> tags) {
+        TalksRecord existing = talkRepository.findById(talkId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + talkId));
         requirePermissionForSpeaker(existing.getSpeakerId());
 
-        TalksRecord updated = talkRepository.update(
-                id,
-                request.topic(),
-                request.talkDate(),
-                request.conferenceType(),
-                request.format(),
-                request.activityName(),
-                request.activityDate()
-        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + id));
+        talkRepository.addTags(talkId, tags);
+        return toResponse(existing, talkRepository.findTagsByTalkId(talkId));
+    }
 
-        return toResponse(updated);
+    @Transactional
+    public TalkResponse removeTag(UUID talkId, String tag) {
+        TalksRecord existing = talkRepository.findById(talkId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + talkId));
+        requirePermissionForSpeaker(existing.getSpeakerId());
+
+        talkRepository.deleteTag(talkId, tag);
+        return toResponse(existing, talkRepository.findTagsByTalkId(talkId));
     }
 
     @Transactional
@@ -100,17 +110,27 @@ public class TalkService {
         }
     }
 
-    private TalkResponse toResponse(TalksRecord record) {
-        String speakerUsername = userRepository.findById(record.getSpeakerId())
-                .map(UsersRecord::getUsername)
-                .orElse(null);
+    private List<TalkResponse> toResponses(List<TalksRecord> talks) {
+        Map<UUID, List<String>> tagsByTalk = talkRepository.findTagsByTalkIds(
+                talks.stream().map(TalksRecord::getId).toList()
+        );
+        return talks.stream()
+                .map(record -> toResponse(record, tagsByTalk.getOrDefault(record.getId(), List.of())))
+                .toList();
+    }
+
+    private TalkResponse toResponse(TalksRecord record, List<String> tags) {
+        UsersRecord speaker = userRepository.findById(record.getSpeakerId()).orElse(null);
 
         List<LectureResponse> lectures = lectureService.findByTalkId(record.getId());
 
         return new TalkResponse(
                 record.getId(),
                 record.getSpeakerId(),
-                speakerUsername,
+                speaker == null ? null : speaker.getUsername(),
+                speaker == null ? null : speaker.getFirstName(),
+                speaker == null ? null : speaker.getLastName(),
+                speaker == null ? null : speaker.getSurName(),
                 record.getTopic(),
                 record.getTalkDate(),
                 record.getConferenceType(),
@@ -118,8 +138,32 @@ public class TalkService {
                 record.getActivityName(),
                 record.getActivityDate(),
                 record.getCreatedDate(),
+                tags,
                 lectures
         );
+    }
+
+    private TalkResponse mergeAndUpdate(UUID id, TalkUpdateRequest request) {
+        TalksRecord existing = talkRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + id));
+
+        requirePermissionForSpeaker(existing.getSpeakerId());
+
+        TalksRecord updated = talkRepository.update(
+                id,
+                request.topic() != null ? request.topic() : existing.getTopic(),
+                request.talkDate() != null ? request.talkDate() : existing.getTalkDate(),
+                request.conferenceType() != null ? request.conferenceType() : existing.getConferenceType(),
+                request.format() != null ? request.format() : existing.getFormat(),
+                request.activityName() != null ? request.activityName() : existing.getActivityName(),
+                request.activityDate() != null ? request.activityDate() : existing.getActivityDate()
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + id));
+
+        if (request.tags() != null) {
+            talkRepository.replaceTags(id, request.tags());
+        }
+
+        return toResponse(updated, talkRepository.findTagsByTalkId(id));
     }
 
     private void requirePermissionForSpeaker(Long speakerId) {

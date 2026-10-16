@@ -1,6 +1,7 @@
 package ru.shaxowskiy.javaspeakerclub.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record TalkCreateRequest(
         Long speakerId,
@@ -9,5 +10,6 @@ public record TalkCreateRequest(
         String conferenceType,
         String format,
         String activityName,
-        LocalDateTime activityDate
+        LocalDateTime activityDate,
+        List<String> tags
 ) {}

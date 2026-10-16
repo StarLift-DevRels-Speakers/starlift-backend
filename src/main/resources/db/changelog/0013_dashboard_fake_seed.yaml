@@ -1,0 +1,213 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0013-01
+      author: loonklage
+      changes:
+        - update:
+            tableName: users
+            columns:
+              - column: {name: region, value: Екатеринбург}
+              - column: {name: company, value: Ural JVM Labs}
+              - column: {name: influence, value: federal}
+              - column: {name: profile_completion, valueNumeric: 95}
+              - column: {name: audience, valueNumeric: 690}
+              - column: {name: top_conference_candidate, valueBoolean: true}
+              - column: {name: avatar_color, value: "#0284c7"}
+              - column: {name: last_evaluation_date, valueDate: "2026-02-12T10:00:00"}
+            where: id = 1
+        - update:
+            tableName: users
+            columns:
+              - column: {name: region, value: Новосибирск}
+              - column: {name: company, value: Siberia DataWorks}
+              - column: {name: influence, value: regional}
+              - column: {name: profile_completion, valueNumeric: 83}
+              - column: {name: audience, valueNumeric: 440}
+              - column: {name: top_conference_candidate, valueBoolean: false}
+              - column: {name: avatar_color, value: "#16a34a"}
+              - column: {name: last_evaluation_date, valueDate: "2026-01-20T14:30:00"}
+            where: id = 2
+        - update:
+            tableName: users
+            columns:
+              - column: {name: region, value: Минск}
+              - column: {name: company, value: Eastern Architecture Group}
+              - column: {name: influence, value: international}
+              - column: {name: profile_completion, valueNumeric: 88}
+              - column: {name: audience, valueNumeric: 910}
+              - column: {name: top_conference_candidate, valueBoolean: true}
+              - column: {name: avatar_color, value: "#7c3aed"}
+              - column: {name: last_evaluation_date, valueDate: "2026-03-03T09:15:00"}
+            where: id = 3
+
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: nps, valueNumeric: 8.7}
+              - column: {name: measured_at, valueDate: "2026-01-10T00:00:00"}
+              - column: {name: source, value: import}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: nps, valueNumeric: 9.2}
+              - column: {name: measured_at, valueDate: "2026-04-18T00:00:00"}
+              - column: {name: source, value: survey}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: nps, valueNumeric: 7.4}
+              - column: {name: measured_at, valueDate: "2026-01-05T00:00:00"}
+              - column: {name: source, value: manual}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: nps, valueNumeric: 8.1}
+              - column: {name: measured_at, valueDate: "2026-04-11T00:00:00"}
+              - column: {name: source, value: survey}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: nps, valueNumeric: 8.8}
+              - column: {name: measured_at, valueDate: "2026-02-02T00:00:00"}
+              - column: {name: source, value: import}
+        - insert:
+            tableName: speaker_nps_history
+            columns:
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: nps, valueNumeric: 9.4}
+              - column: {name: measured_at, valueDate: "2026-05-02T00:00:00"}
+              - column: {name: source, value: survey}
+
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 8a60016e-2eb0-4fa2-b2e5-a6f245252001}
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: title, value: Техническое лидерство}
+              - column: {name: description, value: Выступить ментором на 5 внутренних митапах}
+              - column: {name: current_value, valueNumeric: 4}
+              - column: {name: target_value, valueNumeric: 5}
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 8a60016e-2eb0-4fa2-b2e5-a6f245252002}
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: title, value: Community Growth}
+              - column: {name: description, value: Провести 8 внешних выступлений в году}
+              - column: {name: current_value, valueNumeric: 6}
+              - column: {name: target_value, valueNumeric: 8}
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 8a60016e-2eb0-4fa2-b2e5-a6f245252003}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: title, value: International CFP}
+              - column: {name: description, value: Получить 4 международных приглашения}
+              - column: {name: current_value, valueNumeric: 3}
+              - column: {name: target_value, valueNumeric: 4}
+        - insert:
+            tableName: speaker_achievements
+            columns:
+              - column: {name: id, value: 8a60016e-2eb0-4fa2-b2e5-a6f245252004}
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: title, value: Контент-охват}
+              - column: {name: description, value: Набрать 1 200 слушателей на всех докладах}
+              - column: {name: current_value, valueNumeric: 910}
+              - column: {name: target_value, valueNumeric: 1200}
+
+        - insert:
+            tableName: cfp_recommendations
+            columns:
+              - column: {name: id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23041}
+              - column: {name: title, value: Platform Engineering Forum}
+              - column: {name: city, value: Екатеринбург}
+              - column: {name: influence_level, value: federal}
+              - column: {name: topic, value: Platform Engineering}
+              - column: {name: deadline, valueDate: "2026-09-01"}
+              - column: {name: host_company, value: Infra Core}
+              - column: {name: url, value: "https://example.org/cfp/platform-forum"}
+              - column: {name: active, valueBoolean: true}
+        - insert:
+            tableName: cfp_recommendations
+            columns:
+              - column: {name: id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23042}
+              - column: {name: title, value: Data Pipeline Days}
+              - column: {name: city, value: Новосибирск}
+              - column: {name: influence_level, value: regional}
+              - column: {name: topic, value: Data Engineering}
+              - column: {name: deadline, valueDate: "2026-10-12"}
+              - column: {name: host_company, value: Stream Point}
+              - column: {name: url, value: "https://example.org/cfp/data-pipeline-days"}
+              - column: {name: active, valueBoolean: true}
+        - insert:
+            tableName: cfp_recommendations
+            columns:
+              - column: {name: id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23043}
+              - column: {name: title, value: Legacy Systems Summit}
+              - column: {name: city, value: Прага}
+              - column: {name: influence_level, value: international}
+              - column: {name: topic, value: Software Architecture}
+              - column: {name: deadline, valueDate: "2026-11-20"}
+              - column: {name: host_company, value: Legacy Group}
+              - column: {name: url, value: "https://example.org/cfp/legacy-systems-summit"}
+              - column: {name: active, valueBoolean: false}
+
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23041}
+              - column: {name: tag, value: java}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23041}
+              - column: {name: tag, value: platform}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23041}
+              - column: {name: tag, value: devops}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23042}
+              - column: {name: tag, value: data}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23042}
+              - column: {name: tag, value: analytics}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23043}
+              - column: {name: tag, value: architecture}
+        - insert:
+            tableName: cfp_recommendation_tags
+            columns:
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23043}
+              - column: {name: tag, value: refactoring}
+
+        - insert:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column: {name: speaker_id, valueNumeric: 1}
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23041}
+              - column: {name: match_score, valueNumeric: 96}
+        - insert:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column: {name: speaker_id, valueNumeric: 2}
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23042}
+              - column: {name: match_score, valueNumeric: 89}
+        - insert:
+            tableName: speaker_cfp_recommendations
+            columns:
+              - column: {name: speaker_id, valueNumeric: 3}
+              - column: {name: recommendation_id, value: 5f8e2bd4-c9a0-4717-a022-bd85b4f23043}
+              - column: {name: match_score, valueNumeric: 91}

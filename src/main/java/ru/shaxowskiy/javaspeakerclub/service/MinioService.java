@@ -2,8 +2,8 @@ package ru.shaxowskiy.javaspeakerclub.service;
 
 import io.minio.*;
 import io.minio.http.Method;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.shaxowskiy.javaspeakerclub.config.S3Properties;
@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MinioService {
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
@@ -30,7 +29,16 @@ public class MinioService {
     );
 
     private final MinioClient minioClient;
+    private final MinioClient presignMinioClient;
     private final S3Properties s3Properties;
+
+    public MinioService(MinioClient minioClient,
+                        @Qualifier("presignMinioClient") MinioClient presignMinioClient,
+                        S3Properties s3Properties) {
+        this.minioClient = minioClient;
+        this.presignMinioClient = presignMinioClient;
+        this.s3Properties = s3Properties;
+    }
 
     /**
      * Uploads file to MinIO bucket under {@code folder/uuid_originalFilename}.
@@ -80,9 +88,13 @@ public class MinioService {
         }
     }
 
+    /**
+     * Returns a one-hour GET URL on the public endpoint.
+     * The signature covers the host, so the URL must be used as is.
+     */
     public String getPresignedUrl(String objectKey) {
         try {
-            return minioClient.getPresignedObjectUrl(
+            return presignMinioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
                             .bucket(s3Properties.getBucket())

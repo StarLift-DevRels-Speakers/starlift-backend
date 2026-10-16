@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: java-speaker-club
+  namespace: speaker-club
+  labels:
+    app.kubernetes.io/name: java-speaker-club
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: java-speaker-club

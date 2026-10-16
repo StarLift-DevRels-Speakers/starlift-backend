@@ -22,6 +22,7 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final SpeakerDashboardCommandService speakerDashboardCommandService;
 
     @Transactional
     public RoleResponse create(RoleCreateRequest request) {
@@ -89,6 +90,8 @@ public class RoleService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Speaker not found: " + id));
 
+        speakerDashboardCommandService.recordNpsUpdatePoint(id, nps, "put-nps-endpoint");
+
         return toSpeakerResponse(updated);
     }
 
@@ -108,6 +111,9 @@ public class RoleService {
         return new SpeakerResponse(
                 user.getId(),
                 user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getSurName(),
                 user.getNps(),
                 user.getCreatedDate(),
                 roles

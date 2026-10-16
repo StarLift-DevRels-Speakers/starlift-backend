@@ -1,6 +1,7 @@
 package ru.shaxowskiy.javaspeakerclub.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record TalkUpdateRequest(
         String topic,
@@ -8,5 +9,6 @@ public record TalkUpdateRequest(
         String conferenceType,
         String format,
         String activityName,
-        LocalDateTime activityDate
+        LocalDateTime activityDate,
+        List<String> tags
 ) {}
