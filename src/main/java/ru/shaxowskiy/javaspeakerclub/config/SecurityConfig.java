@@ -81,6 +81,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/producer/report", "/api/producer/plans/**").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers("/api/producer/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
 
+                .requestMatchers("/api/signals/**").hasAnyRole("DEVREL", "ADMIN")
+
                 .anyRequest().hasRole("ADMIN")
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

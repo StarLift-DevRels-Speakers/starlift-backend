@@ -25,6 +25,16 @@ public class TalkFeedbackRepository {
                 .fetch();
     }
 
+    public List<TalkFeedbackRecord> findBySpeakerId(Long speakerId) {
+        return dsl.select(TalkFeedback.TALK_FEEDBACK.fields())
+                .from(TalkFeedback.TALK_FEEDBACK)
+                .join(Talks.TALKS)
+                .on(Talks.TALKS.ID.eq(TalkFeedback.TALK_FEEDBACK.TALK_ID))
+                .where(Talks.TALKS.SPEAKER_ID.eq(speakerId))
+                .orderBy(TalkFeedback.TALK_FEEDBACK.CREATED_DATE.desc())
+                .fetchInto(TalkFeedbackRecord.class);
+    }
+
     public List<TalkFeedbackRecord> findBySpeakerIdSince(Long speakerId, LocalDateTime since) {
         return dsl.select(TalkFeedback.TALK_FEEDBACK.fields())
                 .from(TalkFeedback.TALK_FEEDBACK)

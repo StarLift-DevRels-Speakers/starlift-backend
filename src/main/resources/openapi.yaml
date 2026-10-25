@@ -29,6 +29,8 @@ tags:
     description: Администрирование ролей пользователей
   - name: Producer
     description: ИИ-продюсер спикера — персональный план по отзывам, докладам и CFP с проверяемыми доказательствами
+  - name: WeakSignals
+    description: Оценка потенциала спикера по слабым сигналам через сервис weak-signals
 
 paths:
 
@@ -1593,6 +1595,90 @@ paths:
             text/html:
               schema:
                 type: string
+
+  # ── Weak signals ────────────────────────────────────────────────────
+
+  /api/signals/speakers/{speakerId}/talent-score:
+    parameters:
+      - name: speakerId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    post:
+      tags: [WeakSignals]
+      summary: Оценить потенциал спикера (DEVREL, ADMIN)
+      operationId: scoreSpeakerTalent
+      description: Собирает данные спикера из базы и отправляет их в weak-signals (POST /signals/weak-signals). Результат не сохраняется.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Оценка спикера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalentScoreResponse'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '502':
+          description: Сервис weak-signals недоступен, вернул ошибку или отклонил запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '504':
+          description: Сервис weak-signals не ответил за app.weak-signals.request-timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/signals/speakers/{speakerId}/talent-request:
+    parameters:
+      - name: speakerId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags: [WeakSignals]
+      summary: Данные, которые уйдут в weak-signals (DEVREL, ADMIN)
+      operationId: previewSpeakerTalentRequest
+      description: Тело запроса к weak-signals без вызова LLM. null — данных в базе нет; avg_rating без отзывов — 0, achievements_progress_pct без целей — случайная заглушка.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Тело запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalentRequest'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
 
 components:
   parameters:
@@ -3367,3 +3453,129 @@ components:
                 type: string
               reason:
                 type: string
+
+    # ── Weak signals ────────────────────────────────────────────────
+
+    TalentScoreResponse:
+      type: object
+      required: [id, score, reason, confidence]
+      properties:
+        id:
+          type: integer
+          format: int64
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        reason:
+          type: string
+          example: Регулярно выступает, сильные свежие отзывы и заметный рост.
+        confidence:
+          type: string
+          enum: [low, medium, high]
+
+    TalentRequest:
+      type: object
+      description: Контракт сервиса weak-signals, поля в snake_case. null — данных в базе нет.
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        region:
+          type: [string, 'null']
+          description: null, если в users.region значение по умолчанию «Другие регионы»
+        company:
+          type: [string, 'null']
+          description: null, если в users.company значение по умолчанию «Unknown»
+        company_role:
+          type: [string, 'null']
+        about:
+          type: [string, 'null']
+        influence:
+          type: string
+          enum: [local, regional, federal, international]
+        talks_total:
+          type: integer
+          description: Прошедшие доклады
+        talks_last_3_months:
+          type: integer
+        last_talk_date:
+          type: [string, 'null']
+          format: date-time
+        avg_rating:
+          type: number
+          description: Средняя оценка по всем отзывам, 0–10. Без отзывов — 0, вместе с feedback_count = 0
+        feedback_count:
+          type: integer
+        nps:
+          type: [number, 'null']
+          description: users.nps, 0–10
+        profile_completion:
+          type: integer
+        achievements_progress_pct:
+          type: number
+          description: Средний прогресс по целям (перевыполнение — 100%). Без целей — временная случайная заглушка 30–70 (weak-signals пока не принимает null)
+        cfp_high_match_count:
+          type: integer
+          description: Активные CFP с открытым дедлайном и match_score не ниже app.weak-signals.cfp-high-match-threshold
+        recent_talks:
+          type: array
+          items:
+            type: object
+            properties:
+              topic:
+                type: string
+              conference_type:
+                type: string
+              format:
+                type: string
+              talk_date:
+                type: string
+                format: date-time
+        recent_feedback:
+          type: array
+          items:
+            type: object
+            properties:
+              rating:
+                type: integer
+              positive:
+                type: string
+              negative:
+                type: string
+              improvement_suggestions:
+                type: string
+        achievements:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              current_value:
+                type: integer
+              target_value:
+                type: integer
+        parsing_events:
+          type: array
+          description: Только события парсинга в статусе new; подтверждённые уже есть среди докладов
+          items:
+            type: object
+            properties:
+              conference:
+                type: string
+              company:
+                type: [string, 'null']
+              event_date:
+                type: string
+                format: date
+              note:
+                type: [string, 'null']
+        profile_tags:
+          type: array
+          items:
+            type: string
