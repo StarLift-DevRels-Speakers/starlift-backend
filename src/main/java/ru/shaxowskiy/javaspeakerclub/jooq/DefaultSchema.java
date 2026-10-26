@@ -14,11 +14,16 @@ import org.jooq.impl.SchemaImpl;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationPointTransactions;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasonResults;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasons;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerBadges;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerGamificationProfiles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
@@ -54,6 +59,21 @@ public class DefaultSchema extends SchemaImpl {
     public final CfpRecommendations CFP_RECOMMENDATIONS = CfpRecommendations.CFP_RECOMMENDATIONS;
 
     /**
+     * The table <code>gamification_point_transactions</code>.
+     */
+    public final GamificationPointTransactions GAMIFICATION_POINT_TRANSACTIONS = GamificationPointTransactions.GAMIFICATION_POINT_TRANSACTIONS;
+
+    /**
+     * The table <code>gamification_season_results</code>.
+     */
+    public final GamificationSeasonResults GAMIFICATION_SEASON_RESULTS = GamificationSeasonResults.GAMIFICATION_SEASON_RESULTS;
+
+    /**
+     * The table <code>gamification_seasons</code>.
+     */
+    public final GamificationSeasons GAMIFICATION_SEASONS = GamificationSeasons.GAMIFICATION_SEASONS;
+
+    /**
      * The table <code>lectures</code>.
      */
     public final Lectures LECTURES = Lectures.LECTURES;
@@ -74,9 +94,19 @@ public class DefaultSchema extends SchemaImpl {
     public final SpeakerAchievements SPEAKER_ACHIEVEMENTS = SpeakerAchievements.SPEAKER_ACHIEVEMENTS;
 
     /**
+     * The table <code>speaker_badges</code>.
+     */
+    public final SpeakerBadges SPEAKER_BADGES = SpeakerBadges.SPEAKER_BADGES;
+
+    /**
      * The table <code>speaker_cfp_recommendations</code>.
      */
     public final SpeakerCfpRecommendations SPEAKER_CFP_RECOMMENDATIONS = SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS;
+
+    /**
+     * The table <code>speaker_gamification_profiles</code>.
+     */
+    public final SpeakerGamificationProfiles SPEAKER_GAMIFICATION_PROFILES = SpeakerGamificationProfiles.SPEAKER_GAMIFICATION_PROFILES;
 
     /**
      * The table <code>speaker_nps_history</code>.
@@ -141,11 +171,16 @@ public class DefaultSchema extends SchemaImpl {
         return Arrays.asList(
             CfpRecommendationTags.CFP_RECOMMENDATION_TAGS,
             CfpRecommendations.CFP_RECOMMENDATIONS,
+            GamificationPointTransactions.GAMIFICATION_POINT_TRANSACTIONS,
+            GamificationSeasonResults.GAMIFICATION_SEASON_RESULTS,
+            GamificationSeasons.GAMIFICATION_SEASONS,
             Lectures.LECTURES,
             ParsingEvents.PARSING_EVENTS,
             ProducerPlans.PRODUCER_PLANS,
             SpeakerAchievements.SPEAKER_ACHIEVEMENTS,
+            SpeakerBadges.SPEAKER_BADGES,
             SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS,
+            SpeakerGamificationProfiles.SPEAKER_GAMIFICATION_PROFILES,
             SpeakerNpsHistory.SPEAKER_NPS_HISTORY,
             SpeakerRoles.SPEAKER_ROLES,
             TalkFeedback.TALK_FEEDBACK,

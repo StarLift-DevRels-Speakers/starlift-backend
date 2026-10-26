@@ -29,6 +29,8 @@ tags:
     description: Администрирование ролей пользователей
   - name: Producer
     description: ИИ-продюсер спикера — персональный план по отзывам, докладам и CFP с проверяемыми доказательствами
+  - name: Gamification
+    description: Соревновательный режим спикеров — баллы за активность, недельные лиги, рейтинги и значки
 
 paths:
 
@@ -1594,6 +1596,373 @@ paths:
               schema:
                 type: string
 
+  # ── Gamification ────────────────────────────────────────────────────
+
+  /api/gamification/me:
+    get:
+      tags: [Gamification]
+      summary: Соревновательный профиль текущего спикера
+      operationId: getMyGamificationProfile
+      description: >-
+        Лига, баллы текущей недели, место в лиге и зона (повышение/понижение), общий опыт, серия дней и значки.
+        Доступно только пользователям с ролью SPEAKER.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GamificationProfileResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Пользователь не спикер
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/gamification/me/check-in:
+    post:
+      tags: [Gamification]
+      summary: Отметить ежедневную активность
+      operationId: checkInGamification
+      description: >-
+        Раз в сутки начисляет баллы за активность и продлевает серию дней. Каждые
+        app.gamification.streak-bonus-every-days дней серии — бонус. Повторный вызов в тот же день
+        ничего не начисляет и возвращает alreadyCheckedIn = true. Только SPEAKER.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Результат отметки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckInResponse'
+        '403':
+          description: Пользователь не спикер
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/gamification/me/points:
+    get:
+      tags: [Gamification]
+      summary: История начислений баллов текущего спикера
+      operationId: getMyPointHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/GamificationLimit'
+      responses:
+        '200':
+          description: Начисления, новые первыми
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PointTransactionResponse'
+        '403':
+          description: Пользователь не спикер
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/gamification/speakers/{speakerId}:
+    parameters:
+      - $ref: '#/components/parameters/GamificationSpeakerId'
+    get:
+      tags: [Gamification]
+      summary: Соревновательный профиль спикера
+      operationId: getSpeakerGamificationProfile
+      description: Публичен для всех авторизованных пользователей.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GamificationProfileResponse'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/gamification/speakers/{speakerId}/points:
+    parameters:
+      - $ref: '#/components/parameters/GamificationSpeakerId'
+    get:
+      tags: [Gamification]
+      summary: История начислений баллов спикера
+      operationId: getSpeakerPointHistory
+      description: SPEAKER — только своя, DEVREL и ADMIN — любого спикера.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/GamificationLimit'
+      responses:
+        '200':
+          description: Начисления, новые первыми
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PointTransactionResponse'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      tags: [Gamification]
+      summary: Начислить или списать баллы вручную (DEVREL, ADMIN)
+      operationId: awardManualPoints
+      description: >-
+        Ручная корректировка с обязательным комментарием, например за выступление вне платформы
+        или помощь сообществу. Отрицательное значение списывает баллы. Попадает в текущую неделю.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualPointsRequest'
+      responses:
+        '201':
+          description: Начисление создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PointTransactionResponse'
+        '400':
+          description: Некорректные данные (0 баллов, превышен лимит, пустой комментарий)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/gamification/leagues:
+    get:
+      tags: [Gamification]
+      summary: Справочник лиг
+      operationId: listLeagues
+      description: Лиги от низшей к высшей с правилами перехода и числом участников.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Лиги
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeagueResponse'
+
+  /api/gamification/leaderboard/league:
+    get:
+      tags: [Gamification]
+      summary: Турнирная таблица лиги за текущую неделю
+      operationId: getLeagueLeaderboard
+      description: >-
+        Если league не передан: для спикера — его лига, для остальных — BRONZE.
+        Сортировка: баллы по убыванию, при равенстве выше тот, кто набрал их раньше.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: league
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/LeagueCode'
+      responses:
+        '200':
+          description: Таблица
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeagueLeaderboardResponse'
+
+  /api/gamification/leaderboard/global:
+    get:
+      tags: [Gamification]
+      summary: Общий рейтинг спикеров
+      operationId: getGlobalLeaderboard
+      description: WEEK — баллы текущей недели по всем лигам, ALL_TIME — накопленный опыт.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [WEEK, ALL_TIME]
+            default: ALL_TIME
+        - $ref: '#/components/parameters/GamificationLimit'
+      responses:
+        '200':
+          description: Рейтинг
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalLeaderboardResponse'
+
+  /api/gamification/badges:
+    get:
+      tags: [Gamification]
+      summary: Справочник значков (наград)
+      operationId: listBadges
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Значки
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BadgeDefinitionResponse'
+
+  /api/gamification/seasons:
+    get:
+      tags: [Gamification]
+      summary: Сезоны (недели), новые первыми
+      operationId: listSeasons
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/GamificationLimit'
+      responses:
+        '200':
+          description: Сезоны
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeasonResponse'
+
+  /api/gamification/seasons/current:
+    get:
+      tags: [Gamification]
+      summary: Текущий сезон
+      operationId: getCurrentSeason
+      description: Создаётся автоматически при первом обращении в новой неделе.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Сезон
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeasonResponse'
+
+  /api/gamification/seasons/current/close:
+    post:
+      tags: [Gamification]
+      summary: Досрочно закрыть текущий сезон (DEVREL, ADMIN)
+      operationId: closeCurrentSeason
+      description: >-
+        Подводит итоги: топ лиги повышается, низ понижается, выдаются значки. Следующий сезон
+        начинается сразу и длится до ближайшего понедельника. В обычном режиме сезоны закрывает
+        шедулер (app.gamification.close-cron).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Итоги закрытия
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeasonCloseResponse'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/gamification/seasons/{seasonId}/results:
+    parameters:
+      - name: seasonId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags: [Gamification]
+      summary: Итоги закрытого сезона
+      operationId: getSeasonResults
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: league
+          in: query
+          required: false
+          description: Только участники этой лиги (лига на момент сезона)
+          schema:
+            $ref: '#/components/schemas/LeagueCode'
+      responses:
+        '200':
+          description: Итоги по лигам, внутри лиги — по месту
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeasonResultResponse'
+        '404':
+          description: Сезон не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Сезон ещё не закрыт
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
 components:
   parameters:
     TalkId:
@@ -1651,6 +2020,24 @@ components:
       schema:
         type: string
         format: uuid
+
+    GamificationSpeakerId:
+      name: speakerId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    GamificationLimit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
 
   securitySchemes:
     bearerAuth:
@@ -3367,3 +3754,358 @@ components:
                 type: string
               reason:
                 type: string
+
+    # ── Gamification ────────────────────────────────────────────────
+
+    LeagueCode:
+      type: string
+      description: Лиги от низшей к высшей. Новый спикер начинает в BRONZE.
+      enum: [BRONZE, SILVER, GOLD, PLATINUM, DIAMOND]
+
+    LeagueZone:
+      type: string
+      description: >-
+        PROMOTION — по итогам недели спикер перейдёт в лигу выше, DEMOTION — опустится ниже, SAFE — останется.
+      enum: [PROMOTION, SAFE, DEMOTION]
+
+    PointReason:
+      type: string
+      description: >-
+        TALK_CREATED — новый доклад; TALK_DELETED — списание за удалённый доклад;
+        FEEDBACK_RECEIVED — отзыв на доклад; HIGH_RATING_FEEDBACK — бонус за высокую оценку;
+        PROFILE_COMPLETED — профиль заполнен на 100%; DAILY_CHECK_IN — ежедневная активность;
+        STREAK_BONUS — бонус за серию дней; MANUAL — ручная корректировка DEVREL/ADMIN.
+      enum: [TALK_CREATED, TALK_DELETED, FEEDBACK_RECEIVED, HIGH_RATING_FEEDBACK, PROFILE_COMPLETED, DAILY_CHECK_IN, STREAK_BONUS, MANUAL]
+
+    BadgeCode:
+      type: string
+      enum:
+        - FIRST_TALK
+        - TALKS_10
+        - FIRST_FEEDBACK
+        - FEEDBACK_50
+        - STREAK_7
+        - STREAK_30
+        - PROFILE_COMPLETE
+        - POINTS_1000
+        - REACHED_GOLD
+        - REACHED_PLATINUM
+        - REACHED_DIAMOND
+        - SEASON_WINNER
+        - SEASON_PODIUM
+        - PROMOTED
+
+    SeasonResponse:
+      type: object
+      required: [id, startsAt, endsAt, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 12
+        startsAt:
+          type: string
+          format: date-time
+          example: "2026-10-26T00:00:00"
+        endsAt:
+          type: string
+          format: date-time
+          description: Не включительно
+          example: "2026-11-02T00:00:00"
+        status:
+          type: string
+          enum: [ACTIVE, CLOSED]
+        closedAt:
+          type: [string, 'null']
+          format: date-time
+
+    BadgeDefinitionResponse:
+      type: object
+      required: [code, title, description, category, repeatable]
+      properties:
+        code:
+          $ref: '#/components/schemas/BadgeCode'
+        title:
+          type: string
+          example: Первый доклад
+        description:
+          type: string
+          example: Добавьте первый доклад на платформу
+        category:
+          type: string
+          enum: [ACTIVITY, LEAGUE, SEASON]
+        repeatable:
+          type: boolean
+          description: Выдаётся повторно в каждом сезоне (SEASON_WINNER, SEASON_PODIUM, PROMOTED)
+
+    EarnedBadgeResponse:
+      type: object
+      required: [code, title, description, category, awardedDate]
+      properties:
+        code:
+          $ref: '#/components/schemas/BadgeCode'
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [ACTIVITY, LEAGUE, SEASON]
+        seasonId:
+          type: [integer, 'null']
+          format: int64
+          description: Сезон, за который выдан сезонный значок
+        awardedDate:
+          type: string
+          format: date-time
+
+    GamificationProfileResponse:
+      type: object
+      required: [speakerId, username, league, weeklyPoints, weeklyRank, leagueSize, zone, totalPoints, currentStreak, longestStreak, checkedInToday, season, badges]
+      properties:
+        speakerId:
+          type: integer
+          format: int64
+          example: 1
+        username:
+          type: string
+          example: anna
+        firstName:
+          type: [string, 'null']
+        lastName:
+          type: [string, 'null']
+        avatarColor:
+          type: [string, 'null']
+          example: '#0ea5e9'
+        league:
+          $ref: '#/components/schemas/LeagueCode'
+        weeklyPoints:
+          type: integer
+          description: Баллы текущего сезона
+          example: 85
+        weeklyRank:
+          type: integer
+          description: Место в своей лиге в текущем сезоне (с 1)
+          example: 2
+        leagueSize:
+          type: integer
+          description: Участников в лиге
+          example: 14
+        zone:
+          $ref: '#/components/schemas/LeagueZone'
+        totalPoints:
+          type: integer
+          description: Накопленный опыт за всё время
+          example: 1240
+        currentStreak:
+          type: integer
+          description: Дней подряд с активностью
+          example: 5
+        longestStreak:
+          type: integer
+          example: 12
+        checkedInToday:
+          type: boolean
+        season:
+          $ref: '#/components/schemas/SeasonResponse'
+        badges:
+          type: array
+          items:
+            $ref: '#/components/schemas/EarnedBadgeResponse'
+
+    CheckInResponse:
+      type: object
+      required: [alreadyCheckedIn, awardedPoints, currentStreak, longestStreak, newBadges]
+      properties:
+        alreadyCheckedIn:
+          type: boolean
+        awardedPoints:
+          type: integer
+          description: Баллы за отметку и бонус серии (0, если уже отмечался сегодня)
+          example: 30
+        currentStreak:
+          type: integer
+          example: 7
+        longestStreak:
+          type: integer
+          example: 7
+        newBadges:
+          type: array
+          items:
+            $ref: '#/components/schemas/EarnedBadgeResponse'
+
+    PointTransactionResponse:
+      type: object
+      required: [id, speakerId, points, reason, createdDate]
+      properties:
+        id:
+          type: string
+          format: uuid
+        speakerId:
+          type: integer
+          format: int64
+        points:
+          type: integer
+          description: Может быть отрицательным (списание)
+          example: 50
+        reason:
+          $ref: '#/components/schemas/PointReason'
+        sourceId:
+          type: [string, 'null']
+          description: Объект-источник (id доклада, отзыва, дата отметки)
+        comment:
+          type: [string, 'null']
+        awardedBy:
+          type: [integer, 'null']
+          format: int64
+          description: Кто начислил вручную (для MANUAL)
+        createdDate:
+          type: string
+          format: date-time
+
+    ManualPointsRequest:
+      type: object
+      required: [points, comment]
+      properties:
+        points:
+          type: integer
+          description: Ненулевое значение, по модулю не больше app.gamification.manual-max-abs (по умолчанию 1000)
+          example: 100
+        comment:
+          type: string
+          maxLength: 500
+          example: Выступление на митапе сообщества
+
+    LeagueResponse:
+      type: object
+      required: [code, title, order, participants, promotionCount, demotionCount]
+      properties:
+        code:
+          $ref: '#/components/schemas/LeagueCode'
+        title:
+          type: string
+          example: Золотая лига
+        order:
+          type: integer
+          description: 1 — низшая
+          example: 3
+        participants:
+          type: integer
+          example: 14
+        promotionCount:
+          type: integer
+          description: Сколько лучших повышаются (0 для высшей лиги)
+          example: 3
+        demotionCount:
+          type: integer
+          description: Сколько последних понижаются (0 для низшей лиги)
+          example: 3
+
+    LeaderboardEntry:
+      type: object
+      required: [rank, speakerId, username, league, points]
+      properties:
+        rank:
+          type: integer
+          example: 1
+        speakerId:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: [string, 'null']
+        lastName:
+          type: [string, 'null']
+        avatarColor:
+          type: [string, 'null']
+        league:
+          $ref: '#/components/schemas/LeagueCode'
+        points:
+          type: integer
+        zone:
+          description: Только в таблице лиги
+          oneOf:
+            - $ref: '#/components/schemas/LeagueZone'
+            - type: 'null'
+        me:
+          type: boolean
+          description: Строка текущего пользователя
+
+    LeagueLeaderboardResponse:
+      type: object
+      required: [league, season, promotionCount, demotionCount, entries]
+      properties:
+        league:
+          $ref: '#/components/schemas/LeagueCode'
+        season:
+          $ref: '#/components/schemas/SeasonResponse'
+        promotionCount:
+          type: integer
+        demotionCount:
+          type: integer
+          description: 0, если в лиге меньше app.gamification.min-participants-for-demotion участников
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'
+
+    GlobalLeaderboardResponse:
+      type: object
+      required: [period, entries]
+      properties:
+        period:
+          type: string
+          enum: [WEEK, ALL_TIME]
+        season:
+          description: Для WEEK
+          oneOf:
+            - $ref: '#/components/schemas/SeasonResponse'
+            - type: 'null'
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntry'
+
+    SeasonResultResponse:
+      type: object
+      required: [seasonId, speakerId, username, league, rank, points, outcome, newLeague]
+      properties:
+        seasonId:
+          type: integer
+          format: int64
+        speakerId:
+          type: integer
+          format: int64
+        username:
+          type: string
+        firstName:
+          type: [string, 'null']
+        lastName:
+          type: [string, 'null']
+        league:
+          $ref: '#/components/schemas/LeagueCode'
+        rank:
+          type: integer
+        points:
+          type: integer
+        outcome:
+          type: string
+          enum: [PROMOTED, STAYED, DEMOTED]
+        newLeague:
+          $ref: '#/components/schemas/LeagueCode'
+
+    SeasonCloseResponse:
+      type: object
+      required: [closedSeason, nextSeason, participants, promoted, demoted]
+      properties:
+        closedSeason:
+          $ref: '#/components/schemas/SeasonResponse'
+        nextSeason:
+          $ref: '#/components/schemas/SeasonResponse'
+        participants:
+          type: integer
+        promoted:
+          type: integer
+        demoted:
+          type: integer

@@ -81,6 +81,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/producer/report", "/api/producer/plans/**").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers("/api/producer/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
 
+                .requestMatchers(HttpMethod.POST, "/api/gamification/me/**").hasRole("SPEAKER")
+                .requestMatchers(HttpMethod.POST, "/api/gamification/speakers/*/points", "/api/gamification/seasons/**").hasAnyRole("DEVREL", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/gamification/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
+
                 .anyRequest().hasRole("ADMIN")
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

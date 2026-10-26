@@ -6,11 +6,16 @@ package ru.shaxowskiy.javaspeakerclub.jooq;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationPointTransactions;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasonResults;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasons;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerBadges;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerGamificationProfiles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
@@ -39,6 +44,21 @@ public class Tables {
     public static final CfpRecommendations CFP_RECOMMENDATIONS = CfpRecommendations.CFP_RECOMMENDATIONS;
 
     /**
+     * The table <code>gamification_point_transactions</code>.
+     */
+    public static final GamificationPointTransactions GAMIFICATION_POINT_TRANSACTIONS = GamificationPointTransactions.GAMIFICATION_POINT_TRANSACTIONS;
+
+    /**
+     * The table <code>gamification_season_results</code>.
+     */
+    public static final GamificationSeasonResults GAMIFICATION_SEASON_RESULTS = GamificationSeasonResults.GAMIFICATION_SEASON_RESULTS;
+
+    /**
+     * The table <code>gamification_seasons</code>.
+     */
+    public static final GamificationSeasons GAMIFICATION_SEASONS = GamificationSeasons.GAMIFICATION_SEASONS;
+
+    /**
      * The table <code>lectures</code>.
      */
     public static final Lectures LECTURES = Lectures.LECTURES;
@@ -59,9 +79,19 @@ public class Tables {
     public static final SpeakerAchievements SPEAKER_ACHIEVEMENTS = SpeakerAchievements.SPEAKER_ACHIEVEMENTS;
 
     /**
+     * The table <code>speaker_badges</code>.
+     */
+    public static final SpeakerBadges SPEAKER_BADGES = SpeakerBadges.SPEAKER_BADGES;
+
+    /**
      * The table <code>speaker_cfp_recommendations</code>.
      */
     public static final SpeakerCfpRecommendations SPEAKER_CFP_RECOMMENDATIONS = SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS;
+
+    /**
+     * The table <code>speaker_gamification_profiles</code>.
+     */
+    public static final SpeakerGamificationProfiles SPEAKER_GAMIFICATION_PROFILES = SpeakerGamificationProfiles.SPEAKER_GAMIFICATION_PROFILES;
 
     /**
      * The table <code>speaker_nps_history</code>.
