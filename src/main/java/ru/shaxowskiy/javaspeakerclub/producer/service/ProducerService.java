@@ -98,6 +98,15 @@ public class ProducerService {
                         "План ещё не сформирован. Запустите POST, чтобы собрать его."));
     }
 
+    /**
+     * История планов спикера, старые первыми.
+     */
+    public List<ProducerPlanResponse> getHistory(Long speakerId) {
+        return planRepository.findAllBySpeakerId(speakerId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public List<ProducerPlanResponse> regenerateAll() {
         return userRoleRepository.findUserIdsByRole(AppRole.SPEAKER).stream()
                 .limit(properties.regenerateAllLimit())

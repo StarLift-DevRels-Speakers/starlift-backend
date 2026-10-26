@@ -89,7 +89,9 @@ public class UserRepository {
             String about,
             String company,
             String companyRole,
-            String avatarMediaKey
+            String avatarMediaKey,
+            String region,
+            String preferences
     ) {
         int updated = dsl.update(Users.USERS)
                 .set(Users.USERS.FIRST_NAME, firstName)
@@ -99,6 +101,8 @@ public class UserRepository {
                 .set(Users.USERS.COMPANY, company)
                 .set(Users.USERS.COMPANY_ROLE, companyRole)
                 .set(Users.USERS.AVATAR_MEDIA_KEY, avatarMediaKey)
+                .set(Users.USERS.REGION, region)
+                .set(Users.USERS.PREFERENCES, preferences)
                 .where(Users.USERS.ID.eq(id))
                 .execute();
         return updated > 0 ? findById(id) : Optional.empty();

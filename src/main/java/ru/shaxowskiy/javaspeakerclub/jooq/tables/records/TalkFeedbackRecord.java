@@ -106,17 +106,101 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
     }
 
     /**
+     * Setter for <code>talk_feedback.answer_utility</code>.
+     */
+    public void setAnswerUtility(Short value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.answer_utility</code>.
+     */
+    public Short getAnswerUtility() {
+        return (Short) get(6);
+    }
+
+    /**
+     * Setter for <code>talk_feedback.answer_clarity</code>.
+     */
+    public void setAnswerClarity(Short value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.answer_clarity</code>.
+     */
+    public Short getAnswerClarity() {
+        return (Short) get(7);
+    }
+
+    /**
+     * Setter for <code>talk_feedback.answer_examples</code>.
+     */
+    public void setAnswerExamples(Short value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.answer_examples</code>.
+     */
+    public Short getAnswerExamples() {
+        return (Short) get(8);
+    }
+
+    /**
+     * Setter for <code>talk_feedback.answer_pace</code>.
+     */
+    public void setAnswerPace(Short value) {
+        set(9, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.answer_pace</code>.
+     */
+    public Short getAnswerPace() {
+        return (Short) get(9);
+    }
+
+    /**
+     * Setter for <code>talk_feedback.answer_engagement</code>.
+     */
+    public void setAnswerEngagement(Short value) {
+        set(10, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.answer_engagement</code>.
+     */
+    public Short getAnswerEngagement() {
+        return (Short) get(10);
+    }
+
+    /**
+     * Setter for <code>talk_feedback.comment</code>.
+     */
+    public void setComment(String value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.comment</code>.
+     */
+    public String getComment() {
+        return (String) get(11);
+    }
+
+    /**
      * Setter for <code>talk_feedback.created_date</code>.
      */
     public void setCreatedDate(LocalDateTime value) {
-        set(6, value);
+        set(12, value);
     }
 
     /**
      * Getter for <code>talk_feedback.created_date</code>.
      */
     public LocalDateTime getCreatedDate() {
-        return (LocalDateTime) get(6);
+        return (LocalDateTime) get(12);
     }
 
     // -------------------------------------------------------------------------
@@ -142,7 +226,7 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
     /**
      * Create a detached, initialised TalkFeedbackRecord
      */
-    public TalkFeedbackRecord(UUID id, UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions, LocalDateTime createdDate) {
+    public TalkFeedbackRecord(UUID id, UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions, Short answerUtility, Short answerClarity, Short answerExamples, Short answerPace, Short answerEngagement, String comment, LocalDateTime createdDate) {
         super(TalkFeedback.TALK_FEEDBACK);
 
         setId(id);
@@ -151,6 +235,12 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
         setPositive(positive);
         setNegative(negative);
         setImprovementSuggestions(improvementSuggestions);
+        setAnswerUtility(answerUtility);
+        setAnswerClarity(answerClarity);
+        setAnswerExamples(answerExamples);
+        setAnswerPace(answerPace);
+        setAnswerEngagement(answerEngagement);
+        setComment(comment);
         setCreatedDate(createdDate);
         resetTouchedOnNotNull();
     }

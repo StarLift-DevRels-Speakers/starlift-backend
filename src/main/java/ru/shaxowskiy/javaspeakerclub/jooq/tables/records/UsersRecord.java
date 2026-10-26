@@ -148,157 +148,171 @@ public class UsersRecord extends UpdatableRecordImpl<UsersRecord> {
     }
 
     /**
+     * Setter for <code>users.preferences</code>.
+     */
+    public void setPreferences(String value) {
+        set(9, value);
+    }
+
+    /**
+     * Getter for <code>users.preferences</code>.
+     */
+    public String getPreferences() {
+        return (String) get(9);
+    }
+
+    /**
      * Setter for <code>users.region</code>.
      */
     public void setRegion(String value) {
-        set(9, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>users.region</code>.
      */
     public String getRegion() {
-        return (String) get(9);
+        return (String) get(10);
     }
 
     /**
      * Setter for <code>users.company</code>.
      */
     public void setCompany(String value) {
-        set(10, value);
+        set(11, value);
     }
 
     /**
      * Getter for <code>users.company</code>.
      */
     public String getCompany() {
-        return (String) get(10);
+        return (String) get(11);
     }
 
     /**
      * Setter for <code>users.company_role</code>.
      */
     public void setCompanyRole(String value) {
-        set(11, value);
+        set(12, value);
     }
 
     /**
      * Getter for <code>users.company_role</code>.
      */
     public String getCompanyRole() {
-        return (String) get(11);
+        return (String) get(12);
     }
 
     /**
      * Setter for <code>users.influence</code>.
      */
     public void setInfluence(String value) {
-        set(12, value);
+        set(13, value);
     }
 
     /**
      * Getter for <code>users.influence</code>.
      */
     public String getInfluence() {
-        return (String) get(12);
+        return (String) get(13);
     }
 
     /**
      * Setter for <code>users.profile_completion</code>.
      */
     public void setProfileCompletion(Integer value) {
-        set(13, value);
+        set(14, value);
     }
 
     /**
      * Getter for <code>users.profile_completion</code>.
      */
     public Integer getProfileCompletion() {
-        return (Integer) get(13);
+        return (Integer) get(14);
     }
 
     /**
      * Setter for <code>users.audience</code>.
      */
     public void setAudience(Integer value) {
-        set(14, value);
+        set(15, value);
     }
 
     /**
      * Getter for <code>users.audience</code>.
      */
     public Integer getAudience() {
-        return (Integer) get(14);
+        return (Integer) get(15);
     }
 
     /**
      * Setter for <code>users.last_evaluation_date</code>.
      */
     public void setLastEvaluationDate(LocalDateTime value) {
-        set(15, value);
+        set(16, value);
     }
 
     /**
      * Getter for <code>users.last_evaluation_date</code>.
      */
     public LocalDateTime getLastEvaluationDate() {
-        return (LocalDateTime) get(15);
+        return (LocalDateTime) get(16);
     }
 
     /**
      * Setter for <code>users.top_conference_candidate</code>.
      */
     public void setTopConferenceCandidate(Boolean value) {
-        set(16, value);
+        set(17, value);
     }
 
     /**
      * Getter for <code>users.top_conference_candidate</code>.
      */
     public Boolean getTopConferenceCandidate() {
-        return (Boolean) get(16);
+        return (Boolean) get(17);
     }
 
     /**
      * Setter for <code>users.avatar_color</code>.
      */
     public void setAvatarColor(String value) {
-        set(17, value);
+        set(18, value);
     }
 
     /**
      * Getter for <code>users.avatar_color</code>.
      */
     public String getAvatarColor() {
-        return (String) get(17);
+        return (String) get(18);
     }
 
     /**
      * Setter for <code>users.created_date</code>.
      */
     public void setCreatedDate(LocalDateTime value) {
-        set(18, value);
+        set(19, value);
     }
 
     /**
      * Getter for <code>users.created_date</code>.
      */
     public LocalDateTime getCreatedDate() {
-        return (LocalDateTime) get(18);
+        return (LocalDateTime) get(19);
     }
 
     /**
      * Setter for <code>users.last_modified_date</code>.
      */
     public void setLastModifiedDate(LocalDateTime value) {
-        set(19, value);
+        set(20, value);
     }
 
     /**
      * Getter for <code>users.last_modified_date</code>.
      */
     public LocalDateTime getLastModifiedDate() {
-        return (LocalDateTime) get(19);
+        return (LocalDateTime) get(20);
     }
 
     // -------------------------------------------------------------------------
@@ -324,7 +338,7 @@ public class UsersRecord extends UpdatableRecordImpl<UsersRecord> {
     /**
      * Create a detached, initialised UsersRecord
      */
-    public UsersRecord(Long id, String username, String firstName, String lastName, String surName, String avatarMediaKey, String password, BigDecimal nps, String about, String region, String company, String companyRole, String influence, Integer profileCompletion, Integer audience, LocalDateTime lastEvaluationDate, Boolean topConferenceCandidate, String avatarColor, LocalDateTime createdDate, LocalDateTime lastModifiedDate) {
+    public UsersRecord(Long id, String username, String firstName, String lastName, String surName, String avatarMediaKey, String password, BigDecimal nps, String about, String preferences, String region, String company, String companyRole, String influence, Integer profileCompletion, Integer audience, LocalDateTime lastEvaluationDate, Boolean topConferenceCandidate, String avatarColor, LocalDateTime createdDate, LocalDateTime lastModifiedDate) {
         super(Users.USERS);
 
         setId(id);
@@ -336,6 +350,7 @@ public class UsersRecord extends UpdatableRecordImpl<UsersRecord> {
         setPassword(password);
         setNps(nps);
         setAbout(about);
+        setPreferences(preferences);
         setRegion(region);
         setCompany(company);
         setCompanyRole(companyRole);

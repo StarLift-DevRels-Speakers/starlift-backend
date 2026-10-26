@@ -2,4 +2,4 @@ package ru.shaxowskiy.javaspeakerclub.dto;
 
 import java.util.UUID;
 
-public record UserMediaUploadResponse(UUID id, String mediaMinioKey) {}
+public record UserMediaUploadResponse(UUID id, String mediaMinioKey, String name, Long sizeBytes, UUID talkId) {}

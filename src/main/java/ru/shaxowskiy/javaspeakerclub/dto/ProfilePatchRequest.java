@@ -10,5 +10,7 @@ public record ProfilePatchRequest(
         String company,
         String companyRole,
         List<String> tags,
-        String avatarMediaKey
+        String avatarMediaKey,
+        String region,
+        String preferences
 ) {}

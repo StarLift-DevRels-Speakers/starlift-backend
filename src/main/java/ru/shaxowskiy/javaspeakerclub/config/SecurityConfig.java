@@ -42,6 +42,7 @@ public class SecurityConfig {
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/**/home", "/**/sign-on", "/**/sign-in", "/health", "/api/auth/**", "/api/parsing/*, /api/media/*").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/talks/*/feedback", "/api/talks/*/feedback/*").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/talks/*/feedback").permitAll()
 
@@ -82,6 +83,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/producer/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
 
                 .requestMatchers("/api/signals/**").hasAnyRole("DEVREL", "ADMIN")
+
+                .requestMatchers("/api/speaker-talks/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/events/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers("/api/events/**").hasAnyRole("DEVREL", "ADMIN")
+                .requestMatchers("/api/applications/**", "/api/invitations/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers("/api/notifications/**", "/api/me/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers("/api/catalog/**").hasAnyRole("DEVREL", "ADMIN")
 
                 .anyRequest().hasRole("ADMIN")
             )
