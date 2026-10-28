@@ -37,3 +37,5 @@ databaseChangeLog:
       file: db/changelog/0017_producer_demo_seed.yaml
   - include:
       file: db/changelog/0018_frontend_integration.yaml
+  - include:
+      file: db/changelog/0019_create_gamification_tables.yaml

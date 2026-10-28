@@ -68,6 +68,24 @@ app:
     max-feedback-items: 80
     recent-talks-limit: 12
     regenerate-all-limit: 10
+  gamification:
+    zone: Europe/Moscow
+    scheduled-close-enabled: true
+    close-cron: "0 5 0 * * MON"
+    promotion-count: 3
+    demotion-count: 3
+    min-participants-for-demotion: 6
+    high-rating-threshold: 9
+    streak-bonus-every-days: 7
+    feedback-daily-cap: 200
+    manual-max-abs: 1000
+    points:
+      talk-created: 50
+      feedback-received: 10
+      high-rating-feedback: 15
+      profile-completed: 100
+      daily-check-in: 5
+      streak-bonus: 25
   weak-signals:
     base-url: ${WEAK_SIGNALS_BASE_URL:http://localhost:8000}
     request-timeout: 90s

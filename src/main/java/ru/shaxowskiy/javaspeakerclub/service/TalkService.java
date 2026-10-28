@@ -1,6 +1,7 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.shaxowskiy.javaspeakerclub.dto.LectureResponse;
+import ru.shaxowskiy.javaspeakerclub.gamification.event.GamificationEvents;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkResponse;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkUpdateRequest;
@@ -29,6 +31,7 @@ public class TalkService {
     private final TalkRepository talkRepository;
     private final UserRepository userRepository;
     private final LectureService lectureService;
+    private final ApplicationEventPublisher eventPublisher;
     private final SpeakerTalkRepository speakerTalkRepository;
 
     @Transactional(readOnly = true)
@@ -78,6 +81,7 @@ public class TalkService {
         if (request.tags() != null) {
             talkRepository.replaceTags(record.getId(), request.tags());
         }
+        eventPublisher.publishEvent(new GamificationEvents.TalkCreated(record.getId(), record.getSpeakerId()));
         return toResponse(record, talkRepository.findTagsByTalkId(record.getId()));
     }
 
@@ -121,6 +125,7 @@ public class TalkService {
         if (!talkRepository.deleteById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + id);
         }
+        eventPublisher.publishEvent(new GamificationEvents.TalkDeleted(id, existing.getSpeakerId()));
     }
 
     private List<TalkResponse> toResponses(List<TalksRecord> talks) {

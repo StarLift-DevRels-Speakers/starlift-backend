@@ -1,11 +1,13 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.shaxowskiy.javaspeakerclub.dto.dashboard.DashboardInfluenceDto;
+import ru.shaxowskiy.javaspeakerclub.gamification.event.GamificationEvents;
 import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerAchievementResponse;
 import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerAchievementUpsertRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.dashboard.SpeakerCfpLinkResponse;
@@ -37,6 +39,7 @@ public class SpeakerDashboardCommandService {
     private final SpeakerAchievementRepository speakerAchievementRepository;
     private final CfpRecommendationRepository cfpRecommendationRepository;
     private final SpeakerAccessGuard speakerAccessGuard;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public SpeakerDashboardProfileResponse patchDashboardProfile(Long speakerId, SpeakerDashboardProfilePatchRequest request) {
@@ -68,6 +71,7 @@ public class SpeakerDashboardCommandService {
                 )
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Speaker not found: " + speakerId));
 
+        eventPublisher.publishEvent(new GamificationEvents.ProfileCompletionChanged(speakerId, profileCompletion));
         return toDashboardProfileResponse(updated);
     }
 

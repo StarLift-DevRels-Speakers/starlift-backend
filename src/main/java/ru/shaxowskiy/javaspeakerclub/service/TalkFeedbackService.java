@@ -1,13 +1,16 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkFeedbackCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkFeedbackResponse;
+import ru.shaxowskiy.javaspeakerclub.gamification.event.GamificationEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalkFeedbackRecord;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.repository.TalkFeedbackRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.TalkRepository;
 
@@ -20,6 +23,7 @@ public class TalkFeedbackService {
 
     private final TalkFeedbackRepository talkFeedbackRepository;
     private final TalkRepository talkRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public List<TalkFeedbackResponse> findAllByTalkId(UUID talkId) {
@@ -39,7 +43,7 @@ public class TalkFeedbackService {
 
     @Transactional
     public TalkFeedbackResponse create(UUID talkId, TalkFeedbackCreateRequest request) {
-        requireTalkExists(talkId);
+        TalksRecord talk = requireTalkExists(talkId);
         validateRequest(request);
 
         TalkFeedbackRecord record = talkFeedbackRepository.create(
@@ -49,6 +53,8 @@ public class TalkFeedbackService {
                 request.negative().trim(),
                 request.improvementSuggestions().trim()
         );
+        eventPublisher.publishEvent(new GamificationEvents.FeedbackCreated(
+                record.getId(), talkId, talk.getSpeakerId(), record.getRating()));
         return toResponse(record);
     }
 
@@ -64,8 +70,8 @@ public class TalkFeedbackService {
         );
     }
 
-    private void requireTalkExists(UUID talkId) {
-        talkRepository.findById(talkId)
+    private TalksRecord requireTalkExists(UUID talkId) {
+        return talkRepository.findById(talkId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + talkId));
     }
 
