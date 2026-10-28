@@ -159,7 +159,7 @@ public class SpeakerRoles extends TableImpl<SpeakerRolesRecord> {
 
     @Override
     public UniqueKey<SpeakerRolesRecord> getPrimaryKey() {
-        return Keys.CONSTRAINT_F;
+        return Keys.CONSTRAINT_FC;
     }
 
     @Override

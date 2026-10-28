@@ -94,6 +94,10 @@ public class UserServiceImpl implements UserService {
                 ? request.companyRole()
                 : currentUserRecord.getCompanyRole();
         String mergedAvatarMediaKey = mergeAvatarMediaKey(currentUserRecord.getId(), request, currentUserRecord);
+        String mergedRegion = request.region() != null && !request.region().isBlank()
+                ? request.region().trim()
+                : currentUserRecord.getRegion();
+        String mergedPreferences = request.preferences() != null ? request.preferences() : currentUserRecord.getPreferences();
 
         User patchedUser = userRepository.patchProfile(
                         currentUserRecord.getId(),
@@ -103,7 +107,9 @@ public class UserServiceImpl implements UserService {
                         mergedAbout,
                         mergedCompany,
                         mergedCompanyRole,
-                        mergedAvatarMediaKey
+                        mergedAvatarMediaKey,
+                        mergedRegion,
+                        mergedPreferences
                 )
                 .map(this::mapToUser)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -130,6 +136,7 @@ public class UserServiceImpl implements UserService {
         user.setCompany(record.getCompany());
         user.setCompanyRole(record.getCompanyRole());
         user.setRegion(record.getRegion());
+        user.setPreferences(record.getPreferences());
         user.setAvatarUrl(buildAvatarUrl(record.getAvatarMediaKey()));
         user.setPassword(record.getPassword());
         // created_date / last_modified_date могут быть null, если БД проставляет значения по умолчанию

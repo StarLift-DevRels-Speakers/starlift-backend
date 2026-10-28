@@ -64,17 +64,59 @@ public class UserMediaRecord extends UpdatableRecordImpl<UserMediaRecord> {
     }
 
     /**
+     * Setter for <code>user_media.original_name</code>.
+     */
+    public void setOriginalName(String value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>user_media.original_name</code>.
+     */
+    public String getOriginalName() {
+        return (String) get(3);
+    }
+
+    /**
+     * Setter for <code>user_media.size_bytes</code>.
+     */
+    public void setSizeBytes(Long value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>user_media.size_bytes</code>.
+     */
+    public Long getSizeBytes() {
+        return (Long) get(4);
+    }
+
+    /**
+     * Setter for <code>user_media.speaker_talk_id</code>.
+     */
+    public void setSpeakerTalkId(UUID value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>user_media.speaker_talk_id</code>.
+     */
+    public UUID getSpeakerTalkId() {
+        return (UUID) get(5);
+    }
+
+    /**
      * Setter for <code>user_media.created_date</code>.
      */
     public void setCreatedDate(LocalDateTime value) {
-        set(3, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>user_media.created_date</code>.
      */
     public LocalDateTime getCreatedDate() {
-        return (LocalDateTime) get(3);
+        return (LocalDateTime) get(6);
     }
 
     // -------------------------------------------------------------------------
@@ -100,12 +142,15 @@ public class UserMediaRecord extends UpdatableRecordImpl<UserMediaRecord> {
     /**
      * Create a detached, initialised UserMediaRecord
      */
-    public UserMediaRecord(UUID id, Long userId, String mediaMinioKey, LocalDateTime createdDate) {
+    public UserMediaRecord(UUID id, Long userId, String mediaMinioKey, String originalName, Long sizeBytes, UUID speakerTalkId, LocalDateTime createdDate) {
         super(UserMedia.USER_MEDIA);
 
         setId(id);
         setUserId(userId);
         setMediaMinioKey(mediaMinioKey);
+        setOriginalName(originalName);
+        setSizeBytes(sizeBytes);
+        setSpeakerTalkId(speakerTalkId);
         setCreatedDate(createdDate);
         resetTouchedOnNotNull();
     }

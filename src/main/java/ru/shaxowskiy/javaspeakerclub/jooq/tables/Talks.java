@@ -36,6 +36,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures.LecturesPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerTalks.SpeakerTalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback.TalkFeedbackPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkTags.TalkTagsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users.UsersPath;
@@ -72,6 +73,16 @@ public class Talks extends TableImpl<TalksRecord> {
      * The column <code>talks.speaker_id</code>.
      */
     public final TableField<TalksRecord, Long> SPEAKER_ID = createField(DSL.name("speaker_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>talks.speaker_talk_id</code>.
+     */
+    public final TableField<TalksRecord, UUID> SPEAKER_TALK_ID = createField(DSL.name("speaker_talk_id"), SQLDataType.UUID, this, "");
+
+    /**
+     * The column <code>talks.feedback_token</code>.
+     */
+    public final TableField<TalksRecord, String> FEEDBACK_TOKEN = createField(DSL.name("feedback_token"), SQLDataType.VARCHAR(64), this, "");
 
     /**
      * The column <code>talks.topic</code>.
@@ -186,8 +197,25 @@ public class Talks extends TableImpl<TalksRecord> {
     }
 
     @Override
+    public List<UniqueKey<TalksRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.CONSTRAINT_690);
+    }
+
+    @Override
     public List<ForeignKey<TalksRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.FK_TALKS_USERS_SPEAKER_ID);
+        return Arrays.asList(Keys.FK_TALKS_SPEAKER_TALKS_SPEAKER_TALK_ID, Keys.FK_TALKS_USERS_SPEAKER_ID);
+    }
+
+    private transient SpeakerTalksPath _speakerTalks;
+
+    /**
+     * Get the implicit join path to the <code>speaker_talks</code> table.
+     */
+    public SpeakerTalksPath speakerTalks() {
+        if (_speakerTalks == null)
+            _speakerTalks = new SpeakerTalksPath(this, Keys.FK_TALKS_SPEAKER_TALKS_SPEAKER_TALK_ID, null);
+
+        return _speakerTalks;
     }
 
     private transient UsersPath _users;

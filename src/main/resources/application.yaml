@@ -68,3 +68,11 @@ app:
     max-feedback-items: 80
     recent-talks-limit: 12
     regenerate-all-limit: 10
+  weak-signals:
+    base-url: ${WEAK_SIGNALS_BASE_URL:http://localhost:8000}
+    request-timeout: 90s
+    cfp-high-match-threshold: 70
+    recent-talks-limit: 10
+    recent-feedback-limit: 20
+    achievements-limit: 10
+    parsing-events-limit: 10

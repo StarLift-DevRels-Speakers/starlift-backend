@@ -55,6 +55,16 @@ public class ProducerPlanRepository {
                 .fetchOptional();
     }
 
+    /**
+     * Все версии планов спикера, старые первыми.
+     */
+    public List<ProducerPlansRecord> findAllBySpeakerId(Long speakerId) {
+        return dsl.selectFrom(ProducerPlans.PRODUCER_PLANS)
+                .where(ProducerPlans.PRODUCER_PLANS.SPEAKER_ID.eq(speakerId))
+                .orderBy(ProducerPlans.PRODUCER_PLANS.CREATED_DATE.asc())
+                .fetch();
+    }
+
     public Map<Long, ProducerPlansRecord> findLatestBySpeakerIds(List<Long> speakerIds) {
         if (speakerIds == null || speakerIds.isEmpty()) {
             return Map.of();

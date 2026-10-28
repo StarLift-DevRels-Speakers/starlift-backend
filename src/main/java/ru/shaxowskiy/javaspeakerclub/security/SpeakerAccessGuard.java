@@ -38,6 +38,18 @@ public class SpeakerAccessGuard {
         return findCurrentUser(requireAuthentication()).getId();
     }
 
+    public UsersRecord currentUser() {
+        return findCurrentUser(requireAuthentication());
+    }
+
+    /**
+     * DevRel-права: роль DEVREL или ADMIN.
+     */
+    public boolean isDevrel() {
+        Authentication auth = requireAuthentication();
+        return hasRole(auth, AppRole.ADMIN) || hasRole(auth, AppRole.DEVREL);
+    }
+
     private Authentication requireAuthentication() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
