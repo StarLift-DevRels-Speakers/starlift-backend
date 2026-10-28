@@ -26,10 +26,9 @@ spring:
         # Ключ авторизации GigaChat (тот же, что GIGACHAT_TOKEN у weak-signals)
         bearer:
           api-key: ${GIGACHAT_TOKEN:}
-        # Сертификаты GigaChat выпущены НУЦ Минцифры (Russian Trusted Root CA), которого нет в truststore JDK.
-        # Доверяем ему только в клиенте GigaChat, проверка TLS остаётся включённой
-        certs:
-          ca-certs: classpath:certs/russian_trusted_root_ca.pem
+        # Сертификаты GigaChat выпущены НУЦ Минцифры, которого нет в truststore JDK, поэтому проверка TLS
+        # в клиенте GigaChat отключена (как GIGACHAT_VERIFY_SSL_CERTS=false у weak-signals)
+        unsafe-ssl: ${GIGACHAT_UNSAFE_SSL:true}
       chat:
         model: ${GIGACHAT_MODEL:GigaChat-2-Max}
 
