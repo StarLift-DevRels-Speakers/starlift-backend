@@ -19,12 +19,18 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
   ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
-      base-url: ${OPENAI_BASE_URL}
+    gigachat:
+      base-url: ${GIGACHAT_BASE_URL:https://api.giga.chat/v1/}
+      auth:
+        scope: ${GIGACHAT_SCOPE:GIGACHAT_API_PERS}
+        # Ключ авторизации GigaChat (тот же, что GIGACHAT_TOKEN у weak-signals)
+        bearer:
+          api-key: ${GIGACHAT_TOKEN:}
+        # Сертификаты GigaChat выпущены НУЦ Минцифры, которого нет в truststore JDK, поэтому проверка TLS
+        # в клиенте GigaChat отключена (как GIGACHAT_VERIFY_SSL_CERTS=false у weak-signals)
+        unsafe-ssl: ${GIGACHAT_UNSAFE_SSL:true}
       chat:
-        options:
-          model: ${OPENAI_MODEL:gpt-4o-mini}
+        model: ${GIGACHAT_MODEL:GigaChat-2-Max}
 
 server:
   port: 8080
