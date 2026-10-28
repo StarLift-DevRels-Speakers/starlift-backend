@@ -19,12 +19,19 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
   ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
-      base-url: ${OPENAI_BASE_URL}
+    gigachat:
+      base-url: ${GIGACHAT_BASE_URL:https://api.giga.chat/v1/}
+      auth:
+        scope: ${GIGACHAT_SCOPE:GIGACHAT_API_PERS}
+        # Ключ авторизации GigaChat (тот же, что GIGACHAT_TOKEN у weak-signals)
+        bearer:
+          api-key: ${GIGACHAT_TOKEN:}
+        # Сертификаты GigaChat выпущены НУЦ Минцифры (Russian Trusted Root CA), которого нет в truststore JDK.
+        # Доверяем ему только в клиенте GigaChat, проверка TLS остаётся включённой
+        certs:
+          ca-certs: classpath:certs/russian_trusted_root_ca.pem
       chat:
-        options:
-          model: ${OPENAI_MODEL:gpt-4o-mini}
+        model: ${GIGACHAT_MODEL:GigaChat-2-Max}
 
 server:
   port: 8080

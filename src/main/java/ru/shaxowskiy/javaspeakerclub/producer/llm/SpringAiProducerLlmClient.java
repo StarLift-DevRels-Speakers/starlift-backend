@@ -23,7 +23,7 @@ public class SpringAiProducerLlmClient implements ProducerLlmClient {
             ChatClient.Builder chatClientBuilder,
             ProducerJson json,
             ProducerProperties properties,
-            @Value("${spring.ai.openai.chat.options.model:unknown}") String model
+            @Value("${spring.ai.gigachat.chat.model:unknown}") String model
     ) {
         this.chatClient = chatClientBuilder.build();
         this.json = json;
@@ -37,7 +37,7 @@ public class SpringAiProducerLlmClient implements ProducerLlmClient {
         // а в промпте есть фигурные скобки JSON-схемы.
         String content = chatClient.prompt()
                 .messages(new SystemMessage(systemPrompt), new UserMessage(userMessage))
-                .options(ChatOptions.builder().temperature(properties.temperature()).build())
+                .options(ChatOptions.builder().temperature(properties.temperature()))
                 .call()
                 .content();
         return json.read(ParsingJsonUtil.extractJsonObject(content), ProducerPlanDraft.class);
