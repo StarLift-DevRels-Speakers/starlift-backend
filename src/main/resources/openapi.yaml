@@ -1519,8 +1519,11 @@ paths:
       summary: Собрать новый план продюсера для текущего спикера
       operationId: regenerateMyProducerPlan
       description: >-
-        Синхронно: снимок данных спикера → один вызов LLM → проверка доказательств → сохранение.
-        Обычно 5–20 секунд. Если данных мало, LLM не вызывается и возвращается статус insufficient_data.
+        Синхронно: снимок данных спикера → один вызов GigaChat → проверка доказательств → сохранение.
+        Обычно 20–40 секунд. Если данных мало (меньше app.producer.min-feedback-for-plan отзывов за
+        app.producer.feedback-window-days дней и нет подходящих CFP), GigaChat не вызывается и возвращается
+        статус insufficient_data; он же — если проверка отбросила все выводы и шаги модели. Если вызов GigaChat
+        упал или ответ не разобрался как JSON — статус failed. Оба статуса приходят с HTTP 200 и пояснением в message.
       security:
         - bearerAuth: []
       responses:
@@ -1591,7 +1594,7 @@ paths:
       tags: [Producer]
       summary: Пересобрать планы всех спикеров (DEVREL, ADMIN)
       operationId: regenerateAllProducerPlans
-      description: По одному вызову LLM на спикера, не больше app.producer.regenerate-all-limit спикеров.
+      description: По одному вызову GigaChat на спикера, не больше app.producer.regenerate-all-limit спикеров.
       security:
         - bearerAuth: []
       responses:
@@ -4453,7 +4456,8 @@ components:
         model:
           type: string
           nullable: true
-          example: gpt-4o-mini
+          description: Модель GigaChat, которая собрала план (GIGACHAT_MODEL); null, если модель не вызывалась
+          example: GigaChat-2-Max
         promptVersion:
           type: string
           example: producer-v1
