@@ -26,3 +26,9 @@ jobs:
         run: |
           docker compose up -d --build
           docker image prune -f
+
+      # nginx резолвит app только при старте, а пересозданный контейнер app получает новый IP — без reload будет 502
+      - name: Reload nginx
+        run: |
+          docker exec java-speaker-club-nginx nginx -t
+          docker exec java-speaker-club-nginx nginx -s reload
