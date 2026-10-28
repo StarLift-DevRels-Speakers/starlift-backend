@@ -1,0 +1,100 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0018-01
+      author: scrum-53
+      comment: >-
+        Интеграция с фронтендом: заготовки докладов, ссылки на отзыв по выступлению, ответы формы отзыва,
+        метаданные медиа, мероприятия с CFP, заявки, приглашения и уведомления.
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE users ADD COLUMN preferences TEXT;
+
+              CREATE TABLE speaker_talks (
+                id UUID PRIMARY KEY,
+                speaker_id BIGINT NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                topic VARCHAR(255) NOT NULL,
+                description TEXT,
+                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_speaker_talks_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE
+              );
+              CREATE INDEX idx_speaker_talks_speaker_id ON speaker_talks (speaker_id);
+
+              ALTER TABLE talks ADD COLUMN speaker_talk_id UUID;
+              ALTER TABLE talks ADD COLUMN feedback_token VARCHAR(64);
+              ALTER TABLE talks ADD CONSTRAINT uq_talks_feedback_token UNIQUE (feedback_token);
+              ALTER TABLE talks ADD CONSTRAINT fk_talks_speaker_talks_speaker_talk_id
+                FOREIGN KEY (speaker_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL;
+
+              ALTER TABLE talk_feedback ADD COLUMN answer_utility SMALLINT CHECK (answer_utility BETWEEN 0 AND 2);
+              ALTER TABLE talk_feedback ADD COLUMN answer_clarity SMALLINT CHECK (answer_clarity BETWEEN 0 AND 2);
+              ALTER TABLE talk_feedback ADD COLUMN answer_examples SMALLINT CHECK (answer_examples BETWEEN 0 AND 2);
+              ALTER TABLE talk_feedback ADD COLUMN answer_pace SMALLINT CHECK (answer_pace BETWEEN 0 AND 2);
+              ALTER TABLE talk_feedback ADD COLUMN answer_engagement SMALLINT CHECK (answer_engagement BETWEEN 0 AND 2);
+              ALTER TABLE talk_feedback ADD COLUMN comment VARCHAR(4000);
+
+              ALTER TABLE user_media ADD COLUMN original_name VARCHAR(512);
+              ALTER TABLE user_media ADD COLUMN size_bytes BIGINT;
+              ALTER TABLE user_media ADD COLUMN speaker_talk_id UUID;
+              ALTER TABLE user_media ADD CONSTRAINT fk_user_media_speaker_talks_speaker_talk_id
+                FOREIGN KEY (speaker_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL;
+
+              CREATE TABLE events (
+                id UUID PRIMARY KEY,
+                owner_id BIGINT NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                event_date DATE NOT NULL,
+                cfp_deadline DATE,
+                city VARCHAR(100),
+                format VARCHAR(20) NOT NULL CHECK (format IN ('OFFLINE', 'ONLINE', 'HYBRID')),
+                topic VARCHAR(255) NOT NULL,
+                audience VARCHAR(500),
+                description TEXT,
+                state VARCHAR(20) NOT NULL DEFAULT 'draft' CHECK (state IN ('draft', 'published')),
+                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_events_users_owner_id FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+              );
+              CREATE INDEX idx_events_owner_id ON events (owner_id);
+              CREATE INDEX idx_events_state ON events (state);
+
+              CREATE TABLE event_applications (
+                id UUID PRIMARY KEY,
+                event_id UUID NOT NULL,
+                speaker_id BIGINT NOT NULL,
+                speaker_talk_id UUID,
+                topic VARCHAR(255) NOT NULL,
+                status VARCHAR(20) NOT NULL CHECK (status IN ('sent', 'accepted', 'reserve', 'rejected')),
+                change_talk_id UUID,
+                change_topic VARCHAR(255),
+                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_event_applications_events_event_id FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+                CONSTRAINT fk_event_applications_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE,
+                CONSTRAINT fk_event_applications_speaker_talks_talk_id FOREIGN KEY (speaker_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL,
+                CONSTRAINT fk_event_applications_speaker_talks_change_id FOREIGN KEY (change_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL
+              );
+              CREATE INDEX idx_event_applications_event_id ON event_applications (event_id);
+              CREATE INDEX idx_event_applications_speaker_id ON event_applications (speaker_id);
+
+              CREATE TABLE event_invitations (
+                id UUID PRIMARY KEY,
+                event_id UUID NOT NULL,
+                speaker_id BIGINT NOT NULL,
+                topic VARCHAR(255) NOT NULL,
+                status VARCHAR(20) NOT NULL CHECK (status IN ('sent', 'accepted', 'declined')),
+                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_event_invitations_events_event_id FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+                CONSTRAINT fk_event_invitations_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE
+              );
+              CREATE INDEX idx_event_invitations_event_id ON event_invitations (event_id);
+              CREATE INDEX idx_event_invitations_speaker_id ON event_invitations (speaker_id);
+
+              CREATE TABLE notifications (
+                id UUID PRIMARY KEY,
+                user_id BIGINT NOT NULL,
+                text VARCHAR(1000) NOT NULL,
+                is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_notifications_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+              );
+              CREATE INDEX idx_notifications_user_id ON notifications (user_id);

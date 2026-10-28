@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0018-01
+      id: 0019-01
       author: gamification
       changes:
         - sql:

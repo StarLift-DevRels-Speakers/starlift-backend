@@ -212,6 +212,6 @@ class GamificationServiceTest {
 
     private static TalkCreateRequest talkRequest(long speakerId) {
         LocalDateTime date = LocalDateTime.now().minusDays(1);
-        return new TalkCreateRequest(speakerId, "Kotlin coroutines", date, "CONFERENCE", "OFFLINE", "Test Conf", date, null);
+        return new TalkCreateRequest(speakerId, "Kotlin coroutines", date, "CONFERENCE", "OFFLINE", "Test Conf", date, null, null);
     }
 }

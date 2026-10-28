@@ -29,6 +29,22 @@ tags:
     description: Администрирование ролей пользователей
   - name: Producer
     description: ИИ-продюсер спикера — персональный план по отзывам, докладам и CFP с проверяемыми доказательствами
+  - name: SpeakerTalks
+    description: Заготовки докладов спикера (название, тема, описание)
+  - name: Feedback
+    description: Публичная форма отзыва по ссылке на выступление
+  - name: Events
+    description: Мероприятия DevRel с CFP
+  - name: Applications
+    description: Заявки спикеров на CFP
+  - name: Invitations
+    description: Приглашения DevRel спикерам
+  - name: Notifications
+    description: Уведомления пользователя
+  - name: Catalog
+    description: Каталог спикеров для DevRel
+  - name: WeakSignals
+    description: Оценка потенциала спикера по слабым сигналам через сервис weak-signals
   - name: Gamification
     description: Соревновательный режим спикеров — баллы за активность, недельные лиги, рейтинги и значки
 
@@ -1151,6 +1167,14 @@ paths:
       operationId: uploadStandaloneMedia
       security:
         - bearerAuth: []
+      parameters:
+        - name: talkId
+          in: query
+          required: false
+          description: Заготовка доклада текущего спикера, к которой относится файл
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -1595,6 +1619,787 @@ paths:
             text/html:
               schema:
                 type: string
+
+  # ── Weak signals ────────────────────────────────────────────────────
+
+  /api/signals/speakers/{speakerId}/talent-score:
+    parameters:
+      - name: speakerId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    post:
+      tags: [WeakSignals]
+      summary: Оценить потенциал спикера (DEVREL, ADMIN)
+      operationId: scoreSpeakerTalent
+      description: Собирает данные спикера из базы и отправляет их в weak-signals (POST /signals/weak-signals). Результат не сохраняется.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Оценка спикера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalentScoreResponse'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '502':
+          description: Сервис weak-signals недоступен, вернул ошибку или отклонил запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '504':
+          description: Сервис weak-signals не ответил за app.weak-signals.request-timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/signals/speakers/{speakerId}/talent-request:
+    parameters:
+      - name: speakerId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags: [WeakSignals]
+      summary: Данные, которые уйдут в weak-signals (DEVREL, ADMIN)
+      operationId: previewSpeakerTalentRequest
+      description: Тело запроса к weak-signals без вызова LLM. null — данных в базе нет; avg_rating без отзывов — 0, achievements_progress_pct без целей — случайная заглушка.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Тело запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TalentRequest'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Спикер не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  # ── Frontend integration (SCRUM-53) ─────────────────────────────────
+
+  /api/speaker-talks:
+    get:
+      tags: [SpeakerTalks]
+      summary: Заготовки докладов текущего спикера
+      operationId: listSpeakerTalks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpeakerTalkResponse'
+    post:
+      tags: [SpeakerTalks]
+      summary: Создать заготовку доклада
+      operationId: createSpeakerTalk
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeakerTalkRequest'
+      responses:
+        '201':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerTalkResponse'
+        '400':
+          description: Не указаны название или тема
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/speaker-talks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags: [SpeakerTalks]
+      summary: Обновить свою заготовку доклада
+      operationId: updateSpeakerTalk
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeakerTalkRequest'
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerTalkResponse'
+        '404':
+          description: Заготовка не найдена или чужая
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/talks/{talkId}/feedback-link:
+    parameters:
+      - name: talkId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Feedback]
+      summary: Ссылка на форму отзыва по своему выступлению
+      operationId: getFeedbackLink
+      description: Повторный вызов возвращает ту же ссылку.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackLinkResponse'
+        '404':
+          description: Выступление не найдено или чужое
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/me/feedback:
+    get:
+      tags: [Feedback]
+      summary: Отзывы на выступления текущего спикера
+      operationId: listMyFeedback
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SpeakerFeedbackResponse'
+
+  /api/public/feedback/{token}:
+    parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Feedback]
+      summary: Выступление для публичной формы отзыва (без авторизации)
+      operationId: getPublicFeedbackForm
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicFeedbackFormResponse'
+        '404':
+          description: Ссылка недействительна
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      tags: [Feedback]
+      summary: Отправить анонимный отзыв (без авторизации)
+      operationId: submitPublicFeedback
+      description: "rating — среднее по вопросам: лучший ответ 10, средний 5, худший 0."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicFeedbackRequest'
+      responses:
+        '201':
+          description: Успешно
+        '400':
+          description: Ответы не на все пять вопросов
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Ссылка недействительна
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/media/files:
+    get:
+      tags: [Media]
+      summary: Медиафайлы текущего пользователя
+      operationId: listMyMediaFiles
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MediaFileResponse'
+
+  /api/media/files/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags: [Media]
+      summary: Удалить свой медиафайл
+      operationId: deleteMyMediaFile
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Успешно
+        '404':
+          description: Файл не найден или чужой
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/media/files/{id}/url:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Media]
+      summary: Presigned URL своего медиафайла
+      operationId: getMyMediaFileUrl
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+        '404':
+          description: Файл не найден или чужой
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/events:
+    get:
+      tags: [Events]
+      summary: Мероприятия
+      operationId: listEvents
+      description: Спикер видит опубликованные, DevRel — свои (включая черновики) и чужие опубликованные.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventResponse'
+    post:
+      tags: [Events]
+      summary: Создать черновик мероприятия (DEVREL, ADMIN)
+      operationId: createEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventRequest'
+      responses:
+        '201':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        '400':
+          description: Не заполнены поля или некорректные даты
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/events/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags: [Events]
+      summary: Обновить своё мероприятие (DEVREL, ADMIN)
+      operationId: updateEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventRequest'
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        '400':
+          description: Некорректные поля
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Чужое мероприятие
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/events/{id}/publish:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Events]
+      summary: Опубликовать своё мероприятие (DEVREL, ADMIN)
+      operationId: publishEvent
+      description: Платный доступ к публикации проверяет фронтенд.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        '409':
+          description: Нарушено правило — действие невозможно в текущем состоянии
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/applications:
+    get:
+      tags: [Applications]
+      summary: Заявки на CFP
+      operationId: listApplications
+      description: DevRel видит заявки на свои мероприятия, спикер — свои.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationResponse'
+    post:
+      tags: [Applications]
+      summary: Подать заявку на CFP с заготовкой доклада
+      operationId: submitApplication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreateRequest'
+      responses:
+        '201':
+          description: Успешно
+        '409':
+          description: Нарушено правило — действие невозможно в текущем состоянии
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/applications/{id}/talk-change:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Applications]
+      summary: Запросить смену доклада в своей заявке
+      operationId: requestTalkChange
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkChangeRequest'
+      responses:
+        '204':
+          description: Успешно
+        '409':
+          description: Нарушено правило — действие невозможно в текущем состоянии
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/applications/{id}/talk-change/answer:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Applications]
+      summary: Подтвердить или отклонить смену доклада (владелец мероприятия)
+      operationId: answerTalkChange
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalkChangeAnswerRequest'
+      responses:
+        '204':
+          description: Успешно
+        '409':
+          description: Нарушено правило — действие невозможно в текущем состоянии
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/applications/{id}/decision:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Applications]
+      summary: Решение по заявке (владелец мероприятия)
+      operationId: decideApplication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+      responses:
+        '204':
+          description: Успешно
+        '409':
+          description: Нарушено правило — действие невозможно в текущем состоянии
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/invitations:
+    get:
+      tags: [Invitations]
+      summary: Приглашения
+      operationId: listInvitations
+      description: DevRel видит приглашения на свои мероприятия, спикер — полученные.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InvitationResponse'
+    post:
+      tags: [Invitations]
+      summary: Пригласить спикера на своё опубликованное мероприятие
+      operationId: sendInvitation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationCreateRequest'
+      responses:
+        '201':
+          description: Успешно
+        '409':
+          description: Нарушено правило — действие невозможно в текущем состоянии
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/invitations/{id}/answer:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [Invitations]
+      summary: Ответить на приглашение
+      operationId: answerInvitation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationAnswerRequest'
+      responses:
+        '204':
+          description: Успешно
+        '409':
+          description: Нарушено правило — действие невозможно в текущем состоянии
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/notifications:
+    get:
+      tags: [Notifications]
+      summary: Уведомления текущего пользователя
+      operationId: listNotifications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationResponse'
+
+  /api/notifications/read:
+    post:
+      tags: [Notifications]
+      summary: Пометить уведомления прочитанными
+      operationId: markNotificationsRead
+      description: Без id — все уведомления пользователя.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkReadRequest'
+      responses:
+        '204':
+          description: Успешно
+
+  /api/catalog/speakers:
+    get:
+      tags: [Catalog]
+      summary: Каталог спикеров (DEVREL, ADMIN)
+      operationId: searchCatalogSpeakers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Поиск по имени, компетенциям и городу
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CatalogSpeaker'
+
+  /api/catalog/speakers/{speakerId}:
+    parameters:
+      - name: speakerId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+    get:
+      tags: [Catalog]
+      summary: Карточка спикера — профиль, выступления, заготовки, отзывы (DEVREL, ADMIN)
+      operationId: getCatalogSpeaker
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogSpeakerDetails'
+        '404':
+          description: Спикер не найден
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/producer/me/plans:
+    get:
+      tags: [Producer]
+      summary: История планов продюсера текущего спикера
+      operationId: getMyProducerPlans
+      description: Старые первыми.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProducerPlanResponse'
 
   # ── Gamification ────────────────────────────────────────────────────
 
@@ -2159,6 +2964,11 @@ components:
     User:
       type: object
       properties:
+        region:
+          type: string
+        preferences:
+          type: [string, 'null']
+          description: Предпочитаемые форматы, регионы и аудитория
         id:
           type: integer
           format: int64
@@ -2233,6 +3043,12 @@ components:
       type: object
       additionalProperties: false
       properties:
+        region:
+          type: string
+          description: Город или регион; пустое значение не меняет текущий
+        preferences:
+          type: string
+          description: Предпочитаемые форматы, регионы и аудитория
         firstName:
           type: [string, 'null']
           example: John
@@ -2291,6 +3107,10 @@ components:
       type: object
       required: [speakerId, topic, talkDate, conferenceType, format]
       properties:
+        speakerTalkId:
+          type: [string, 'null']
+          format: uuid
+          description: Заготовка доклада спикера, с которой он выступил
         speakerId:
           type: integer
           format: int64
@@ -2352,6 +3172,9 @@ components:
     TalkResponse:
       type: object
       properties:
+        speakerTalkId:
+          type: [string, 'null']
+          format: uuid
         id:
           type: string
           format: uuid
@@ -2496,6 +3319,14 @@ components:
       type: object
       required: [id, mediaMinioKey]
       properties:
+        name:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        talkId:
+          type: [string, 'null']
+          format: uuid
         id:
           type: string
           format: uuid
@@ -3754,6 +4585,513 @@ components:
                 type: string
               reason:
                 type: string
+
+    # ── Weak signals ────────────────────────────────────────────────
+
+    TalentScoreResponse:
+      type: object
+      required: [id, score, reason, confidence]
+      properties:
+        id:
+          type: integer
+          format: int64
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        reason:
+          type: string
+          example: Регулярно выступает, сильные свежие отзывы и заметный рост.
+        confidence:
+          type: string
+          enum: [low, medium, high]
+
+    TalentRequest:
+      type: object
+      description: Контракт сервиса weak-signals, поля в snake_case. null — данных в базе нет.
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        region:
+          type: [string, 'null']
+          description: null, если в users.region значение по умолчанию «Другие регионы»
+        company:
+          type: [string, 'null']
+          description: null, если в users.company значение по умолчанию «Unknown»
+        company_role:
+          type: [string, 'null']
+        about:
+          type: [string, 'null']
+        influence:
+          type: string
+          enum: [local, regional, federal, international]
+        talks_total:
+          type: integer
+          description: Прошедшие доклады
+        talks_last_3_months:
+          type: integer
+        last_talk_date:
+          type: [string, 'null']
+          format: date-time
+        avg_rating:
+          type: number
+          description: Средняя оценка по всем отзывам, 0–10. Без отзывов — 0, вместе с feedback_count = 0
+        feedback_count:
+          type: integer
+        nps:
+          type: [number, 'null']
+          description: users.nps, 0–10
+        profile_completion:
+          type: integer
+        achievements_progress_pct:
+          type: number
+          description: Средний прогресс по целям (перевыполнение — 100%). Без целей — временная случайная заглушка 30–70 (weak-signals пока не принимает null)
+        cfp_high_match_count:
+          type: integer
+          description: Активные CFP с открытым дедлайном и match_score не ниже app.weak-signals.cfp-high-match-threshold
+        recent_talks:
+          type: array
+          items:
+            type: object
+            properties:
+              topic:
+                type: string
+              conference_type:
+                type: string
+              format:
+                type: string
+              talk_date:
+                type: string
+                format: date-time
+        recent_feedback:
+          type: array
+          items:
+            type: object
+            properties:
+              rating:
+                type: integer
+              positive:
+                type: string
+              negative:
+                type: string
+              improvement_suggestions:
+                type: string
+        achievements:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              current_value:
+                type: integer
+              target_value:
+                type: integer
+        parsing_events:
+          type: array
+          description: Только события парсинга в статусе new; подтверждённые уже есть среди докладов
+          items:
+            type: object
+            properties:
+              conference:
+                type: string
+              company:
+                type: [string, 'null']
+              event_date:
+                type: string
+                format: date
+              note:
+                type: [string, 'null']
+        profile_tags:
+          type: array
+          items:
+            type: string
+
+    # ── Frontend integration (SCRUM-53) ─────────────────────────────
+
+    SpeakerTalkRequest:
+      type: object
+      required: [name, topic]
+      properties:
+        name:
+          type: string
+        topic:
+          type: string
+        description:
+          type: string
+
+    SpeakerTalkResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        speakerId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        topic:
+          type: string
+        description:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
+
+    FeedbackLinkResponse:
+      type: object
+      properties:
+        talkId:
+          type: string
+          format: uuid
+        token:
+          type: string
+
+    FeedbackAnswers:
+      type: object
+      description: Индексы выбранных вариантов, 0 — лучший. null у отзывов, оставленных до формы.
+      properties:
+        utility:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 2
+        clarity:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 2
+        examples:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 2
+        pace:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 2
+        engagement:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 2
+
+    PublicFeedbackRequest:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          $ref: '#/components/schemas/FeedbackAnswers'
+        comment:
+          type: [string, 'null']
+
+    PublicFeedbackFormResponse:
+      type: object
+      properties:
+        topic:
+          type: string
+        eventName:
+          type: string
+        date:
+          type: string
+          format: date
+
+    SpeakerFeedbackResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        talkId:
+          type: string
+          format: uuid
+        createdDate:
+          type: string
+          format: date-time
+        rating:
+          type: integer
+        answers:
+          oneOf:
+            - $ref: '#/components/schemas/FeedbackAnswers'
+            - type: 'null'
+        comment:
+          type: [string, 'null']
+        positive:
+          type: string
+        negative:
+          type: string
+        improvementSuggestions:
+          type: string
+
+    MediaFileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        talkId:
+          type: [string, 'null']
+          format: uuid
+        createdDate:
+          type: string
+          format: date-time
+
+    EventRequest:
+      type: object
+      required: [name, date, format, topic]
+      properties:
+        name:
+          type: string
+        date:
+          type: string
+          format: date
+        cfp:
+          type: [string, 'null']
+          format: date
+        city:
+          type: string
+        format:
+          type: string
+          enum: [OFFLINE, ONLINE, HYBRID]
+        topic:
+          type: string
+        audience:
+          type: string
+        description:
+          type: string
+
+    EventResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerId:
+          type: integer
+          format: int64
+        ownerName:
+          type: string
+        own:
+          type: boolean
+        name:
+          type: string
+        date:
+          type: string
+          format: date
+        cfp:
+          type: [string, 'null']
+          format: date
+        city:
+          type: string
+        format:
+          type: string
+          enum: [OFFLINE, ONLINE, HYBRID]
+        topic:
+          type: string
+        audience:
+          type: string
+        description:
+          type: string
+        state:
+          type: string
+          enum: [draft, published]
+
+    ApplicationCreateRequest:
+      type: object
+      required: [eventId, talkId]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        talkId:
+          type: string
+          format: uuid
+
+    TalkChangeRequest:
+      type: object
+      required: [talkId]
+      properties:
+        talkId:
+          type: string
+          format: uuid
+
+    TalkChangeAnswerRequest:
+      type: object
+      required: [approved]
+      properties:
+        approved:
+          type: boolean
+
+    DecisionRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [accepted, reserve, rejected]
+
+    ApplicationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          format: uuid
+        speakerId:
+          type: integer
+          format: int64
+        speakerName:
+          type: string
+        talkId:
+          type: [string, 'null']
+          format: uuid
+        topic:
+          type: string
+        at:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [sent, accepted, reserve, rejected]
+        talkChange:
+          type: [object, 'null']
+          properties:
+            talkId:
+              type: string
+              format: uuid
+            topic:
+              type: string
+
+    InvitationCreateRequest:
+      type: object
+      required: [eventId, speakerId, topic]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        speakerId:
+          type: integer
+          format: int64
+        topic:
+          type: string
+
+    InvitationAnswerRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [accepted, declined]
+
+    InvitationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          format: uuid
+        speakerId:
+          type: integer
+          format: int64
+        speakerName:
+          type: string
+        topic:
+          type: string
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [sent, accepted, declined]
+
+    NotificationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        createdDate:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+
+    MarkReadRequest:
+      type: object
+      properties:
+        id:
+          type: [string, 'null']
+          format: uuid
+
+    CatalogSpeaker:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        position:
+          type: string
+        company:
+          type: string
+        city:
+          type: string
+        skills:
+          type: string
+        about:
+          type: string
+        preferences:
+          type: string
+        feedbackCount:
+          type: integer
+        speechCount:
+          type: integer
+
+    CatalogSpeakerDetails:
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/CatalogSpeaker'
+        speeches:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              talkId:
+                type: [string, 'null']
+                format: uuid
+              topic:
+                type: string
+              event:
+                type: string
+              date:
+                type: string
+                format: date
+        talks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpeakerTalkResponse'
+        feedback:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpeakerFeedbackResponse'
 
     # ── Gamification ────────────────────────────────────────────────
 

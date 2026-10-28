@@ -86,3 +86,11 @@ app:
       profile-completed: 100
       daily-check-in: 5
       streak-bonus: 25
+  weak-signals:
+    base-url: ${WEAK_SIGNALS_BASE_URL:http://localhost:8000}
+    request-timeout: 90s
+    cfp-high-match-threshold: 70
+    recent-talks-limit: 10
+    recent-feedback-limit: 20
+    achievements-limit: 10
+    parsing-events-limit: 10

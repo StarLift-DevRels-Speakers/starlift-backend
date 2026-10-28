@@ -8,6 +8,7 @@ CREATE TABLE users (
   password VARCHAR(255) NOT NULL,
   nps DECIMAL(3,1) DEFAULT NULL CHECK (nps >= 0 AND nps <= 10.0),
   about TEXT,
+  preferences TEXT,
   region VARCHAR(100) NOT NULL DEFAULT 'Другие регионы',
   company VARCHAR(255) NOT NULL DEFAULT 'Unknown',
   company_role VARCHAR(255),
@@ -45,9 +46,23 @@ CREATE TABLE user_profile_tags (
 
 CREATE INDEX idx_user_profile_tags_tag ON user_profile_tags (tag);
 
+CREATE TABLE speaker_talks (
+  id UUID PRIMARY KEY,
+  speaker_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  topic VARCHAR(255) NOT NULL,
+  description TEXT,
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_speaker_talks_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_speaker_talks_speaker_id ON speaker_talks (speaker_id);
+
 CREATE TABLE talks (
   id UUID PRIMARY KEY,
   speaker_id BIGINT NOT NULL,
+  speaker_talk_id UUID,
+  feedback_token VARCHAR(64) UNIQUE,
   topic VARCHAR(255) NOT NULL,
   talk_date TIMESTAMP NOT NULL,
   conference_type VARCHAR(50) NOT NULL,
@@ -55,7 +70,8 @@ CREATE TABLE talks (
   activity_name VARCHAR(255) NOT NULL,
   activity_date TIMESTAMP NOT NULL,
   created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_talks_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT fk_talks_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_talks_speaker_talks_speaker_talk_id FOREIGN KEY (speaker_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_talks_speaker_id ON talks (speaker_id);
@@ -91,6 +107,12 @@ CREATE TABLE talk_feedback (
   positive VARCHAR(4000) NOT NULL,
   negative VARCHAR(4000) NOT NULL,
   improvement_suggestions VARCHAR(4000) NOT NULL,
+  answer_utility SMALLINT CHECK (answer_utility BETWEEN 0 AND 2),
+  answer_clarity SMALLINT CHECK (answer_clarity BETWEEN 0 AND 2),
+  answer_examples SMALLINT CHECK (answer_examples BETWEEN 0 AND 2),
+  answer_pace SMALLINT CHECK (answer_pace BETWEEN 0 AND 2),
+  answer_engagement SMALLINT CHECK (answer_engagement BETWEEN 0 AND 2),
+  comment VARCHAR(4000),
   created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_talk_feedback_talks_talk_id FOREIGN KEY (talk_id) REFERENCES talks(id) ON DELETE CASCADE
 );
@@ -112,8 +134,12 @@ CREATE TABLE user_media (
   id UUID PRIMARY KEY,
   user_id BIGINT NOT NULL,
   media_minio_key VARCHAR(1024) NOT NULL UNIQUE,
+  original_name VARCHAR(512),
+  size_bytes BIGINT,
+  speaker_talk_id UUID,
   created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_user_media_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  CONSTRAINT fk_user_media_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_user_media_speaker_talks_speaker_talk_id FOREIGN KEY (speaker_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_user_media_user_id ON user_media (user_id);
@@ -219,6 +245,69 @@ CREATE TABLE producer_plans (
 );
 
 CREATE INDEX idx_producer_plans_speaker_created ON producer_plans (speaker_id, created_date);
+
+CREATE TABLE events (
+  id UUID PRIMARY KEY,
+  owner_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  event_date DATE NOT NULL,
+  cfp_deadline DATE,
+  city VARCHAR(100),
+  format VARCHAR(20) NOT NULL CHECK (format IN ('OFFLINE', 'ONLINE', 'HYBRID')),
+  topic VARCHAR(255) NOT NULL,
+  audience VARCHAR(500),
+  description TEXT,
+  state VARCHAR(20) NOT NULL DEFAULT 'draft' CHECK (state IN ('draft', 'published')),
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_events_users_owner_id FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_events_owner_id ON events (owner_id);
+CREATE INDEX idx_events_state ON events (state);
+
+CREATE TABLE event_applications (
+  id UUID PRIMARY KEY,
+  event_id UUID NOT NULL,
+  speaker_id BIGINT NOT NULL,
+  speaker_talk_id UUID,
+  topic VARCHAR(255) NOT NULL,
+  status VARCHAR(20) NOT NULL CHECK (status IN ('sent', 'accepted', 'reserve', 'rejected')),
+  change_talk_id UUID,
+  change_topic VARCHAR(255),
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_event_applications_events_event_id FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+  CONSTRAINT fk_event_applications_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_event_applications_speaker_talks_talk_id FOREIGN KEY (speaker_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL,
+  CONSTRAINT fk_event_applications_speaker_talks_change_id FOREIGN KEY (change_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_event_applications_event_id ON event_applications (event_id);
+CREATE INDEX idx_event_applications_speaker_id ON event_applications (speaker_id);
+
+CREATE TABLE event_invitations (
+  id UUID PRIMARY KEY,
+  event_id UUID NOT NULL,
+  speaker_id BIGINT NOT NULL,
+  topic VARCHAR(255) NOT NULL,
+  status VARCHAR(20) NOT NULL CHECK (status IN ('sent', 'accepted', 'declined')),
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_event_invitations_events_event_id FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+  CONSTRAINT fk_event_invitations_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_event_invitations_event_id ON event_invitations (event_id);
+CREATE INDEX idx_event_invitations_speaker_id ON event_invitations (speaker_id);
+
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  text VARCHAR(1000) NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_notifications_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_notifications_user_id ON notifications (user_id);
 
 CREATE TABLE gamification_seasons (
   id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,

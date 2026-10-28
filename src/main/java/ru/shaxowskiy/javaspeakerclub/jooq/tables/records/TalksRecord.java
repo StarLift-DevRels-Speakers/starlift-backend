@@ -50,101 +50,129 @@ public class TalksRecord extends UpdatableRecordImpl<TalksRecord> {
     }
 
     /**
+     * Setter for <code>talks.speaker_talk_id</code>.
+     */
+    public void setSpeakerTalkId(UUID value) {
+        set(2, value);
+    }
+
+    /**
+     * Getter for <code>talks.speaker_talk_id</code>.
+     */
+    public UUID getSpeakerTalkId() {
+        return (UUID) get(2);
+    }
+
+    /**
+     * Setter for <code>talks.feedback_token</code>.
+     */
+    public void setFeedbackToken(String value) {
+        set(3, value);
+    }
+
+    /**
+     * Getter for <code>talks.feedback_token</code>.
+     */
+    public String getFeedbackToken() {
+        return (String) get(3);
+    }
+
+    /**
      * Setter for <code>talks.topic</code>.
      */
     public void setTopic(String value) {
-        set(2, value);
+        set(4, value);
     }
 
     /**
      * Getter for <code>talks.topic</code>.
      */
     public String getTopic() {
-        return (String) get(2);
+        return (String) get(4);
     }
 
     /**
      * Setter for <code>talks.talk_date</code>.
      */
     public void setTalkDate(LocalDateTime value) {
-        set(3, value);
+        set(5, value);
     }
 
     /**
      * Getter for <code>talks.talk_date</code>.
      */
     public LocalDateTime getTalkDate() {
-        return (LocalDateTime) get(3);
+        return (LocalDateTime) get(5);
     }
 
     /**
      * Setter for <code>talks.conference_type</code>.
      */
     public void setConferenceType(String value) {
-        set(4, value);
+        set(6, value);
     }
 
     /**
      * Getter for <code>talks.conference_type</code>.
      */
     public String getConferenceType() {
-        return (String) get(4);
+        return (String) get(6);
     }
 
     /**
      * Setter for <code>talks.format</code>.
      */
     public void setFormat(String value) {
-        set(5, value);
+        set(7, value);
     }
 
     /**
      * Getter for <code>talks.format</code>.
      */
     public String getFormat() {
-        return (String) get(5);
+        return (String) get(7);
     }
 
     /**
      * Setter for <code>talks.activity_name</code>.
      */
     public void setActivityName(String value) {
-        set(6, value);
+        set(8, value);
     }
 
     /**
      * Getter for <code>talks.activity_name</code>.
      */
     public String getActivityName() {
-        return (String) get(6);
+        return (String) get(8);
     }
 
     /**
      * Setter for <code>talks.activity_date</code>.
      */
     public void setActivityDate(LocalDateTime value) {
-        set(7, value);
+        set(9, value);
     }
 
     /**
      * Getter for <code>talks.activity_date</code>.
      */
     public LocalDateTime getActivityDate() {
-        return (LocalDateTime) get(7);
+        return (LocalDateTime) get(9);
     }
 
     /**
      * Setter for <code>talks.created_date</code>.
      */
     public void setCreatedDate(LocalDateTime value) {
-        set(8, value);
+        set(10, value);
     }
 
     /**
      * Getter for <code>talks.created_date</code>.
      */
     public LocalDateTime getCreatedDate() {
-        return (LocalDateTime) get(8);
+        return (LocalDateTime) get(10);
     }
 
     // -------------------------------------------------------------------------
@@ -170,11 +198,13 @@ public class TalksRecord extends UpdatableRecordImpl<TalksRecord> {
     /**
      * Create a detached, initialised TalksRecord
      */
-    public TalksRecord(UUID id, Long speakerId, String topic, LocalDateTime talkDate, String conferenceType, String format, String activityName, LocalDateTime activityDate, LocalDateTime createdDate) {
+    public TalksRecord(UUID id, Long speakerId, UUID speakerTalkId, String feedbackToken, String topic, LocalDateTime talkDate, String conferenceType, String format, String activityName, LocalDateTime activityDate, LocalDateTime createdDate) {
         super(Talks.TALKS);
 
         setId(id);
         setSpeakerId(speakerId);
+        setSpeakerTalkId(speakerTalkId);
+        setFeedbackToken(feedbackToken);
         setTopic(topic);
         setTalkDate(talkDate);
         setConferenceType(conferenceType);

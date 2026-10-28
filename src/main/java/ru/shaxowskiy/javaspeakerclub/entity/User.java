@@ -24,6 +24,7 @@ public class User {
     private String companyRole;
 
     private String region;
+    private String preferences;
 
     private String avatarUrl;
 

@@ -19,5 +19,6 @@ public record TalkResponse(
         LocalDateTime activityDate,
         LocalDateTime createdDate,
         List<String> tags,
-        List<LectureResponse> lectures
+        List<LectureResponse> lectures,
+        UUID speakerTalkId
 ) {}

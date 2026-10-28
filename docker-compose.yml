@@ -9,10 +9,17 @@ services:
     depends_on:
       app:
         condition: service_started
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Сертификаты и webroot для ACME — с хоста, их ведёт certbot (см. nginx/README-tls.md)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
 
   app:
     build:
@@ -50,6 +57,7 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       PARSING_SEARCH_API_KEY: ${PARSING_SEARCH_API_KEY:-not-set}
       APP_LIQUIBASE_CONTEXTS: ${APP_LIQUIBASE_CONTEXTS:-}
+      WEAK_SIGNALS_BASE_URL: ${WEAK_SIGNALS_BASE_URL:-http://signals:8000}
 
   postgres:
     image: postgres:15

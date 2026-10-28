@@ -35,6 +35,7 @@ import org.jooq.impl.TableImpl;
 import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerTalks.SpeakerTalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users.UsersPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserMediaRecord;
 
@@ -74,6 +75,21 @@ public class UserMedia extends TableImpl<UserMediaRecord> {
      * The column <code>user_media.media_minio_key</code>.
      */
     public final TableField<UserMediaRecord, String> MEDIA_MINIO_KEY = createField(DSL.name("media_minio_key"), SQLDataType.VARCHAR(1024).nullable(false), this, "");
+
+    /**
+     * The column <code>user_media.original_name</code>.
+     */
+    public final TableField<UserMediaRecord, String> ORIGINAL_NAME = createField(DSL.name("original_name"), SQLDataType.VARCHAR(512), this, "");
+
+    /**
+     * The column <code>user_media.size_bytes</code>.
+     */
+    public final TableField<UserMediaRecord, Long> SIZE_BYTES = createField(DSL.name("size_bytes"), SQLDataType.BIGINT, this, "");
+
+    /**
+     * The column <code>user_media.speaker_talk_id</code>.
+     */
+    public final TableField<UserMediaRecord, UUID> SPEAKER_TALK_ID = createField(DSL.name("speaker_talk_id"), SQLDataType.UUID, this, "");
 
     /**
      * The column <code>user_media.created_date</code>.
@@ -164,7 +180,19 @@ public class UserMedia extends TableImpl<UserMediaRecord> {
 
     @Override
     public List<ForeignKey<UserMediaRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.FK_USER_MEDIA_USERS_USER_ID);
+        return Arrays.asList(Keys.FK_USER_MEDIA_SPEAKER_TALKS_SPEAKER_TALK_ID, Keys.FK_USER_MEDIA_USERS_USER_ID);
+    }
+
+    private transient SpeakerTalksPath _speakerTalks;
+
+    /**
+     * Get the implicit join path to the <code>speaker_talks</code> table.
+     */
+    public SpeakerTalksPath speakerTalks() {
+        if (_speakerTalks == null)
+            _speakerTalks = new SpeakerTalksPath(this, Keys.FK_USER_MEDIA_SPEAKER_TALKS_SPEAKER_TALK_ID, null);
+
+        return _speakerTalks;
     }
 
     private transient UsersPath _users;

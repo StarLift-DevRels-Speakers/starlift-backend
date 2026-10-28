@@ -14,10 +14,14 @@ import org.jooq.impl.SchemaImpl;
 
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.Events;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationPointTransactions;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasonResults;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasons;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.Notifications;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
@@ -26,6 +30,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerGamificationProfiles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerTalks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
@@ -59,6 +64,21 @@ public class DefaultSchema extends SchemaImpl {
     public final CfpRecommendations CFP_RECOMMENDATIONS = CfpRecommendations.CFP_RECOMMENDATIONS;
 
     /**
+     * The table <code>event_applications</code>.
+     */
+    public final EventApplications EVENT_APPLICATIONS = EventApplications.EVENT_APPLICATIONS;
+
+    /**
+     * The table <code>event_invitations</code>.
+     */
+    public final EventInvitations EVENT_INVITATIONS = EventInvitations.EVENT_INVITATIONS;
+
+    /**
+     * The table <code>events</code>.
+     */
+    public final Events EVENTS = Events.EVENTS;
+
+    /**
      * The table <code>gamification_point_transactions</code>.
      */
     public final GamificationPointTransactions GAMIFICATION_POINT_TRANSACTIONS = GamificationPointTransactions.GAMIFICATION_POINT_TRANSACTIONS;
@@ -77,6 +97,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>lectures</code>.
      */
     public final Lectures LECTURES = Lectures.LECTURES;
+
+    /**
+     * The table <code>notifications</code>.
+     */
+    public final Notifications NOTIFICATIONS = Notifications.NOTIFICATIONS;
 
     /**
      * The table <code>parsing_events</code>.
@@ -117,6 +142,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>speaker_roles</code>.
      */
     public final SpeakerRoles SPEAKER_ROLES = SpeakerRoles.SPEAKER_ROLES;
+
+    /**
+     * The table <code>speaker_talks</code>.
+     */
+    public final SpeakerTalks SPEAKER_TALKS = SpeakerTalks.SPEAKER_TALKS;
 
     /**
      * The table <code>talk_feedback</code>.
@@ -171,10 +201,14 @@ public class DefaultSchema extends SchemaImpl {
         return Arrays.asList(
             CfpRecommendationTags.CFP_RECOMMENDATION_TAGS,
             CfpRecommendations.CFP_RECOMMENDATIONS,
+            EventApplications.EVENT_APPLICATIONS,
+            EventInvitations.EVENT_INVITATIONS,
+            Events.EVENTS,
             GamificationPointTransactions.GAMIFICATION_POINT_TRANSACTIONS,
             GamificationSeasonResults.GAMIFICATION_SEASON_RESULTS,
             GamificationSeasons.GAMIFICATION_SEASONS,
             Lectures.LECTURES,
+            Notifications.NOTIFICATIONS,
             ParsingEvents.PARSING_EVENTS,
             ProducerPlans.PRODUCER_PLANS,
             SpeakerAchievements.SPEAKER_ACHIEVEMENTS,
@@ -183,6 +217,7 @@ public class DefaultSchema extends SchemaImpl {
             SpeakerGamificationProfiles.SPEAKER_GAMIFICATION_PROFILES,
             SpeakerNpsHistory.SPEAKER_NPS_HISTORY,
             SpeakerRoles.SPEAKER_ROLES,
+            SpeakerTalks.SPEAKER_TALKS,
             TalkFeedback.TALK_FEEDBACK,
             TalkTags.TALK_TAGS,
             Talks.TALKS,
