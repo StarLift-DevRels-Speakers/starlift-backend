@@ -1,0 +1,135 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0022-01
+      author: demo
+      context: demo
+      comment: >-
+        Демо-данные для экранов фронтенда: мероприятия demo.devrel с открытым и закрытым CFP, прошедшее мероприятие
+        и черновик, заготовки докладов демо-спикеров, заявки, приглашения и уведомления. Даты считаются от дня
+        применения, поэтому CFP открыты ещё несколько недель. Люди и мероприятия вымышленные.
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO speaker_talks (id, speaker_id, name, topic, description)
+              SELECT t.id::uuid, u.id, t.name, t.topic, t.description
+              FROM (VALUES
+                ('5a1c0000-0000-4000-8000-000000000201', 'ilya.mironov', 'Jetpack Compose в продакшене', 'Android',
+                 'Опыт перевода крупного приложения на Compose: производительность, тестирование, миграция по экранам.'),
+                ('5a1c0000-0000-4000-8000-000000000202', 'ilya.mironov', 'Kotlin Coroutines: разбор полётов', 'Kotlin',
+                 'Типичные ошибки со structured concurrency, отмена и обработка исключений в реальных проектах.'),
+                ('5a1c0000-0000-4000-8000-000000000203', 'ilya.mironov', 'Модульная архитектура мобильного приложения', 'Мобильная разработка',
+                 'Как разрезать монолитное приложение на модули и ускорить сборку.'),
+                ('5a1c0000-0000-4000-8000-000000000101', 'anna.levina', 'Продуктовая аналитика без иллюзий', 'Продуктовая аналитика',
+                 'Какие метрики действительно помогают принимать решения, а какие только создают видимость контроля.'),
+                ('5a1c0000-0000-4000-8000-000000000102', 'anna.levina', 'A/B-тесты: где мы ошибались', 'A/B-тестирование',
+                 'Разбор провалившихся экспериментов и выводы для мобильных команд.'),
+                ('5a1c0000-0000-4000-8000-000000000401', 'daniil.gromov', 'Data Mesh: два года спустя', 'Data Engineering',
+                 'Что получилось и что пришлось откатить после внедрения Data Mesh.'),
+                ('5a1c0000-0000-4000-8000-000000000301', 'timur.karimov', 'Идемпотентность в платёжных сервисах', 'Backend',
+                 'Ключи идемпотентности, outbox и повторные запросы в платёжном контуре.'),
+                ('5a1c0000-0000-4000-8000-000000000601', 'maria.orlova', 'Как вырастить мобильную команду', 'Мобильная разработка',
+                 'Найм, онбординг и процессы релизов в команде из 12 человек.'),
+                ('5a1c0000-0000-4000-8000-000000000501', 'pavel.sokolov', 'Flutter: кроссплатформа без боли', 'Flutter',
+                 'Когда Flutter оправдан и как не потерять в качестве UI.')
+              ) AS t(id, username, name, topic, description)
+              JOIN users u ON u.username = t.username;
+
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000201'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000201';
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000202'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000203';
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000203'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000204';
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000101'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000101';
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000102'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000102';
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000401'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000401';
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000301'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000302';
+              UPDATE talks SET speaker_talk_id = '5a1c0000-0000-4000-8000-000000000501'
+                WHERE id = '7a1c0000-0000-4000-8000-000000000501';
+
+              INSERT INTO events (id, owner_id, name, event_date, cfp_deadline, city, format, topic, audience, description, state)
+              SELECT e.id::uuid, u.id, e.name, CURRENT_DATE + e.event_in, CURRENT_DATE + e.cfp_in, e.city, e.format, e.topic,
+                     e.audience, e.description, e.state
+              FROM (VALUES
+                ('e7e00000-0000-4000-8000-000000000001', 'Mobile Ural · осень', 45, 20, 'Екатеринбург', 'OFFLINE',
+                 'Мобильная разработка', 'Мобильные разработчики и тимлиды',
+                 'Региональная конференция о мобильной разработке: Android, iOS, архитектура и производительность.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000002', 'Kotlin Weekend', 60, 30, 'Екатеринбург', 'HYBRID',
+                 'Kotlin', 'Kotlin- и Android-разработчики',
+                 'Два дня про Kotlin: корутины, Multiplatform, серверный Kotlin.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000003', 'Android Meetup Москва', 25, 10, 'Москва', 'OFFLINE',
+                 'Android', 'Android-разработчики middle+',
+                 'Вечерний митап: три практических доклада по 30 минут на русском языке.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000004', 'ProductSense Winter', 70, 35, 'Москва', 'OFFLINE',
+                 'Продуктовая аналитика', 'Продакт-менеджеры и аналитики',
+                 'Метрики, эксперименты и продуктовые решения на данных.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000005', 'SibData 2027', 90, 40, 'Новосибирск', 'HYBRID',
+                 'Data Engineering', 'Инженеры данных и архитекторы',
+                 'Хранилища, потоковая обработка и качество данных.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000006', 'Backend Guild Conf', 50, 25, 'Казань', 'HYBRID',
+                 'Backend', 'Бэкенд-разработчики',
+                 'Надёжность, распределённые системы и платёжные сервисы.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000007', 'Flutter Day Online', 40, 15, NULL, 'ONLINE',
+                 'Flutter', 'Мобильные разработчики',
+                 'Онлайн-конференция о кроссплатформенной разработке на Flutter.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000008', 'Mobile Frontier', 15, -5, 'Санкт-Петербург', 'OFFLINE',
+                 'Мобильная разработка', 'Мобильные команды',
+                 'Приём докладов закрыт, программа сформирована.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000009', 'DevRel Summit 2026', -20, -60, 'Москва', 'OFFLINE',
+                 'DevRel', 'DevRel и организаторы сообществ',
+                 'Прошедшая конференция о работе с сообществами разработчиков.', 'published'),
+                ('e7e00000-0000-4000-8000-000000000010', 'Mobile Day 2027 (черновик)', 120, 80, 'Москва', 'OFFLINE',
+                 'Мобильная разработка', 'Мобильные разработчики и продакт-менеджеры',
+                 'Черновик мероприятия: виден только организатору, пока не опубликован.', 'draft')
+              ) AS e(id, name, event_in, cfp_in, city, format, topic, audience, description, state)
+              JOIN users u ON u.username = 'demo.devrel';
+
+              INSERT INTO event_applications (id, event_id, speaker_id, speaker_talk_id, topic, status)
+              SELECT a.id::uuid, a.event_id::uuid, u.id, a.talk_id::uuid, a.topic, a.status
+              FROM (VALUES
+                ('a9900000-0000-4000-8000-000000000001', 'e7e00000-0000-4000-8000-000000000003', 'ilya.mironov',
+                 '5a1c0000-0000-4000-8000-000000000201', 'Jetpack Compose в продакшене', 'sent'),
+                ('a9900000-0000-4000-8000-000000000002', 'e7e00000-0000-4000-8000-000000000008', 'ilya.mironov',
+                 '5a1c0000-0000-4000-8000-000000000203', 'Модульная архитектура мобильного приложения', 'accepted'),
+                ('a9900000-0000-4000-8000-000000000003', 'e7e00000-0000-4000-8000-000000000004', 'anna.levina',
+                 '5a1c0000-0000-4000-8000-000000000101', 'Продуктовая аналитика без иллюзий', 'reserve'),
+                ('a9900000-0000-4000-8000-000000000004', 'e7e00000-0000-4000-8000-000000000007', 'pavel.sokolov',
+                 '5a1c0000-0000-4000-8000-000000000501', 'Flutter: кроссплатформа без боли', 'sent')
+              ) AS a(id, event_id, username, talk_id, topic, status)
+              JOIN users u ON u.username = a.username;
+
+              INSERT INTO event_invitations (id, event_id, speaker_id, topic, status)
+              SELECT i.id::uuid, i.event_id::uuid, u.id, i.topic, i.status
+              FROM (VALUES
+                ('b1100000-0000-4000-8000-000000000001', 'e7e00000-0000-4000-8000-000000000002', 'ilya.mironov',
+                 'Kotlin Coroutines: разбор полётов', 'sent'),
+                ('b1100000-0000-4000-8000-000000000002', 'e7e00000-0000-4000-8000-000000000005', 'daniil.gromov',
+                 'Data Mesh: два года спустя', 'sent'),
+                ('b1100000-0000-4000-8000-000000000003', 'e7e00000-0000-4000-8000-000000000001', 'maria.orlova',
+                 'Как вырастить мобильную команду', 'declined'),
+                ('b1100000-0000-4000-8000-000000000004', 'e7e00000-0000-4000-8000-000000000006', 'timur.karimov',
+                 'Идемпотентность в платёжных сервисах', 'accepted')
+              ) AS i(id, event_id, username, topic, status)
+              JOIN users u ON u.username = i.username;
+
+              INSERT INTO notifications (id, user_id, text, is_read, created_date)
+              SELECT n.id::uuid, u.id, n.text, n.is_read, CURRENT_TIMESTAMP - n.ago
+              FROM (VALUES
+                ('c3300000-0000-4000-8000-000000000001', 'ilya.mironov',
+                 'Вас пригласили выступить на Kotlin Weekend с темой «Kotlin Coroutines: разбор полётов».', FALSE, INTERVAL '2 hours'),
+                ('c3300000-0000-4000-8000-000000000002', 'ilya.mironov',
+                 'Заявка «Модульная архитектура мобильного приложения» на Mobile Frontier принята.', FALSE, INTERVAL '1 day'),
+                ('c3300000-0000-4000-8000-000000000003', 'ilya.mironov',
+                 'Открыт приём заявок на Android Meetup Москва.', TRUE, INTERVAL '5 days'),
+                ('c3300000-0000-4000-8000-000000000004', 'demo.devrel',
+                 'Новая заявка на Android Meetup Москва от Ильи Миронова.', FALSE, INTERVAL '3 hours'),
+                ('c3300000-0000-4000-8000-000000000005', 'demo.devrel',
+                 'Мария Орлова отклонила приглашение на Mobile Ural · осень.', FALSE, INTERVAL '1 day'),
+                ('c3300000-0000-4000-8000-000000000006', 'demo.devrel',
+                 'Тимур Каримов принял приглашение на Backend Guild Conf.', TRUE, INTERVAL '3 days')
+              ) AS n(id, username, text, is_read, ago)
+              JOIN users u ON u.username = n.username;
