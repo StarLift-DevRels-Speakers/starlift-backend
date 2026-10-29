@@ -45,3 +45,5 @@ databaseChangeLog:
       file: db/changelog/0021_producer_matching_api.yaml
   - include:
       file: db/changelog/0022_frontend_demo_seed.yaml
+  - include:
+      file: db/changelog/0023_demo_feedback_answers_and_tags.yaml
