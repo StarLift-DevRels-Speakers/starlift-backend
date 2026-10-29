@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0024-01
+      author: demo
+      context: demo
+      comment: >-
+        Демо-данные: у части прошлых выступлений демо-спикеров не было доклада, и в истории выступлений
+        («Траектория развития», «Доклады и выступления») показывалось «Доклад: Не указан». Для каждого такого
+        выступления создаётся доклад с той же темой, id доклада выводится из id выступления.
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO speaker_talks (id, speaker_id, name, topic, description)
+              SELECT ('5a1c0001' || substr(t.id::text, 9))::uuid, t.speaker_id, t.topic,
+                     CASE u.username
+                       WHEN 'ilya.mironov' THEN 'Android'
+                       WHEN 'anna.levina' THEN 'Продуктовая аналитика'
+                       WHEN 'daniil.gromov' THEN 'Data Engineering'
+                       WHEN 'timur.karimov' THEN 'Backend'
+                       WHEN 'pavel.sokolov' THEN 'Flutter'
+                       ELSE 'Разработка'
+                     END,
+                     'Доклад с выступления на ' || t.activity_name || '.'
+              FROM talks t
+              JOIN users u ON u.id = t.speaker_id
+              WHERE t.id::text LIKE '7a1c0000-%' AND t.speaker_talk_id IS NULL
+              ON CONFLICT (id) DO NOTHING;
+
+              UPDATE talks SET speaker_talk_id = ('5a1c0001' || substr(id::text, 9))::uuid
+              WHERE id::text LIKE '7a1c0000-%' AND speaker_talk_id IS NULL
+                AND EXISTS (SELECT 1 FROM speaker_talks s WHERE s.id = ('5a1c0001' || substr(talks.id::text, 9))::uuid);
