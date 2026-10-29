@@ -192,6 +192,10 @@ class ProducerMatchingFlowTest {
 
         mockMvc.perform(get("/api/producer/events/" + eventId).with(OTHER_DEVREL))
                 .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/producer/events/not-a-uuid").with(DEVREL))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/producer/no-such-endpoint").with(DEVREL))
+                .andExpect(status().isNotFound());
         mockMvc.perform(post("/api/producer/events").with(ANNA)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"params\":{\"topics\":[\"Android\"]}}"))
