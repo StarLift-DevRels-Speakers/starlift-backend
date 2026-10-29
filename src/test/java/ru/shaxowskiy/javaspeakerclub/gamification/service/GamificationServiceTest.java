@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ResponseStatusException;
+import ru.shaxowskiy.javaspeakerclub.feedback.FeedbackModels.FeedbackAnswers;
+import ru.shaxowskiy.javaspeakerclub.feedback.FeedbackModels.PublicFeedbackRequest;
+import ru.shaxowskiy.javaspeakerclub.feedback.FeedbackService;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkFeedbackCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.gamification.GamificationTestData;
@@ -50,6 +53,8 @@ class GamificationServiceTest {
     private TalkService talkService;
     @Autowired
     private TalkFeedbackService feedbackService;
+    @Autowired
+    private FeedbackService feedbackFormService;
     @Autowired
     private GamificationProfileService profileService;
     @Autowired
@@ -101,6 +106,21 @@ class GamificationServiceTest {
 
         // 50 за доклад + (10 + 15) за десятку + 10 за пятёрку
         assertThat(profileService.getProfile(1L).totalPoints()).isEqualTo(85);
+        assertThat(profileService.getProfile(1L).badges()).extracting(EarnedBadgeResponse::code)
+                .contains(BadgeCode.FIRST_FEEDBACK);
+    }
+
+    @Test
+    @WithMockUser(username = "anna", roles = "SPEAKER")
+    void feedbackFromPublicFormAwardsSpeaker() {
+        TalkResponse talk = talkService.create(talkRequest(1L));
+        String token = feedbackFormService.getOrCreateLink(talk.id()).token();
+
+        // Лучшие ответы на все пять вопросов дают оценку 10
+        feedbackFormService.submit(token, new PublicFeedbackRequest(new FeedbackAnswers(0, 0, 0, 0, 0), null));
+
+        // 50 за доклад + (10 + 15) за десятку
+        assertThat(profileService.getProfile(1L).totalPoints()).isEqualTo(75);
         assertThat(profileService.getProfile(1L).badges()).extracting(EarnedBadgeResponse::code)
                 .contains(BadgeCode.FIRST_FEEDBACK);
     }
