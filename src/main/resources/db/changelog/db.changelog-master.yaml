@@ -47,3 +47,5 @@ databaseChangeLog:
       file: db/changelog/0022_frontend_demo_seed.yaml
   - include:
       file: db/changelog/0023_demo_feedback_answers_and_tags.yaml
+  - include:
+      file: db/changelog/0024_demo_link_remaining_talks.yaml
