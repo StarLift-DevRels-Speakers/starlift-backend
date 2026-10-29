@@ -1,5 +1,8 @@
 package ru.shaxowskiy.javaspeakerclub.producer.matching.model;
 
+import ru.shaxowskiy.javaspeakerclub.producer.llm.LenientStringDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.List;
 import java.util.Map;
 
@@ -16,18 +19,18 @@ public record EventAnalysisDraft(
     /** status: stated — сказано в тексте прямо, inferred — вывод по контексту. */
     public record DraftParam(
             List<String> value,
-            String status,
-            String quote
+            @JsonDeserialize(using = LenientStringDeserializer.class) String status,
+            @JsonDeserialize(using = LenientStringDeserializer.class) String quote
     ) {
     }
 
     public record DraftCriterion(
-            String text,
-            String kind,
-            String check,
-            String value,
-            String status,
-            String quote
+            @JsonDeserialize(using = LenientStringDeserializer.class) String text,
+            @JsonDeserialize(using = LenientStringDeserializer.class) String kind,
+            @JsonDeserialize(using = LenientStringDeserializer.class) String check,
+            @JsonDeserialize(using = LenientStringDeserializer.class) String value,
+            @JsonDeserialize(using = LenientStringDeserializer.class) String status,
+            @JsonDeserialize(using = LenientStringDeserializer.class) String quote
     ) {
     }
 }
