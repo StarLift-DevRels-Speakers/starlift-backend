@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0023-01
+      author: demo
+      context: demo
+      comment: >-
+        Демо-данные для «Траектории развития» и «AI-подбора спикеров»: демо-отзывы из 0017 и 0021 созданы до формы
+        с пятью вопросами, поэтому у них нет ответов, и экран продюсера показывал пустое распределение ответов
+        и неподтверждённые паттерны. Ответы выводятся из оценки и уточняются по тексту замечаний.
+        Демо-спикерам без тегов профиля добавлены теги, по которым ищет AI-подбор спикеров.
+      changes:
+        - sql:
+            sql: |
+              -- 0 — лучший ответ, 1 — средний, 2 — худший (см. FeedbackQuestion).
+              UPDATE talk_feedback SET
+                answer_utility = CASE WHEN rating >= 7 THEN 0 WHEN rating >= 5 THEN 1 ELSE 2 END,
+                answer_clarity = CASE WHEN rating >= 8 THEN 0 ELSE 1 END,
+                answer_examples = CASE WHEN rating >= 8 THEN 0 ELSE 1 END,
+                answer_pace = 0,
+                answer_engagement = CASE WHEN rating >= 8 THEN 0 ELSE 1 END
+              WHERE id::text LIKE 'fb000000-%' AND answer_utility IS NULL;
+
+              UPDATE talk_feedback SET answer_pace = 1
+                WHERE id::text LIKE 'fb000000-%'
+                  AND (negative ILIKE '%быстр%' OR negative ILIKE '%сразу в дебри%' OR negative ILIKE '%проскочили%'
+                       OR negative ILIKE '%плотный%' OR negative ILIKE '%не успевал%');
+              UPDATE talk_feedback SET answer_pace = 2
+                WHERE id::text LIKE 'fb000000-%'
+                  AND (negative ILIKE '%долго раскачивался%' OR negative ILIKE '%длинное вступление%'
+                       OR negative ILIKE '%интро заняло%' OR negative ILIKE '%первые 15 минут%');
+              UPDATE talk_feedback SET answer_clarity = 1
+                WHERE id::text LIKE 'fb000000-%'
+                  AND (negative ILIKE '%потерялся%' OR negative ILIKE '%сложно уследить%' OR negative ILIKE '%основ%'
+                       OR negative ILIKE '%непонятно%');
+              UPDATE talk_feedback SET answer_examples = 1
+                WHERE id::text LIKE 'fb000000-%'
+                  AND (negative ILIKE '%пример%' OR negative ILIKE '%шагов%' OR negative ILIKE '%deprecated%'
+                       OR negative ILIKE '%Airflow 1%');
+              UPDATE talk_feedback SET answer_engagement = 2
+                WHERE id::text LIKE 'fb000000-%'
+                  AND (negative ILIKE '%монотонн%' OR negative ILIKE '%скучно%' OR negative ILIKE '%внимани%');
+              UPDATE talk_feedback SET answer_examples = 0
+                WHERE id::text LIKE 'fb000000-%'
+                  AND (positive ILIKE '%демо%' OR positive ILIKE '%вживую%' OR positive ILIKE '%лайвкодинг%'
+                       OR positive ILIKE '%кейс%' OR positive ILIKE '%реальн%' OR positive ILIKE '%практик%');
+
+              INSERT INTO user_profile_tags (user_id, tag)
+              SELECT u.id, t.tag
+              FROM (VALUES
+                ('ilya.mironov', 'mobile'), ('ilya.mironov', 'java'), ('ilya.mironov', 'jetpack compose'),
+                ('timur.karimov', 'java'), ('timur.karimov', 'backend'), ('timur.karimov', 'distributed systems'),
+                ('timur.karimov', 'payments'),
+                ('daniil.gromov', 'data engineering'), ('daniil.gromov', 'java'), ('daniil.gromov', 'backend'),
+                ('daniil.gromov', 'clickhouse'), ('daniil.gromov', 'flink'),
+                ('pavel.sokolov', 'flutter'), ('pavel.sokolov', 'dart'), ('pavel.sokolov', 'mobile'),
+                ('anna.levina', 'a/b testing'),
+                ('maria.orlova', 'android'), ('maria.orlova', 'team lead')
+              ) AS t(username, tag)
+              JOIN users u ON u.username = t.username
+              ON CONFLICT DO NOTHING;
