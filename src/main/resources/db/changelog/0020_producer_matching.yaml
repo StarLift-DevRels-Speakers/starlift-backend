@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0018-01
+      id: 0020-01
       author: producer
       comment: >
         Подбор по ТЗ AI-продюсера: карточки мероприятий организатора (параметры со статусами, критерии,

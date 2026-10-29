@@ -14,6 +14,7 @@ import ru.shaxowskiy.javaspeakerclub.service.LectureService;
 import ru.shaxowskiy.javaspeakerclub.service.UserMediaService;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,8 +27,25 @@ public class MediaController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public UserMediaUploadResponse uploadStandalone(@RequestPart("file") MultipartFile file) {
-        return userMediaService.upload(file);
+    public UserMediaUploadResponse uploadStandalone(@RequestPart("file") MultipartFile file,
+                                                    @RequestParam(required = false) UUID talkId) {
+        return userMediaService.upload(file, talkId);
+    }
+
+    @GetMapping("/files")
+    public List<UserMediaService.MediaFileResponse> myFiles() {
+        return userMediaService.findMine();
+    }
+
+    @GetMapping("/files/{id}/url")
+    public ResponseEntity<String> myFileUrl(@PathVariable UUID id) {
+        return ResponseEntity.ok(userMediaService.getUrl(id));
+    }
+
+    @DeleteMapping("/files/{id}")
+    public ResponseEntity<Void> deleteMyFile(@PathVariable UUID id) {
+        userMediaService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/upload/{lectureId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

@@ -1,6 +1,7 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8,11 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.shaxowskiy.javaspeakerclub.dto.LectureResponse;
+import ru.shaxowskiy.javaspeakerclub.gamification.event.GamificationEvents;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkResponse;
 import ru.shaxowskiy.javaspeakerclub.dto.TalkUpdateRequest;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
+import ru.shaxowskiy.javaspeakerclub.repository.SpeakerTalkRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.TalkRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.UserRepository;
 import ru.shaxowskiy.javaspeakerclub.security.AppRole;
@@ -28,6 +31,8 @@ public class TalkService {
     private final TalkRepository talkRepository;
     private final UserRepository userRepository;
     private final LectureService lectureService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final SpeakerTalkRepository speakerTalkRepository;
 
     @Transactional(readOnly = true)
     public List<TalkResponse> findAll() {
@@ -42,6 +47,11 @@ public class TalkService {
     }
 
     @Transactional(readOnly = true)
+    public List<TalkResponse> findBySpeakerId(Long speakerId) {
+        return toResponses(talkRepository.findBySpeakerId(speakerId));
+    }
+
+    @Transactional(readOnly = true)
     public List<TalkResponse> findByConferenceType(String conferenceType) {
         return toResponses(talkRepository.findByConferenceType(conferenceType));
     }
@@ -52,6 +62,11 @@ public class TalkService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Speaker not found: " + request.speakerId()));
 
         requirePermissionForSpeaker(request.speakerId());
+        if (request.speakerTalkId() != null && speakerTalkRepository.findById(request.speakerTalkId())
+                .filter(item -> item.getSpeakerId().equals(request.speakerId()))
+                .isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Доклад не найден");
+        }
 
         TalksRecord record = talkRepository.create(
                 request.speakerId(),
@@ -60,11 +75,13 @@ public class TalkService {
                 request.conferenceType(),
                 request.format(),
                 request.activityName(),
-                request.activityDate()
+                request.activityDate(),
+                request.speakerTalkId()
         );
         if (request.tags() != null) {
             talkRepository.replaceTags(record.getId(), request.tags());
         }
+        eventPublisher.publishEvent(new GamificationEvents.TalkCreated(record.getId(), record.getSpeakerId()));
         return toResponse(record, talkRepository.findTagsByTalkId(record.getId()));
     }
 
@@ -108,6 +125,7 @@ public class TalkService {
         if (!talkRepository.deleteById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Talk not found: " + id);
         }
+        eventPublisher.publishEvent(new GamificationEvents.TalkDeleted(id, existing.getSpeakerId()));
     }
 
     private List<TalkResponse> toResponses(List<TalksRecord> talks) {
@@ -139,7 +157,8 @@ public class TalkService {
                 record.getActivityDate(),
                 record.getCreatedDate(),
                 tags,
-                lectures
+                lectures,
+                record.getSpeakerTalkId()
         );
     }
 

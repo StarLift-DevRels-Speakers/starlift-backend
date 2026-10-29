@@ -40,6 +40,19 @@ public class TalkRepository {
                 .fetch();
     }
 
+    public Optional<TalksRecord> findByFeedbackToken(String token) {
+        return dsl.selectFrom(Talks.TALKS)
+                .where(Talks.TALKS.FEEDBACK_TOKEN.eq(token))
+                .fetchOptional();
+    }
+
+    public void setFeedbackToken(UUID id, String token) {
+        dsl.update(Talks.TALKS)
+                .set(Talks.TALKS.FEEDBACK_TOKEN, token)
+                .where(Talks.TALKS.ID.eq(id))
+                .execute();
+    }
+
     public List<TalksRecord> findBySpeakerIds(List<Long> speakerIds) {
         if (speakerIds == null || speakerIds.isEmpty()) {
             return List.of();
@@ -61,9 +74,16 @@ public class TalkRepository {
     public TalksRecord create(Long speakerId, String topic, LocalDateTime talkDate,
                               String conferenceType, String format,
                               String activityName, LocalDateTime activityDate) {
+        return create(speakerId, topic, talkDate, conferenceType, format, activityName, activityDate, null);
+    }
+
+    public TalksRecord create(Long speakerId, String topic, LocalDateTime talkDate,
+                              String conferenceType, String format,
+                              String activityName, LocalDateTime activityDate, UUID speakerTalkId) {
         return dsl.insertInto(Talks.TALKS)
                 .set(Talks.TALKS.ID, UUID.randomUUID())
                 .set(Talks.TALKS.SPEAKER_ID, speakerId)
+                .set(Talks.TALKS.SPEAKER_TALK_ID, speakerTalkId)
                 .set(Talks.TALKS.TOPIC, topic)
                 .set(Talks.TALKS.TALK_DATE, talkDate)
                 .set(Talks.TALKS.CONFERENCE_TYPE, conferenceType)

@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0019-01
+      id: 0021-01
       author: producer
       comment: >
         Поля CFP, без которых подбор мероприятий не проверяет язык, формат и требования (п. 14 ТЗ).
@@ -56,7 +56,7 @@ databaseChangeLog:
                   type: VARCHAR(10)
 
   - changeSet:
-      id: 0019-02
+      id: 0021-02
       author: producer
       context: demo
       comment: >-

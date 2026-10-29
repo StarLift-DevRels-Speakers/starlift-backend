@@ -2,6 +2,7 @@ package ru.shaxowskiy.javaspeakerclub.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public record TalkCreateRequest(
         Long speakerId,
@@ -11,5 +12,6 @@ public record TalkCreateRequest(
         String format,
         String activityName,
         LocalDateTime activityDate,
-        List<String> tags
+        List<String> tags,
+        UUID speakerTalkId
 ) {}

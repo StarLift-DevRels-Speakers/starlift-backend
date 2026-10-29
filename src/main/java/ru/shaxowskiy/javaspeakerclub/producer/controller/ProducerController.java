@@ -35,6 +35,11 @@ public class ProducerController {
         return producerService.regenerate(accessGuard.currentUserId());
     }
 
+    @GetMapping("/me/plans")
+    public List<ProducerPlanResponse> getMyPlans() {
+        return producerService.getHistory(accessGuard.currentUserId());
+    }
+
     @GetMapping("/speakers/{speakerId}/plan")
     public ProducerPlanResponse getSpeakerPlan(@PathVariable Long speakerId) {
         accessGuard.assertCanManageSpeaker(speakerId);

@@ -21,7 +21,11 @@ public class TalkController {
     private final TalkService talkService;
 
     @GetMapping
-    public List<TalkResponse> findAll(@RequestParam(required = false) String conferenceType) {
+    public List<TalkResponse> findAll(@RequestParam(required = false) String conferenceType,
+                                      @RequestParam(required = false) Long speakerId) {
+        if (speakerId != null) {
+            return talkService.findBySpeakerId(speakerId);
+        }
         if (conferenceType != null && !conferenceType.isBlank()) {
             return talkService.findByConferenceType(conferenceType);
         }

@@ -25,6 +25,16 @@ public class TalkFeedbackRepository {
                 .fetch();
     }
 
+    public List<TalkFeedbackRecord> findBySpeakerId(Long speakerId) {
+        return dsl.select(TalkFeedback.TALK_FEEDBACK.fields())
+                .from(TalkFeedback.TALK_FEEDBACK)
+                .join(Talks.TALKS)
+                .on(Talks.TALKS.ID.eq(TalkFeedback.TALK_FEEDBACK.TALK_ID))
+                .where(Talks.TALKS.SPEAKER_ID.eq(speakerId))
+                .orderBy(TalkFeedback.TALK_FEEDBACK.CREATED_DATE.desc())
+                .fetchInto(TalkFeedbackRecord.class);
+    }
+
     public List<TalkFeedbackRecord> findBySpeakerIdSince(Long speakerId, LocalDateTime since) {
         return dsl.select(TalkFeedback.TALK_FEEDBACK.fields())
                 .from(TalkFeedback.TALK_FEEDBACK)
@@ -44,6 +54,26 @@ public class TalkFeedbackRepository {
                 .where(TalkFeedback.TALK_FEEDBACK.TALK_ID.in(talkIds))
                 .orderBy(TalkFeedback.TALK_FEEDBACK.CREATED_DATE.desc())
                 .fetch();
+    }
+
+    public TalkFeedbackRecord createFromForm(UUID talkId, int rating, String positive, String negative,
+                                             String improvementSuggestions, short[] answers, String comment) {
+        return dsl.insertInto(TalkFeedback.TALK_FEEDBACK)
+                .set(TalkFeedback.TALK_FEEDBACK.ID, UUID.randomUUID())
+                .set(TalkFeedback.TALK_FEEDBACK.TALK_ID, talkId)
+                .set(TalkFeedback.TALK_FEEDBACK.RATING, rating)
+                .set(TalkFeedback.TALK_FEEDBACK.POSITIVE, positive)
+                .set(TalkFeedback.TALK_FEEDBACK.NEGATIVE, negative)
+                .set(TalkFeedback.TALK_FEEDBACK.IMPROVEMENT_SUGGESTIONS, improvementSuggestions)
+                .set(TalkFeedback.TALK_FEEDBACK.ANSWER_UTILITY, answers[0])
+                .set(TalkFeedback.TALK_FEEDBACK.ANSWER_CLARITY, answers[1])
+                .set(TalkFeedback.TALK_FEEDBACK.ANSWER_EXAMPLES, answers[2])
+                .set(TalkFeedback.TALK_FEEDBACK.ANSWER_PACE, answers[3])
+                .set(TalkFeedback.TALK_FEEDBACK.ANSWER_ENGAGEMENT, answers[4])
+                .set(TalkFeedback.TALK_FEEDBACK.COMMENT, comment)
+                .set(TalkFeedback.TALK_FEEDBACK.CREATED_DATE, LocalDateTime.now())
+                .returning()
+                .fetchOne();
     }
 
     public Optional<TalkFeedbackRecord> findByIdAndTalkId(UUID id, UUID talkId) {

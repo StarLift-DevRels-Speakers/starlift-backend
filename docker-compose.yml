@@ -9,10 +9,17 @@ services:
     depends_on:
       app:
         condition: service_started
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Сертификаты и webroot для ACME — с хоста, их ведёт certbot (см. nginx/README-tls.md)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
 
   app:
     build:
@@ -45,11 +52,12 @@ services:
       REDIS_PORT: 6379
       # HS256 требует секрет не короче 32 байт, иначе вход падает с 500
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-jwt-secret-change-me-32-bytes}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-not-set}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      GIGACHAT_TOKEN: ${GIGACHAT_TOKEN:-}
+      GIGACHAT_SCOPE: ${GIGACHAT_SCOPE:-GIGACHAT_API_PERS}
+      GIGACHAT_MODEL: ${GIGACHAT_MODEL:-GigaChat-2-Max}
       PARSING_SEARCH_API_KEY: ${PARSING_SEARCH_API_KEY:-not-set}
       APP_LIQUIBASE_CONTEXTS: ${APP_LIQUIBASE_CONTEXTS:-}
+      WEAK_SIGNALS_BASE_URL: ${WEAK_SIGNALS_BASE_URL:-http://signals:8000}
 
   postgres:
     image: postgres:15

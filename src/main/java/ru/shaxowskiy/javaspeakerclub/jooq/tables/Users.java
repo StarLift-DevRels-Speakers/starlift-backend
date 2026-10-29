@@ -39,17 +39,27 @@ import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations.CfpRecommendationsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications.EventApplicationsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations.EventInvitationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests.EventRequestsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.Events.EventsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ExpertPreferences.ExpertPreferencesPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationPointTransactions.GamificationPointTransactionsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasonResults.GamificationSeasonResultsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasons.GamificationSeasonsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures.LecturesPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.Notifications.NotificationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents.ParsingEventsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerInteractions.ProducerInteractionsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans.ProducerPlansPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerRuns.ProducerRunsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements.SpeakerAchievementsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerBadges.SpeakerBadgesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations.SpeakerCfpRecommendationsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerGamificationProfiles.SpeakerGamificationProfilesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory.SpeakerNpsHistoryPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerRoles.SpeakerRolesPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerTalks.SpeakerTalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks.TalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia.UserMediaPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags.UserProfileTagsPath;
@@ -122,6 +132,11 @@ public class Users extends TableImpl<UsersRecord> {
      * The column <code>users.about</code>.
      */
     public final TableField<UsersRecord, String> ABOUT = createField(DSL.name("about"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>users.preferences</code>.
+     */
+    public final TableField<UsersRecord, String> PREFERENCES = createField(DSL.name("preferences"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>users.region</code>.
@@ -265,6 +280,32 @@ public class Users extends TableImpl<UsersRecord> {
         return Arrays.asList(Keys.CONSTRAINT_6A);
     }
 
+    private transient EventApplicationsPath _eventApplications;
+
+    /**
+     * Get the implicit to-many join path to the <code>event_applications</code>
+     * table
+     */
+    public EventApplicationsPath eventApplications() {
+        if (_eventApplications == null)
+            _eventApplications = new EventApplicationsPath(this, null, Keys.FK_EVENT_APPLICATIONS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _eventApplications;
+    }
+
+    private transient EventInvitationsPath _eventInvitations;
+
+    /**
+     * Get the implicit to-many join path to the <code>event_invitations</code>
+     * table
+     */
+    public EventInvitationsPath eventInvitations() {
+        if (_eventInvitations == null)
+            _eventInvitations = new EventInvitationsPath(this, null, Keys.FK_EVENT_INVITATIONS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _eventInvitations;
+    }
+
     private transient EventRequestsPath _eventRequests;
 
     /**
@@ -276,6 +317,18 @@ public class Users extends TableImpl<UsersRecord> {
             _eventRequests = new EventRequestsPath(this, null, Keys.FK_EVENT_REQUESTS_USERS_ORGANIZER_ID.getInverseKey());
 
         return _eventRequests;
+    }
+
+    private transient EventsPath _events;
+
+    /**
+     * Get the implicit to-many join path to the <code>events</code> table
+     */
+    public EventsPath events() {
+        if (_events == null)
+            _events = new EventsPath(this, null, Keys.FK_EVENTS_USERS_OWNER_ID.getInverseKey());
+
+        return _events;
     }
 
     private transient ExpertPreferencesPath _expertPreferences;
@@ -291,6 +344,47 @@ public class Users extends TableImpl<UsersRecord> {
         return _expertPreferences;
     }
 
+    private transient GamificationPointTransactionsPath _fkGamificationPointTransactionsUsersAwardedBy;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>gamification_point_transactions</code> table, via the
+     * <code>fk_gamification_point_transactions_users_awarded_by</code> key
+     */
+    public GamificationPointTransactionsPath fkGamificationPointTransactionsUsersAwardedBy() {
+        if (_fkGamificationPointTransactionsUsersAwardedBy == null)
+            _fkGamificationPointTransactionsUsersAwardedBy = new GamificationPointTransactionsPath(this, null, Keys.FK_GAMIFICATION_POINT_TRANSACTIONS_USERS_AWARDED_BY.getInverseKey());
+
+        return _fkGamificationPointTransactionsUsersAwardedBy;
+    }
+
+    private transient GamificationPointTransactionsPath _fkGamificationPointTransactionsUsersSpeakerId;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>gamification_point_transactions</code> table, via the
+     * <code>fk_gamification_point_transactions_users_speaker_id</code> key
+     */
+    public GamificationPointTransactionsPath fkGamificationPointTransactionsUsersSpeakerId() {
+        if (_fkGamificationPointTransactionsUsersSpeakerId == null)
+            _fkGamificationPointTransactionsUsersSpeakerId = new GamificationPointTransactionsPath(this, null, Keys.FK_GAMIFICATION_POINT_TRANSACTIONS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _fkGamificationPointTransactionsUsersSpeakerId;
+    }
+
+    private transient GamificationSeasonResultsPath _gamificationSeasonResults;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>gamification_season_results</code> table
+     */
+    public GamificationSeasonResultsPath gamificationSeasonResults() {
+        if (_gamificationSeasonResults == null)
+            _gamificationSeasonResults = new GamificationSeasonResultsPath(this, null, Keys.FK_GAMIFICATION_SEASON_RESULTS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _gamificationSeasonResults;
+    }
+
     private transient LecturesPath _lectures;
 
     /**
@@ -301,6 +395,19 @@ public class Users extends TableImpl<UsersRecord> {
             _lectures = new LecturesPath(this, null, Keys.FK_LECTURES_USERS_SPEAKER_ID.getInverseKey());
 
         return _lectures;
+    }
+
+    private transient NotificationsPath _notifications;
+
+    /**
+     * Get the implicit to-many join path to the <code>notifications</code>
+     * table
+     */
+    public NotificationsPath notifications() {
+        if (_notifications == null)
+            _notifications = new NotificationsPath(this, null, Keys.FK_NOTIFICATIONS_USERS_USER_ID.getInverseKey());
+
+        return _notifications;
     }
 
     private transient ParsingEventsPath _parsingEvents;
@@ -383,6 +490,19 @@ public class Users extends TableImpl<UsersRecord> {
         return _speakerAchievements;
     }
 
+    private transient SpeakerBadgesPath _speakerBadges;
+
+    /**
+     * Get the implicit to-many join path to the <code>speaker_badges</code>
+     * table
+     */
+    public SpeakerBadgesPath speakerBadges() {
+        if (_speakerBadges == null)
+            _speakerBadges = new SpeakerBadgesPath(this, null, Keys.FK_SPEAKER_BADGES_USERS_SPEAKER_ID.getInverseKey());
+
+        return _speakerBadges;
+    }
+
     private transient SpeakerCfpRecommendationsPath _speakerCfpRecommendations;
 
     /**
@@ -394,6 +514,19 @@ public class Users extends TableImpl<UsersRecord> {
             _speakerCfpRecommendations = new SpeakerCfpRecommendationsPath(this, null, Keys.FK_SPEAKER_CFP_RECOMMENDATIONS_USERS_SPEAKER_ID.getInverseKey());
 
         return _speakerCfpRecommendations;
+    }
+
+    private transient SpeakerGamificationProfilesPath _speakerGamificationProfiles;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>speaker_gamification_profiles</code> table
+     */
+    public SpeakerGamificationProfilesPath speakerGamificationProfiles() {
+        if (_speakerGamificationProfiles == null)
+            _speakerGamificationProfiles = new SpeakerGamificationProfilesPath(this, null, Keys.FK_SPEAKER_GAMIFICATION_PROFILES_USERS_SPEAKER_ID.getInverseKey());
+
+        return _speakerGamificationProfiles;
     }
 
     private transient SpeakerNpsHistoryPath _speakerNpsHistory;
@@ -420,6 +553,19 @@ public class Users extends TableImpl<UsersRecord> {
             _speakerRoles = new SpeakerRolesPath(this, null, Keys.FK_SPEAKER_ROLES_USERS_SPEAKER_ID.getInverseKey());
 
         return _speakerRoles;
+    }
+
+    private transient SpeakerTalksPath _speakerTalks;
+
+    /**
+     * Get the implicit to-many join path to the <code>speaker_talks</code>
+     * table
+     */
+    public SpeakerTalksPath speakerTalks() {
+        if (_speakerTalks == null)
+            _speakerTalks = new SpeakerTalksPath(this, null, Keys.FK_SPEAKER_TALKS_USERS_SPEAKER_ID.getInverseKey());
+
+        return _speakerTalks;
     }
 
     private transient TalksPath _talks;
@@ -469,6 +615,14 @@ public class Users extends TableImpl<UsersRecord> {
             _userRoles = new UserRolesPath(this, null, Keys.FK_USER_ROLES_USERS_USER_ID.getInverseKey());
 
         return _userRoles;
+    }
+
+    /**
+     * Get the implicit many-to-many join path to the
+     * <code>gamification_seasons</code> table
+     */
+    public GamificationSeasonsPath gamificationSeasons() {
+        return gamificationSeasonResults().gamificationSeasons();
     }
 
     /**

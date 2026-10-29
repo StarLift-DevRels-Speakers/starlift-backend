@@ -12,7 +12,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # checkout удаляет неотслеживаемые файлы, поэтому секреты лежат на стенде вне рабочей папки
+      - name: Provide environment
+        run: |
+          ENV_FILE="$HOME/starlift/env/backend.env"
+          if [ -f "$ENV_FILE" ]; then
+            cp "$ENV_FILE" .env
+          else
+            echo "::warning::$ENV_FILE not found, starting with defaults from docker-compose.yml"
+          fi
+
       - name: Build and Restart Docker Containers
         run: |
           docker compose up -d --build
           docker image prune -f
+
+      # nginx резолвит app только при старте, а пересозданный контейнер app получает новый IP — без reload будет 502
+      - name: Reload nginx
+        run: |
+          docker exec java-speaker-club-nginx nginx -t
+          docker exec java-speaker-club-nginx nginx -s reload

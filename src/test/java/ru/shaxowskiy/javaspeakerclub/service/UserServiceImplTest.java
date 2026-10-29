@@ -68,7 +68,9 @@ class UserServiceImplTest {
                 "NewCo",
                 "Tech Lead",
                 List.of("java", " spring ", "java", ""),
-                null
+                null,
+                "Екатеринбург",
+                "Онлайн, техническая аудитория"
         ));
 
         assertThat(patched.getFirstName()).isEqualTo("Alice Updated");
@@ -77,6 +79,8 @@ class UserServiceImplTest {
         assertThat(patched.getCompany()).isEqualTo("NewCo");
         assertThat(patched.getCompanyRole()).isEqualTo("Tech Lead");
         assertThat(patched.getTags()).containsExactly("java", "spring");
+        assertThat(patched.getRegion()).isEqualTo("Екатеринбург");
+        assertThat(patched.getPreferences()).isEqualTo("Онлайн, техническая аудитория");
 
         var dbTags = dsl.select(UserProfileTags.USER_PROFILE_TAGS.TAG)
                 .from(UserProfileTags.USER_PROFILE_TAGS)
@@ -90,6 +94,8 @@ class UserServiceImplTest {
     @WithMockUser(username = "alice", roles = {"SPEAKER"})
     void patchCurrentUserKeepsTagsWhenTagsAreNull() {
         var patched = userService.patchCurrentUser(new ProfilePatchRequest(
+                null,
+                null,
                 null,
                 null,
                 null,

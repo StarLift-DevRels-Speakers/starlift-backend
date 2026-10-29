@@ -93,6 +93,36 @@ public class TalkFeedback extends TableImpl<TalkFeedbackRecord> {
     public final TableField<TalkFeedbackRecord, String> IMPROVEMENT_SUGGESTIONS = createField(DSL.name("improvement_suggestions"), SQLDataType.VARCHAR(4000).nullable(false), this, "");
 
     /**
+     * The column <code>talk_feedback.answer_utility</code>.
+     */
+    public final TableField<TalkFeedbackRecord, Short> ANSWER_UTILITY = createField(DSL.name("answer_utility"), SQLDataType.SMALLINT, this, "");
+
+    /**
+     * The column <code>talk_feedback.answer_clarity</code>.
+     */
+    public final TableField<TalkFeedbackRecord, Short> ANSWER_CLARITY = createField(DSL.name("answer_clarity"), SQLDataType.SMALLINT, this, "");
+
+    /**
+     * The column <code>talk_feedback.answer_examples</code>.
+     */
+    public final TableField<TalkFeedbackRecord, Short> ANSWER_EXAMPLES = createField(DSL.name("answer_examples"), SQLDataType.SMALLINT, this, "");
+
+    /**
+     * The column <code>talk_feedback.answer_pace</code>.
+     */
+    public final TableField<TalkFeedbackRecord, Short> ANSWER_PACE = createField(DSL.name("answer_pace"), SQLDataType.SMALLINT, this, "");
+
+    /**
+     * The column <code>talk_feedback.answer_engagement</code>.
+     */
+    public final TableField<TalkFeedbackRecord, Short> ANSWER_ENGAGEMENT = createField(DSL.name("answer_engagement"), SQLDataType.SMALLINT, this, "");
+
+    /**
+     * The column <code>talk_feedback.comment</code>.
+     */
+    public final TableField<TalkFeedbackRecord, String> COMMENT = createField(DSL.name("comment"), SQLDataType.VARCHAR(4000), this, "");
+
+    /**
      * The column <code>talk_feedback.created_date</code>.
      */
     public final TableField<TalkFeedbackRecord, LocalDateTime> CREATED_DATE = createField(DSL.name("created_date"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
@@ -205,7 +235,12 @@ public class TalkFeedback extends TableImpl<TalkFeedbackRecord> {
     public List<Check<TalkFeedbackRecord>> getChecks() {
         return Arrays.asList(
             Internal.createCheck(this, DSL.name("CONSTRAINT_E2"), "(\"rating\" >= 0)\n    AND (\"rating\" <= 10)", true),
-            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D"), "\"author_type\" IN('participant', 'organizer', 'other')", true)
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D"), "\"answer_utility\" BETWEEN 0 AND 2", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D7"), "\"answer_clarity\" BETWEEN 0 AND 2", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D76"), "\"answer_examples\" BETWEEN 0 AND 2", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D769"), "\"answer_pace\" BETWEEN 0 AND 2", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D769B"), "\"answer_engagement\" BETWEEN 0 AND 2", true),
+            Internal.createCheck(this, DSL.name("CONSTRAINT_E2D769B8"), "\"author_type\" IN('participant', 'organizer', 'other')", true)
         );
     }
 
