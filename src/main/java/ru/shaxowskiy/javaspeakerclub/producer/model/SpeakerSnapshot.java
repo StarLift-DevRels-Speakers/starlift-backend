@@ -14,7 +14,8 @@ public record SpeakerSnapshot(
         List<TalkItem> talks,
         List<FeedbackItem> feedback,
         FeedbackStats feedbackStats,
-        List<CfpItem> cfps
+        List<CfpItem> cfps,
+        List<String> profileGaps
 ) {
 
     public record Speaker(
@@ -64,9 +65,15 @@ public record SpeakerSnapshot(
     ) {
     }
 
+    /**
+     * Отзыв вместе с контекстом доклада (п. 8 ТЗ): тема, формат и мероприятие. authorType — participant, organizer или other.
+     */
     public record FeedbackItem(
             String id,
             String talkId,
+            String talkTopic,
+            String talkFormat,
+            String authorType,
             int rating,
             String positive,
             String negative,
@@ -84,6 +91,10 @@ public record SpeakerSnapshot(
     ) {
     }
 
+    /**
+     * Открытый CFP из подбора мероприятий (CfpMatcher): вместо одного числа совпадения — группа, уверенность и причины.
+     * group: high, potential или needs_check; confidence: high, medium или low.
+     */
     public record CfpItem(
             String id,
             String title,
@@ -91,7 +102,9 @@ public record SpeakerSnapshot(
             String level,
             String topic,
             LocalDate deadline,
-            int matchScore,
+            String group,
+            String confidence,
+            List<String> whyFits,
             List<String> tags,
             String url
     ) {

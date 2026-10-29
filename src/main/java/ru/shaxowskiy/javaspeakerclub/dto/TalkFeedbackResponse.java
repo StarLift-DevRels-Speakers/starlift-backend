@@ -10,5 +10,6 @@ public record TalkFeedbackResponse(
         String positive,
         String negative,
         String improvementSuggestions,
-        LocalDateTime createdDate
+        LocalDateTime createdDate,
+        String authorType
 ) {}

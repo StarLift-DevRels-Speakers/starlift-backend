@@ -62,7 +62,7 @@ class ProducerServiceTest {
         data.role(2L, "SPEAKER");
         data.role(3L, "USER");
 
-        UUID talk = data.talk(1L, "A/B-тесты без боли", now.minusDays(10));
+        UUID talk = data.talk(1L, "Продуктовые A/B-тесты без боли", now.minusDays(10));
         feedbackIds = List.of(
                 data.feedback(talk, 10, "Живые кейсы из продакшена", "-", now.minusDays(9)).toString(),
                 data.feedback(talk, 9, "Реальные цифры", "-", now.minusDays(9)).toString(),
@@ -88,7 +88,8 @@ class ProducerServiceTest {
 
         assertThat(response.status()).isEqualTo(ProducerService.STATUS_READY);
         assertThat(response.model()).isEqualTo("test-model");
-        assertThat(response.promptVersion()).isEqualTo("producer-v1");
+        assertThat(response.promptVersion()).isEqualTo("producer-v2");
+        assertThat(response.confidence().level()).isEqualTo("medium");
         assertThat(response.plan().strengths()).singleElement()
                 .satisfies(theme -> assertThat(theme.mentions()).isEqualTo(3));
         assertThat(response.plan().growthAreas()).isEmpty();
@@ -108,6 +109,8 @@ class ProducerServiceTest {
         assertThat(response.status()).isEqualTo(ProducerService.STATUS_INSUFFICIENT_DATA);
         assertThat(response.message()).contains("мало данных");
         assertThat(response.plan()).isNull();
+        assertThat(response.gaps()).anyMatch(gap -> gap.contains("Нет выступлений"));
+        assertThat(response.confidence().level()).isEqualTo("low");
         verify(llmClient, never()).generatePlan(anyString(), anyString());
     }
 

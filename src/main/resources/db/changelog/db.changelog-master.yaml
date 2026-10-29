@@ -39,3 +39,7 @@ databaseChangeLog:
       file: db/changelog/0018_frontend_integration.yaml
   - include:
       file: db/changelog/0019_create_gamification_tables.yaml
+  - include:
+      file: db/changelog/0020_producer_matching.yaml
+  - include:
+      file: db/changelog/0021_producer_matching_api.yaml

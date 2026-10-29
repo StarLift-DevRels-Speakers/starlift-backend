@@ -5,6 +5,7 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerNpsHistory;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkFeedback;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.TalkTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
@@ -69,6 +70,13 @@ public final class ProducerTestData {
                 .set(Talks.TALKS.ACTIVITY_DATE, date)
                 .execute();
         return id;
+    }
+
+    public void tag(UUID talkId, String tag) {
+        dsl.insertInto(TalkTags.TALK_TAGS)
+                .set(TalkTags.TALK_TAGS.TALK_ID, talkId)
+                .set(TalkTags.TALK_TAGS.TAG, tag)
+                .execute();
     }
 
     public UUID feedback(UUID talkId, int rating, String positive, String negative, LocalDateTime createdDate) {

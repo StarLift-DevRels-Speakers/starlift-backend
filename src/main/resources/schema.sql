@@ -114,6 +114,8 @@ CREATE TABLE talk_feedback (
   answer_engagement SMALLINT CHECK (answer_engagement BETWEEN 0 AND 2),
   comment VARCHAR(4000),
   created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  author_type VARCHAR(20) NOT NULL DEFAULT 'participant' CHECK (author_type IN ('participant', 'organizer', 'other')),
+  source VARCHAR(50) NOT NULL DEFAULT 'platform',
   CONSTRAINT fk_talk_feedback_talks_talk_id FOREIGN KEY (talk_id) REFERENCES talks(id) ON DELETE CASCADE
 );
 
@@ -199,7 +201,15 @@ CREATE TABLE cfp_recommendations (
   host_company VARCHAR(255) NOT NULL,
   url VARCHAR(1024) NOT NULL,
   active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  description TEXT,
+  talk_format VARCHAR(100),
+  language VARCHAR(100),
+  audience_level VARCHAR(30),
+  attendance VARCHAR(20),
+  talk_duration INTEGER,
+  requirements VARCHAR(2000),
+  event_request_id UUID
 );
 
 CREATE INDEX idx_cfp_recommendations_city ON cfp_recommendations (city);
@@ -378,3 +388,74 @@ CREATE TABLE speaker_badges (
 );
 
 CREATE INDEX idx_speaker_badges_speaker_id ON speaker_badges (speaker_id);
+CREATE TABLE event_requests (
+  id UUID PRIMARY KEY,
+  organizer_id BIGINT NOT NULL,
+  title VARCHAR(255),
+  description TEXT,
+  state_json TEXT NOT NULL,
+  status VARCHAR(20) NOT NULL CHECK (status IN ('analyzed', 'matched')),
+  analysis_model VARCHAR(100),
+  analysis_prompt_version VARCHAR(50),
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_event_requests_users_organizer_id FOREIGN KEY (organizer_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_event_requests_organizer_id ON event_requests (organizer_id);
+
+CREATE TABLE expert_preferences (
+  user_id BIGINT PRIMARY KEY,
+  languages VARCHAR(255),
+  formats VARCHAR(255),
+  online_ok BOOLEAN,
+  offline_ok BOOLEAN,
+  interests VARCHAR(1000),
+  limitations VARCHAR(1000),
+  updated_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_expert_preferences_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE producer_runs (
+  id UUID PRIMARY KEY,
+  scenario VARCHAR(40) NOT NULL,
+  user_id BIGINT,
+  object_id VARCHAR(64) NOT NULL,
+  input_json TEXT,
+  considered_json TEXT,
+  result_json TEXT,
+  model VARCHAR(100),
+  prompt_version VARCHAR(50),
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_producer_runs_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_producer_runs_object ON producer_runs (scenario, object_id, created_date);
+
+CREATE TABLE producer_interactions (
+  id UUID PRIMARY KEY,
+  run_id UUID,
+  expert_id BIGINT,
+  event_request_id UUID,
+  cfp_id UUID,
+  actor_id BIGINT,
+  action VARCHAR(40) NOT NULL,
+  kind VARCHAR(10) NOT NULL CHECK (kind IN ('fact', 'ai')),
+  topic VARCHAR(255),
+  format VARCHAR(50),
+  note VARCHAR(1000),
+  confidence VARCHAR(10),
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_producer_interactions_run_id FOREIGN KEY (run_id) REFERENCES producer_runs(id) ON DELETE SET NULL,
+  CONSTRAINT fk_producer_interactions_expert_id FOREIGN KEY (expert_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_producer_interactions_event_request_id FOREIGN KEY (event_request_id) REFERENCES event_requests(id) ON DELETE CASCADE,
+  CONSTRAINT fk_producer_interactions_cfp_id FOREIGN KEY (cfp_id) REFERENCES cfp_recommendations(id) ON DELETE CASCADE,
+  CONSTRAINT fk_producer_interactions_actor_id FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_producer_interactions_expert_id ON producer_interactions (expert_id);
+CREATE INDEX idx_producer_interactions_event_request_id ON producer_interactions (event_request_id);
+
+ALTER TABLE cfp_recommendations ADD CONSTRAINT fk_cfp_recommendations_event_request_id
+  FOREIGN KEY (event_request_id) REFERENCES event_requests(id) ON DELETE SET NULL;
+CREATE UNIQUE INDEX idx_cfp_recommendations_event_request_id ON cfp_recommendations (event_request_id);

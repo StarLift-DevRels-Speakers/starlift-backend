@@ -16,14 +16,18 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Events;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ExpertPreferences;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationPointTransactions;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasonResults;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasons;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Notifications;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerInteractions;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerRuns;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerBadges;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations;
@@ -74,9 +78,19 @@ public class DefaultSchema extends SchemaImpl {
     public final EventInvitations EVENT_INVITATIONS = EventInvitations.EVENT_INVITATIONS;
 
     /**
+     * The table <code>event_requests</code>.
+     */
+    public final EventRequests EVENT_REQUESTS = EventRequests.EVENT_REQUESTS;
+
+    /**
      * The table <code>events</code>.
      */
     public final Events EVENTS = Events.EVENTS;
+
+    /**
+     * The table <code>expert_preferences</code>.
+     */
+    public final ExpertPreferences EXPERT_PREFERENCES = ExpertPreferences.EXPERT_PREFERENCES;
 
     /**
      * The table <code>gamification_point_transactions</code>.
@@ -109,9 +123,19 @@ public class DefaultSchema extends SchemaImpl {
     public final ParsingEvents PARSING_EVENTS = ParsingEvents.PARSING_EVENTS;
 
     /**
+     * The table <code>producer_interactions</code>.
+     */
+    public final ProducerInteractions PRODUCER_INTERACTIONS = ProducerInteractions.PRODUCER_INTERACTIONS;
+
+    /**
      * The table <code>producer_plans</code>.
      */
     public final ProducerPlans PRODUCER_PLANS = ProducerPlans.PRODUCER_PLANS;
+
+    /**
+     * The table <code>producer_runs</code>.
+     */
+    public final ProducerRuns PRODUCER_RUNS = ProducerRuns.PRODUCER_RUNS;
 
     /**
      * The table <code>speaker_achievements</code>.
@@ -203,14 +227,18 @@ public class DefaultSchema extends SchemaImpl {
             CfpRecommendations.CFP_RECOMMENDATIONS,
             EventApplications.EVENT_APPLICATIONS,
             EventInvitations.EVENT_INVITATIONS,
+            EventRequests.EVENT_REQUESTS,
             Events.EVENTS,
+            ExpertPreferences.EXPERT_PREFERENCES,
             GamificationPointTransactions.GAMIFICATION_POINT_TRANSACTIONS,
             GamificationSeasonResults.GAMIFICATION_SEASON_RESULTS,
             GamificationSeasons.GAMIFICATION_SEASONS,
             Lectures.LECTURES,
             Notifications.NOTIFICATIONS,
             ParsingEvents.PARSING_EVENTS,
+            ProducerInteractions.PRODUCER_INTERACTIONS,
             ProducerPlans.PRODUCER_PLANS,
+            ProducerRuns.PRODUCER_RUNS,
             SpeakerAchievements.SPEAKER_ACHIEVEMENTS,
             SpeakerBadges.SPEAKER_BADGES,
             SpeakerCfpRecommendations.SPEAKER_CFP_RECOMMENDATIONS,

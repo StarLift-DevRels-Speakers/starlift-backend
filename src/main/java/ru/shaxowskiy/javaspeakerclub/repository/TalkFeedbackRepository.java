@@ -46,6 +46,16 @@ public class TalkFeedbackRepository {
                 .fetchInto(TalkFeedbackRecord.class);
     }
 
+    public List<TalkFeedbackRecord> findByTalkIds(List<UUID> talkIds) {
+        if (talkIds == null || talkIds.isEmpty()) {
+            return List.of();
+        }
+        return dsl.selectFrom(TalkFeedback.TALK_FEEDBACK)
+                .where(TalkFeedback.TALK_FEEDBACK.TALK_ID.in(talkIds))
+                .orderBy(TalkFeedback.TALK_FEEDBACK.CREATED_DATE.desc())
+                .fetch();
+    }
+
     public TalkFeedbackRecord createFromForm(UUID talkId, int rating, String positive, String negative,
                                              String improvementSuggestions, short[] answers, String comment) {
         return dsl.insertInto(TalkFeedback.TALK_FEEDBACK)
@@ -73,7 +83,8 @@ public class TalkFeedbackRepository {
                 .fetchOptional();
     }
 
-    public TalkFeedbackRecord create(UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions) {
+    public TalkFeedbackRecord create(UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions,
+                                     String authorType) {
         return dsl.insertInto(TalkFeedback.TALK_FEEDBACK)
                 .set(TalkFeedback.TALK_FEEDBACK.ID, UUID.randomUUID())
                 .set(TalkFeedback.TALK_FEEDBACK.TALK_ID, talkId)
@@ -81,6 +92,7 @@ public class TalkFeedbackRepository {
                 .set(TalkFeedback.TALK_FEEDBACK.POSITIVE, positive)
                 .set(TalkFeedback.TALK_FEEDBACK.NEGATIVE, negative)
                 .set(TalkFeedback.TALK_FEEDBACK.IMPROVEMENT_SUGGESTIONS, improvementSuggestions)
+                .set(TalkFeedback.TALK_FEEDBACK.AUTHOR_TYPE, authorType)
                 .returning()
                 .fetchOne();
     }

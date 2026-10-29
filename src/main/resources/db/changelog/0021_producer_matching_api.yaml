@@ -1,0 +1,148 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0021-01
+      author: producer
+      comment: >
+        Поля CFP, без которых подбор мероприятий не проверяет язык, формат и требования (п. 14 ТЗ).
+        event_request_id связывает CFP с мероприятием организатора: открытый CFP мероприятия сразу виден спикерам.
+        confidence у рекомендаций нужен для метрики «доля рекомендаций с низкой уверенностью» (п. 28 ТЗ).
+      changes:
+        - addColumn:
+            tableName: cfp_recommendations
+            columns:
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: talk_format
+                  type: VARCHAR(100)
+              - column:
+                  name: language
+                  type: VARCHAR(100)
+              - column:
+                  name: audience_level
+                  type: VARCHAR(30)
+              - column:
+                  name: attendance
+                  type: VARCHAR(20)
+              - column:
+                  name: talk_duration
+                  type: INTEGER
+              - column:
+                  name: requirements
+                  type: VARCHAR(2000)
+              - column:
+                  name: event_request_id
+                  type: UUID
+        - addForeignKeyConstraint:
+            baseTableName: cfp_recommendations
+            baseColumnNames: event_request_id
+            referencedTableName: event_requests
+            referencedColumnNames: id
+            constraintName: fk_cfp_recommendations_event_request_id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: cfp_recommendations
+            indexName: idx_cfp_recommendations_event_request_id
+            unique: true
+            columns:
+              - column:
+                  name: event_request_id
+        - addColumn:
+            tableName: producer_interactions
+            columns:
+              - column:
+                  name: confidence
+                  type: VARCHAR(10)
+
+  - changeSet:
+      id: 0021-02
+      author: producer
+      context: demo
+      comment: >-
+        Демо-данные для подбора: ещё два спикера (только заявленный опыт и старый опыт), описание опыта и предпочтения,
+        отзывы организаторов, прошлое выступление по приглашению и поля CFP. Люди и конференции вымышленные.
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO users (username, password, first_name, last_name, nps, region, company, company_role, influence,
+                                 profile_completion, audience, about, avatar_color)
+              VALUES
+                ('maria.orlova', '$2y$10$2hme6uJuen2/vTxlejXsI.OIuRnDy1FSUj05uEOWxnAw0Jn.6N5oC', 'Мария', 'Орлова', NULL, 'Москва', 'Городские сервисы', 'Mobile Team Lead', 'local',
+                 40, 0, 'Руковожу мобильной командой из 12 человек: iOS, Android, мобильная аналитика и релизы.', '#ec4899'),
+                ('pavel.sokolov', '$2y$10$2hme6uJuen2/vTxlejXsI.OIuRnDy1FSUj05uEOWxnAw0Jn.6N5oC', 'Павел', 'Соколов', 7.1, 'Санкт-Петербург', 'Невские приложения', 'Flutter Developer', 'local',
+                 55, 300, 'Кроссплатформенная мобильная разработка на Flutter.', '#f97316');
+
+              INSERT INTO user_roles (user_id, role)
+              SELECT id, role FROM users
+              CROSS JOIN (VALUES ('SPEAKER'), ('USER')) AS r(role)
+              WHERE username IN ('maria.orlova', 'pavel.sokolov');
+
+              INSERT INTO user_profile_tags (user_id, tag)
+              SELECT u.id, t.tag
+              FROM users u
+              JOIN (VALUES
+                ('anna.levina', 'product'), ('anna.levina', 'analytics'),
+                ('ilya.mironov', 'android'), ('ilya.mironov', 'kotlin'),
+                ('maria.orlova', 'mobile'), ('maria.orlova', 'ios'), ('maria.orlova', 'analytics')
+              ) AS t(username, tag) ON t.username = u.username;
+
+              UPDATE users SET about = 'Восемь лет в продуктовой аналитике: A/B-тесты, метрики, юнит-экономика, мобильные продукты.'
+              WHERE username = 'anna.levina';
+              UPDATE users SET about = 'Android-разработка девять лет: Kotlin, Jetpack Compose, производительность приложений.'
+              WHERE username = 'ilya.mironov';
+
+              INSERT INTO expert_preferences (user_id, languages, formats, online_ok, offline_ok, interests, limitations)
+              SELECT u.id, p.languages, p.formats, p.online_ok, p.offline_ok, p.interests, p.limitations
+              FROM users u
+              JOIN (VALUES
+                ('anna.levina', 'русский, английский', 'доклад, воркшоп', true, true, 'мобильная аналитика, продуктовые метрики', NULL),
+                ('ilya.mironov', 'русский', 'доклад, лайвкодинг', true, true, 'android, kotlin', NULL),
+                ('timur.karimov', 'русский', 'доклад', true, false, 'backend', 'Только онлайн'),
+                ('daniil.gromov', 'русский, английский', 'доклад', true, true, 'data', NULL),
+                ('maria.orlova', 'русский, английский', 'доклад, панель', true, true, 'мобильная разработка', NULL)
+              ) AS p(username, languages, formats, online_ok, offline_ok, interests, limitations) ON p.username = u.username;
+
+              INSERT INTO talks (id, speaker_id, topic, talk_date, conference_type, format, activity_name, activity_date)
+              SELECT '7a1c0000-0000-4000-8000-000000000501'::uuid, id, 'Flutter: кроссплатформа без боли',
+                     CURRENT_TIMESTAMP - INTERVAL '900 days', 'MEETUP', 'OFFLINE', 'Mobile Piter', CURRENT_TIMESTAMP - INTERVAL '900 days'
+              FROM users WHERE username = 'pavel.sokolov';
+
+              INSERT INTO talk_tags (talk_id, tag)
+              VALUES ('7a1c0000-0000-4000-8000-000000000501', 'mobile'), ('7a1c0000-0000-4000-8000-000000000501', 'flutter');
+
+              INSERT INTO talk_feedback (id, talk_id, rating, positive, negative, improvement_suggestions, created_date, author_type, source)
+              VALUES
+                ('fb000000-0000-4000-8000-000000005001', '7a1c0000-0000-4000-8000-000000000108', 9,
+                 'Зал был полный, спикер держал внимание и отвечал на вопросы после доклада', '-', '-',
+                 CURRENT_TIMESTAMP - INTERVAL '335 days', 'organizer', 'platform'),
+                ('fb000000-0000-4000-8000-000000005002', '7a1c0000-0000-4000-8000-000000000201', 10,
+                 'Лучший доклад дня по оценкам участников, позовём снова', '-', '-',
+                 CURRENT_TIMESTAMP - INTERVAL '18 days', 'organizer', 'platform'),
+                ('fb000000-0000-4000-8000-000000005003', '7a1c0000-0000-4000-8000-000000000501', 8,
+                 'Понятные примеры', 'Часть примеров устарела', '-',
+                 CURRENT_TIMESTAMP - INTERVAL '899 days', 'participant', 'platform');
+
+              INSERT INTO producer_interactions (id, expert_id, actor_id, action, kind, topic, format, note, created_date)
+              SELECT gen_random_uuid(), s.id, d.id, a.action, 'fact', 'Jetpack Compose в продакшене', 'CONFERENCE', a.note, CURRENT_TIMESTAMP - a.ago
+              FROM users s
+              CROSS JOIN users d
+              CROSS JOIN (VALUES
+                ('talk_given', 'Выступил на Mobile Ural по приглашению', INTERVAL '20 days'),
+                ('repeat_invitation', 'Организатор позвал снова', INTERVAL '10 days')
+              ) AS a(action, note, ago)
+              WHERE s.username = 'ilya.mironov' AND d.username = 'demo.devrel';
+
+              UPDATE cfp_recommendations
+              SET description = 'Конференция о мобильных продуктах: разработка, аналитика и рост приложений.',
+                  talk_format = 'доклад', language = 'русский', audience_level = 'middle', attendance = 'offline',
+                  talk_duration = 40, requirements = 'Практический опыт в мобильной разработке; Кейс с цифрами из реального продукта'
+              WHERE id = 'cf000000-0000-4000-8000-000000000001';
+              UPDATE cfp_recommendations
+              SET description = 'Федеральная конференция продуктовых менеджеров: метрики, эксперименты, рост.',
+                  talk_format = 'доклад', language = 'русский', audience_level = 'senior', attendance = 'hybrid',
+                  talk_duration = 30, requirements = 'Кейс с цифрами из реального продукта'
+              WHERE id = 'cf000000-0000-4000-8000-000000000002';
+              UPDATE cfp_recommendations
+              SET language = 'русский', attendance = 'offline', talk_format = 'доклад или лайвкодинг', talk_duration = 45
+              WHERE id = 'cf000000-0000-4000-8000-000000000003';

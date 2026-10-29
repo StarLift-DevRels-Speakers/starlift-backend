@@ -11,6 +11,13 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalkFeedbackRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UsersRecord;
 import ru.shaxowskiy.javaspeakerclub.producer.ProducerProperties;
+import ru.shaxowskiy.javaspeakerclub.producer.matching.engine.CfpMatcher;
+import ru.shaxowskiy.javaspeakerclub.producer.matching.model.EventRecommendationResult;
+import ru.shaxowskiy.javaspeakerclub.producer.matching.model.ExpertFacts;
+import ru.shaxowskiy.javaspeakerclub.producer.matching.model.ExpertProfile;
+import ru.shaxowskiy.javaspeakerclub.producer.matching.model.Recommendation;
+import ru.shaxowskiy.javaspeakerclub.producer.matching.profile.ExpertProfileBuilder;
+import ru.shaxowskiy.javaspeakerclub.producer.matching.service.MatchingDataService;
 import ru.shaxowskiy.javaspeakerclub.producer.model.SpeakerSnapshot;
 import ru.shaxowskiy.javaspeakerclub.producer.model.SpeakerSnapshot.Activity;
 import ru.shaxowskiy.javaspeakerclub.producer.model.SpeakerSnapshot.CfpItem;
@@ -19,8 +26,6 @@ import ru.shaxowskiy.javaspeakerclub.producer.model.SpeakerSnapshot.FeedbackStat
 import ru.shaxowskiy.javaspeakerclub.producer.model.SpeakerSnapshot.Nps;
 import ru.shaxowskiy.javaspeakerclub.producer.model.SpeakerSnapshot.Speaker;
 import ru.shaxowskiy.javaspeakerclub.producer.model.SpeakerSnapshot.TalkItem;
-import ru.shaxowskiy.javaspeakerclub.repository.CfpRecommendationRepository;
-import ru.shaxowskiy.javaspeakerclub.repository.CfpRecommendationRepository.SpeakerRecommendationRow;
 import ru.shaxowskiy.javaspeakerclub.repository.RoleRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.SpeakerNpsHistoryRepository;
 import ru.shaxowskiy.javaspeakerclub.repository.TalkFeedbackRepository;
@@ -32,6 +37,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -52,7 +58,7 @@ public class SpeakerSnapshotService {
     private final TalkRepository talkRepository;
     private final TalkFeedbackRepository talkFeedbackRepository;
     private final SpeakerNpsHistoryRepository speakerNpsHistoryRepository;
-    private final CfpRecommendationRepository cfpRecommendationRepository;
+    private final MatchingDataService matchingDataService;
     private final ProducerProperties properties;
 
     @Transactional(readOnly = true)
@@ -64,11 +70,16 @@ public class SpeakerSnapshotService {
         LocalDate today = now.toLocalDate();
 
         List<TalksRecord> talks = talkRepository.findBySpeakerId(speakerId);
+        Map<UUID, TalksRecord> talksById = talks.stream().collect(Collectors.toMap(TalksRecord::getId, talk -> talk));
         List<TalkFeedbackRecord> feedback = talkFeedbackRepository
                 .findBySpeakerIdSince(speakerId, now.minusDays(properties.feedbackWindowDays()))
                 .stream()
                 .limit(properties.maxFeedbackItems())
                 .toList();
+
+        MatchingDataService.PlatformData data = matchingDataService.load(speakerId);
+        ExpertFacts facts = matchingDataService.expert(data, speakerId);
+        ExpertProfile profile = ExpertProfileBuilder.build(facts, data.cooccurrence(), data.vocabulary(), today);
 
         return new SpeakerSnapshot(
                 today,
@@ -76,9 +87,10 @@ public class SpeakerSnapshotService {
                 toActivity(talks, now),
                 toNps(user, speakerNpsHistoryRepository.findBySpeakerId(speakerId)),
                 toTalkItems(talks),
-                feedback.stream().map(this::toFeedbackItem).toList(),
+                feedback.stream().map(record -> toFeedbackItem(record, talksById.get(record.getTalkId()))).toList(),
                 toFeedbackStats(feedback),
-                toCfpItems(cfpRecommendationRepository.findBySpeakerId(speakerId), today)
+                toCfpItems(data, facts, profile, today),
+                profile.gaps().stream().map(ExpertProfile.Gap::message).toList()
         );
     }
 
@@ -167,10 +179,13 @@ public class SpeakerSnapshotService {
                 .toList();
     }
 
-    private FeedbackItem toFeedbackItem(TalkFeedbackRecord record) {
+    private FeedbackItem toFeedbackItem(TalkFeedbackRecord record, TalksRecord talk) {
         return new FeedbackItem(
                 record.getId().toString(),
                 record.getTalkId().toString(),
+                talk == null ? null : talk.getTopic(),
+                talk == null ? null : talk.getConferenceType() + ", " + talk.getFormat(),
+                record.getAuthorType(),
                 record.getRating(),
                 record.getPositive(),
                 record.getNegative(),
@@ -196,27 +211,34 @@ public class SpeakerSnapshotService {
         );
     }
 
-    private List<CfpItem> toCfpItems(List<SpeakerRecommendationRow> rows, LocalDate today) {
-        List<SpeakerRecommendationRow> open = rows.stream()
-                .filter(row -> row.recommendation().getDeadline() != null)
-                .filter(row -> !row.recommendation().getDeadline().isBefore(today))
-                .toList();
-        Map<UUID, List<String>> tags = cfpRecommendationRepository.findTagsByRecommendationIds(
-                open.stream().map(row -> row.recommendation().getId()).toList()
-        );
-        return open.stream()
-                .map(row -> new CfpItem(
-                        row.recommendation().getId().toString(),
-                        row.recommendation().getTitle(),
-                        row.recommendation().getCity(),
-                        normalizeStage(row.recommendation().getInfluenceLevel()),
-                        row.recommendation().getTopic(),
-                        row.recommendation().getDeadline(),
-                        row.matchScore() == null ? 0 : row.matchScore(),
-                        tags.getOrDefault(row.recommendation().getId(), List.of()),
-                        row.recommendation().getUrl()
-                ))
-                .toList();
+    /**
+     * CFP для плана берутся из подбора мероприятий: по реальной экспертизе спикера, с причинами и уверенностью,
+     * а не из ручного процента совпадения (п. 3, 26 ТЗ).
+     */
+    private List<CfpItem> toCfpItems(MatchingDataService.PlatformData data, ExpertFacts facts, ExpertProfile profile, LocalDate today) {
+        CfpMatcher.Outcome outcome = CfpMatcher.match(facts, profile, data.cfps(), today, properties.maxCfpItems());
+        Map<String, CfpMatcher.CfpFact> cfps = data.cfps().stream()
+                .collect(Collectors.toMap(CfpMatcher.CfpFact::id, cfp -> cfp, (left, right) -> left));
+        List<CfpItem> items = new ArrayList<>();
+        for (Recommendation.Group<EventRecommendationResult.Event> group : outcome.groups()) {
+            for (EventRecommendationResult.Event event : group.items()) {
+                CfpMatcher.CfpFact cfp = cfps.get(event.cfpId());
+                items.add(new CfpItem(
+                        cfp.id(),
+                        cfp.title(),
+                        cfp.city(),
+                        cfp.level(),
+                        cfp.topic(),
+                        cfp.deadline(),
+                        group.code(),
+                        event.confidence().level(),
+                        event.whyFits().stream().limit(3).toList(),
+                        cfp.tags(),
+                        cfp.url()
+                ));
+            }
+        }
+        return items;
     }
 
     private static int percent(long part, int total) {

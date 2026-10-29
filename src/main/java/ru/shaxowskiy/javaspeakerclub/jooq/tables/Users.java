@@ -41,14 +41,18 @@ import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations.CfpRecommendationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications.EventApplicationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations.EventInvitationsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests.EventRequestsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Events.EventsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ExpertPreferences.ExpertPreferencesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationPointTransactions.GamificationPointTransactionsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasonResults.GamificationSeasonResultsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.GamificationSeasons.GamificationSeasonsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Lectures.LecturesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Notifications.NotificationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ParsingEvents.ParsingEventsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerInteractions.ProducerInteractionsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerPlans.ProducerPlansPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerRuns.ProducerRunsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerAchievements.SpeakerAchievementsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerBadges.SpeakerBadgesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations.SpeakerCfpRecommendationsPath;
@@ -302,6 +306,19 @@ public class Users extends TableImpl<UsersRecord> {
         return _eventInvitations;
     }
 
+    private transient EventRequestsPath _eventRequests;
+
+    /**
+     * Get the implicit to-many join path to the <code>event_requests</code>
+     * table
+     */
+    public EventRequestsPath eventRequests() {
+        if (_eventRequests == null)
+            _eventRequests = new EventRequestsPath(this, null, Keys.FK_EVENT_REQUESTS_USERS_ORGANIZER_ID.getInverseKey());
+
+        return _eventRequests;
+    }
+
     private transient EventsPath _events;
 
     /**
@@ -312,6 +329,19 @@ public class Users extends TableImpl<UsersRecord> {
             _events = new EventsPath(this, null, Keys.FK_EVENTS_USERS_OWNER_ID.getInverseKey());
 
         return _events;
+    }
+
+    private transient ExpertPreferencesPath _expertPreferences;
+
+    /**
+     * Get the implicit to-many join path to the <code>expert_preferences</code>
+     * table
+     */
+    public ExpertPreferencesPath expertPreferences() {
+        if (_expertPreferences == null)
+            _expertPreferences = new ExpertPreferencesPath(this, null, Keys.FK_EXPERT_PREFERENCES_USERS_USER_ID.getInverseKey());
+
+        return _expertPreferences;
     }
 
     private transient GamificationPointTransactionsPath _fkGamificationPointTransactionsUsersAwardedBy;
@@ -393,6 +423,34 @@ public class Users extends TableImpl<UsersRecord> {
         return _parsingEvents;
     }
 
+    private transient ProducerInteractionsPath _fkProducerInteractionsActorId;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>producer_interactions</code> table, via the
+     * <code>fk_producer_interactions_actor_id</code> key
+     */
+    public ProducerInteractionsPath fkProducerInteractionsActorId() {
+        if (_fkProducerInteractionsActorId == null)
+            _fkProducerInteractionsActorId = new ProducerInteractionsPath(this, null, Keys.FK_PRODUCER_INTERACTIONS_ACTOR_ID.getInverseKey());
+
+        return _fkProducerInteractionsActorId;
+    }
+
+    private transient ProducerInteractionsPath _fkProducerInteractionsExpertId;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>producer_interactions</code> table, via the
+     * <code>fk_producer_interactions_expert_id</code> key
+     */
+    public ProducerInteractionsPath fkProducerInteractionsExpertId() {
+        if (_fkProducerInteractionsExpertId == null)
+            _fkProducerInteractionsExpertId = new ProducerInteractionsPath(this, null, Keys.FK_PRODUCER_INTERACTIONS_EXPERT_ID.getInverseKey());
+
+        return _fkProducerInteractionsExpertId;
+    }
+
     private transient ProducerPlansPath _producerPlans;
 
     /**
@@ -404,6 +462,19 @@ public class Users extends TableImpl<UsersRecord> {
             _producerPlans = new ProducerPlansPath(this, null, Keys.FK_PRODUCER_PLANS_USERS_SPEAKER_ID.getInverseKey());
 
         return _producerPlans;
+    }
+
+    private transient ProducerRunsPath _producerRuns;
+
+    /**
+     * Get the implicit to-many join path to the <code>producer_runs</code>
+     * table
+     */
+    public ProducerRunsPath producerRuns() {
+        if (_producerRuns == null)
+            _producerRuns = new ProducerRunsPath(this, null, Keys.FK_PRODUCER_RUNS_USERS_USER_ID.getInverseKey());
+
+        return _producerRuns;
     }
 
     private transient SpeakerAchievementsPath _speakerAchievements;

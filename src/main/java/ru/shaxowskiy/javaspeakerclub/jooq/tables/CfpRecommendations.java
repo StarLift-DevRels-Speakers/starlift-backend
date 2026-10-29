@@ -37,6 +37,8 @@ import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags.CfpRecommendationTagsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests.EventRequestsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.ProducerInteractions.ProducerInteractionsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerCfpRecommendations.SpeakerCfpRecommendationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users.UsersPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.CfpRecommendationsRecord;
@@ -113,6 +115,46 @@ public class CfpRecommendations extends TableImpl<CfpRecommendationsRecord> {
      */
     public final TableField<CfpRecommendationsRecord, LocalDateTime> CREATED_DATE = createField(DSL.name("created_date"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
 
+    /**
+     * The column <code>cfp_recommendations.description</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>cfp_recommendations.talk_format</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, String> TALK_FORMAT = createField(DSL.name("talk_format"), SQLDataType.VARCHAR(100), this, "");
+
+    /**
+     * The column <code>cfp_recommendations.language</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, String> LANGUAGE = createField(DSL.name("language"), SQLDataType.VARCHAR(100), this, "");
+
+    /**
+     * The column <code>cfp_recommendations.audience_level</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, String> AUDIENCE_LEVEL = createField(DSL.name("audience_level"), SQLDataType.VARCHAR(30), this, "");
+
+    /**
+     * The column <code>cfp_recommendations.attendance</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, String> ATTENDANCE = createField(DSL.name("attendance"), SQLDataType.VARCHAR(20), this, "");
+
+    /**
+     * The column <code>cfp_recommendations.talk_duration</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, Integer> TALK_DURATION = createField(DSL.name("talk_duration"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>cfp_recommendations.requirements</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, String> REQUIREMENTS = createField(DSL.name("requirements"), SQLDataType.VARCHAR(2000), this, "");
+
+    /**
+     * The column <code>cfp_recommendations.event_request_id</code>.
+     */
+    public final TableField<CfpRecommendationsRecord, UUID> EVENT_REQUEST_ID = createField(DSL.name("event_request_id"), SQLDataType.UUID, this, "");
+
     private CfpRecommendations(Name alias, Table<CfpRecommendationsRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
@@ -182,12 +224,29 @@ public class CfpRecommendations extends TableImpl<CfpRecommendationsRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_CFP_RECOMMENDATIONS_CITY, Indexes.IDX_CFP_RECOMMENDATIONS_DEADLINE, Indexes.IDX_CFP_RECOMMENDATIONS_INFLUENCE_LEVEL);
+        return Arrays.asList(Indexes.IDX_CFP_RECOMMENDATIONS_CITY, Indexes.IDX_CFP_RECOMMENDATIONS_DEADLINE, Indexes.IDX_CFP_RECOMMENDATIONS_EVENT_REQUEST_ID, Indexes.IDX_CFP_RECOMMENDATIONS_INFLUENCE_LEVEL);
     }
 
     @Override
     public UniqueKey<CfpRecommendationsRecord> getPrimaryKey() {
         return Keys.CONSTRAINT_6D;
+    }
+
+    @Override
+    public List<ForeignKey<CfpRecommendationsRecord, ?>> getReferences() {
+        return Arrays.asList(Keys.FK_CFP_RECOMMENDATIONS_EVENT_REQUEST_ID);
+    }
+
+    private transient EventRequestsPath _eventRequests;
+
+    /**
+     * Get the implicit join path to the <code>event_requests</code> table.
+     */
+    public EventRequestsPath eventRequests() {
+        if (_eventRequests == null)
+            _eventRequests = new EventRequestsPath(this, Keys.FK_CFP_RECOMMENDATIONS_EVENT_REQUEST_ID, null);
+
+        return _eventRequests;
     }
 
     private transient CfpRecommendationTagsPath _cfpRecommendationTags;
@@ -201,6 +260,19 @@ public class CfpRecommendations extends TableImpl<CfpRecommendationsRecord> {
             _cfpRecommendationTags = new CfpRecommendationTagsPath(this, null, Keys.FK_CFP_RECOMMENDATION_TAGS_RECOMMENDATION_ID.getInverseKey());
 
         return _cfpRecommendationTags;
+    }
+
+    private transient ProducerInteractionsPath _producerInteractions;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>producer_interactions</code> table
+     */
+    public ProducerInteractionsPath producerInteractions() {
+        if (_producerInteractions == null)
+            _producerInteractions = new ProducerInteractionsPath(this, null, Keys.FK_PRODUCER_INTERACTIONS_CFP_ID.getInverseKey());
+
+        return _producerInteractions;
     }
 
     private transient SpeakerCfpRecommendationsPath _speakerCfpRecommendations;

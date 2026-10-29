@@ -1,0 +1,296 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0020-01
+      author: producer
+      comment: >
+        Подбор по ТЗ AI-продюсера: карточки мероприятий организатора (параметры со статусами, критерии,
+        уточняющие вопросы), предпочтения эксперта, журнал AI-запусков и история взаимодействий для feedback loop.
+      changes:
+        - createTable:
+            tableName: event_requests
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: organizer_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: state_json
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: analysis_model
+                  type: VARCHAR(100)
+              - column:
+                  name: analysis_prompt_version
+                  type: VARCHAR(50)
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: event_requests
+            baseColumnNames: organizer_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_event_requests_users_organizer_id
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE event_requests ADD CONSTRAINT chk_event_requests_status
+                CHECK (status IN ('analyzed', 'matched'));
+        - createIndex:
+            tableName: event_requests
+            indexName: idx_event_requests_organizer_id
+            columns:
+              - column:
+                  name: organizer_id
+
+        - createTable:
+            tableName: expert_preferences
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: languages
+                  type: VARCHAR(255)
+              - column:
+                  name: formats
+                  type: VARCHAR(255)
+              - column:
+                  name: online_ok
+                  type: BOOLEAN
+              - column:
+                  name: offline_ok
+                  type: BOOLEAN
+              - column:
+                  name: interests
+                  type: VARCHAR(1000)
+              - column:
+                  name: limitations
+                  type: VARCHAR(1000)
+              - column:
+                  name: updated_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: expert_preferences
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_expert_preferences_users_user_id
+            onDelete: CASCADE
+
+        - createTable:
+            tableName: producer_runs
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+              - column:
+                  name: object_id
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: input_json
+                  type: TEXT
+              - column:
+                  name: considered_json
+                  type: TEXT
+              - column:
+                  name: result_json
+                  type: TEXT
+              - column:
+                  name: model
+                  type: VARCHAR(100)
+              - column:
+                  name: prompt_version
+                  type: VARCHAR(50)
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: producer_runs
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_producer_runs_users_user_id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: producer_runs
+            indexName: idx_producer_runs_object
+            columns:
+              - column:
+                  name: scenario
+              - column:
+                  name: object_id
+              - column:
+                  name: created_date
+
+        - createTable:
+            tableName: producer_interactions
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: run_id
+                  type: UUID
+              - column:
+                  name: expert_id
+                  type: BIGINT
+              - column:
+                  name: event_request_id
+                  type: UUID
+              - column:
+                  name: cfp_id
+                  type: UUID
+              - column:
+                  name: actor_id
+                  type: BIGINT
+              - column:
+                  name: action
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: topic
+                  type: VARCHAR(255)
+              - column:
+                  name: format
+                  type: VARCHAR(50)
+              - column:
+                  name: note
+                  type: VARCHAR(1000)
+              - column:
+                  name: created_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: producer_interactions
+            baseColumnNames: run_id
+            referencedTableName: producer_runs
+            referencedColumnNames: id
+            constraintName: fk_producer_interactions_run_id
+            onDelete: SET NULL
+        - addForeignKeyConstraint:
+            baseTableName: producer_interactions
+            baseColumnNames: expert_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_producer_interactions_expert_id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: producer_interactions
+            baseColumnNames: event_request_id
+            referencedTableName: event_requests
+            referencedColumnNames: id
+            constraintName: fk_producer_interactions_event_request_id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: producer_interactions
+            baseColumnNames: cfp_id
+            referencedTableName: cfp_recommendations
+            referencedColumnNames: id
+            constraintName: fk_producer_interactions_cfp_id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: producer_interactions
+            baseColumnNames: actor_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_producer_interactions_actor_id
+            onDelete: SET NULL
+        - sql:
+            sql: |
+              ALTER TABLE producer_interactions ADD CONSTRAINT chk_producer_interactions_kind
+                CHECK (kind IN ('fact', 'ai'));
+        - createIndex:
+            tableName: producer_interactions
+            indexName: idx_producer_interactions_expert_id
+            columns:
+              - column:
+                  name: expert_id
+        - createIndex:
+            tableName: producer_interactions
+            indexName: idx_producer_interactions_event_request_id
+            columns:
+              - column:
+                  name: event_request_id
+
+        - addColumn:
+            tableName: talk_feedback
+            columns:
+              - column:
+                  name: author_type
+                  type: VARCHAR(20)
+                  defaultValue: participant
+                  constraints:
+                    nullable: false
+              - column:
+                  name: source
+                  type: VARCHAR(50)
+                  defaultValue: platform
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: |
+              ALTER TABLE talk_feedback ADD CONSTRAINT chk_talk_feedback_author_type
+                CHECK (author_type IN ('participant', 'organizer', 'other'));

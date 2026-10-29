@@ -203,6 +203,34 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
         return (LocalDateTime) get(12);
     }
 
+    /**
+     * Setter for <code>talk_feedback.author_type</code>.
+     */
+    public void setAuthorType(String value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.author_type</code>.
+     */
+    public String getAuthorType() {
+        return (String) get(13);
+    }
+
+    /**
+     * Setter for <code>talk_feedback.source</code>.
+     */
+    public void setSource(String value) {
+        set(14, value);
+    }
+
+    /**
+     * Getter for <code>talk_feedback.source</code>.
+     */
+    public String getSource() {
+        return (String) get(14);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -226,7 +254,7 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
     /**
      * Create a detached, initialised TalkFeedbackRecord
      */
-    public TalkFeedbackRecord(UUID id, UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions, Short answerUtility, Short answerClarity, Short answerExamples, Short answerPace, Short answerEngagement, String comment, LocalDateTime createdDate) {
+    public TalkFeedbackRecord(UUID id, UUID talkId, Integer rating, String positive, String negative, String improvementSuggestions, Short answerUtility, Short answerClarity, Short answerExamples, Short answerPace, Short answerEngagement, String comment, LocalDateTime createdDate, String authorType, String source) {
         super(TalkFeedback.TALK_FEEDBACK);
 
         setId(id);
@@ -242,6 +270,8 @@ public class TalkFeedbackRecord extends UpdatableRecordImpl<TalkFeedbackRecord> 
         setAnswerEngagement(answerEngagement);
         setComment(comment);
         setCreatedDate(createdDate);
+        setAuthorType(authorType);
+        setSource(source);
         resetTouchedOnNotNull();
     }
 }

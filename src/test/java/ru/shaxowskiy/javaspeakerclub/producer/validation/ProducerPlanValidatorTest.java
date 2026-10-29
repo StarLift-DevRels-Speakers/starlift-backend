@@ -20,7 +20,7 @@ class ProducerPlanValidatorTest {
     private static final LocalDate TODAY = LocalDate.of(2026, 9, 27);
 
     private final ProducerPlanValidator validator = new ProducerPlanValidator(
-            new ProducerProperties(3, 3, 4, 365, 80, 12, 3, 0.2, 10, "producer-v1")
+            new ProducerProperties(3, 3, 4, 365, 80, 12, 3, 0.2, 10, 5, "producer-v2")
     );
 
     @Test
@@ -167,14 +167,17 @@ class ProducerPlanValidatorTest {
                 new SpeakerSnapshot.FeedbackStats(6, 8.0, 50, 17, 33),
                 List.of(
                         new SpeakerSnapshot.CfpItem("c1", "Mobile Frontier", "Санкт-Петербург", "international",
-                                "Product", LocalDate.of(2026, 10, 20), 89, List.of("product"), "https://example.com/c1"),
+                                "Product", LocalDate.of(2026, 10, 20), "high", "high", List.of("Тема пересекается с опытом"),
+                                List.of("product"), "https://example.com/c1"),
                         new SpeakerSnapshot.CfpItem("c-past", "Old Conf", "Москва", "federal",
-                                "Product", LocalDate.of(2026, 9, 1), 70, List.of(), "https://example.com/c2")
-                )
+                                "Product", LocalDate.of(2026, 9, 1), "potential", "medium", List.of(), List.of(), "https://example.com/c2")
+                ),
+                List.of()
         );
     }
 
     private static SpeakerSnapshot.FeedbackItem feedback(String id, int rating, String positive, String negative, String improvement) {
-        return new SpeakerSnapshot.FeedbackItem(id, "t1", rating, positive, negative, improvement, LocalDate.of(2026, 9, 2));
+        return new SpeakerSnapshot.FeedbackItem(id, "t1", "A/B-тесты без боли", "CONFERENCE, OFFLINE", "participant",
+                rating, positive, negative, improvement, LocalDate.of(2026, 9, 2));
     }
 }

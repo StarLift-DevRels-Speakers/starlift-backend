@@ -96,8 +96,8 @@ class GamificationServiceTest {
     void feedbackAwardsSpeakerWithBonusForHighRating() {
         TalkResponse talk = talkService.create(talkRequest(1L));
 
-        feedbackService.create(talk.id(), new TalkFeedbackCreateRequest(10, "Отлично", "-", "-"));
-        feedbackService.create(talk.id(), new TalkFeedbackCreateRequest(5, "Норм", "Скучно", "Короче"));
+        feedbackService.create(talk.id(), new TalkFeedbackCreateRequest(10, "Отлично", "-", "-", null));
+        feedbackService.create(talk.id(), new TalkFeedbackCreateRequest(5, "Норм", "Скучно", "Короче", null));
 
         // 50 за доклад + (10 + 15) за десятку + 10 за пятёрку
         assertThat(profileService.getProfile(1L).totalPoints()).isEqualTo(85);

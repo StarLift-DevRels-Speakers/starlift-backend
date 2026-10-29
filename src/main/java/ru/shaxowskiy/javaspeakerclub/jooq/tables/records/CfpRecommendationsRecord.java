@@ -162,6 +162,118 @@ public class CfpRecommendationsRecord extends UpdatableRecordImpl<CfpRecommendat
         return (LocalDateTime) get(9);
     }
 
+    /**
+     * Setter for <code>cfp_recommendations.description</code>.
+     */
+    public void setDescription(String value) {
+        set(10, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.description</code>.
+     */
+    public String getDescription() {
+        return (String) get(10);
+    }
+
+    /**
+     * Setter for <code>cfp_recommendations.talk_format</code>.
+     */
+    public void setTalkFormat(String value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.talk_format</code>.
+     */
+    public String getTalkFormat() {
+        return (String) get(11);
+    }
+
+    /**
+     * Setter for <code>cfp_recommendations.language</code>.
+     */
+    public void setLanguage(String value) {
+        set(12, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.language</code>.
+     */
+    public String getLanguage() {
+        return (String) get(12);
+    }
+
+    /**
+     * Setter for <code>cfp_recommendations.audience_level</code>.
+     */
+    public void setAudienceLevel(String value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.audience_level</code>.
+     */
+    public String getAudienceLevel() {
+        return (String) get(13);
+    }
+
+    /**
+     * Setter for <code>cfp_recommendations.attendance</code>.
+     */
+    public void setAttendance(String value) {
+        set(14, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.attendance</code>.
+     */
+    public String getAttendance() {
+        return (String) get(14);
+    }
+
+    /**
+     * Setter for <code>cfp_recommendations.talk_duration</code>.
+     */
+    public void setTalkDuration(Integer value) {
+        set(15, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.talk_duration</code>.
+     */
+    public Integer getTalkDuration() {
+        return (Integer) get(15);
+    }
+
+    /**
+     * Setter for <code>cfp_recommendations.requirements</code>.
+     */
+    public void setRequirements(String value) {
+        set(16, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.requirements</code>.
+     */
+    public String getRequirements() {
+        return (String) get(16);
+    }
+
+    /**
+     * Setter for <code>cfp_recommendations.event_request_id</code>.
+     */
+    public void setEventRequestId(UUID value) {
+        set(17, value);
+    }
+
+    /**
+     * Getter for <code>cfp_recommendations.event_request_id</code>.
+     */
+    public UUID getEventRequestId() {
+        return (UUID) get(17);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -185,7 +297,7 @@ public class CfpRecommendationsRecord extends UpdatableRecordImpl<CfpRecommendat
     /**
      * Create a detached, initialised CfpRecommendationsRecord
      */
-    public CfpRecommendationsRecord(UUID id, String title, String city, String influenceLevel, String topic, LocalDate deadline, String hostCompany, String url, Boolean active, LocalDateTime createdDate) {
+    public CfpRecommendationsRecord(UUID id, String title, String city, String influenceLevel, String topic, LocalDate deadline, String hostCompany, String url, Boolean active, LocalDateTime createdDate, String description, String talkFormat, String language, String audienceLevel, String attendance, Integer talkDuration, String requirements, UUID eventRequestId) {
         super(CfpRecommendations.CFP_RECOMMENDATIONS);
 
         setId(id);
@@ -198,6 +310,14 @@ public class CfpRecommendationsRecord extends UpdatableRecordImpl<CfpRecommendat
         setUrl(url);
         setActive(active);
         setCreatedDate(createdDate);
+        setDescription(description);
+        setTalkFormat(talkFormat);
+        setLanguage(language);
+        setAudienceLevel(audienceLevel);
+        setAttendance(attendance);
+        setTalkDuration(talkDuration);
+        setRequirements(requirements);
+        setEventRequestId(eventRequestId);
         resetTouchedOnNotNull();
     }
 }
