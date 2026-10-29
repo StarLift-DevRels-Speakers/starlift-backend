@@ -1,6 +1,7 @@
 package ru.shaxowskiy.javaspeakerclub.feedback;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import ru.shaxowskiy.javaspeakerclub.feedback.FeedbackModels.FeedbackLinkRespons
 import ru.shaxowskiy.javaspeakerclub.feedback.FeedbackModels.PublicFeedbackFormResponse;
 import ru.shaxowskiy.javaspeakerclub.feedback.FeedbackModels.PublicFeedbackRequest;
 import ru.shaxowskiy.javaspeakerclub.feedback.FeedbackModels.SpeakerFeedbackResponse;
+import ru.shaxowskiy.javaspeakerclub.gamification.event.GamificationEvents;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalkFeedbackRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.TalksRecord;
 import ru.shaxowskiy.javaspeakerclub.notification.NotificationService;
@@ -38,6 +40,7 @@ public class FeedbackService {
     private final TalkFeedbackRepository feedbackRepository;
     private final SpeakerAccessGuard accessGuard;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Ссылка на форму отзыва по выступлению; повторный вызов возвращает ту же ссылку.
@@ -80,7 +83,7 @@ public class FeedbackService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Комментарий длиннее " + MAX_COMMENT_LENGTH + " символов");
         }
 
-        feedbackRepository.createFromForm(
+        TalkFeedbackRecord feedback = feedbackRepository.createFromForm(
                 talk.getId(),
                 rating(answers),
                 labels(answers, true),
@@ -90,6 +93,8 @@ public class FeedbackService {
                 comment
         );
         notificationService.notify(talk.getSpeakerId(), "Новый отзыв слушателя");
+        eventPublisher.publishEvent(new GamificationEvents.FeedbackCreated(
+                feedback.getId(), talk.getId(), talk.getSpeakerId(), feedback.getRating()));
     }
 
     @Transactional(readOnly = true)
