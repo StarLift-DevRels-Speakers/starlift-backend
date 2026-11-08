@@ -222,11 +222,11 @@ public class AudienceFitService {
 
             AudienceFitDraft draft = llmClient.generate(
                     prompt.system(),
-                    prompt.user(event.getName(), json.write(profile), json.write(material.fragments())),
+                    prompt.user(event.getName(), json.write(profile), json.write(material.fragments()), json.write(material.visual())),
                     AudienceFitDraft.class,
                     properties.maxResponseTokens()
             );
-            AudienceFitValidator.Result result = validator.validate(draft, material, profile.confidence());
+            AudienceFitValidator.Result result = validator.validate(draft, material, profile);
             complete(check, new Completion(mediaId, STATUS_READY, contentHash, json.write(material), json.write(result.result()),
                     json.write(result.rejections()), llmClient.modelName(), prompt.version(), null));
             notifyResult(check, event, talk, media, result.result());

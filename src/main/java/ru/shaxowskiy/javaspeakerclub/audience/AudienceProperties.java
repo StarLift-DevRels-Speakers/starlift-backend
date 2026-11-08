@@ -10,8 +10,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 @ConfigurationProperties(prefix = "app.audience")
 public record AudienceProperties(
         @DefaultValue("true") boolean triggersEnabled,
-        @DefaultValue("event-audience-v2") String profilePromptVersion,
-        @DefaultValue("audience-fit-v2") String fitPromptVersion,
+        @DefaultValue("event-audience-v3") String profilePromptVersion,
+        @DefaultValue("audience-fit-v3") String fitPromptVersion,
         @DefaultValue("2500") int maxResponseTokens,
         @DefaultValue("30000") int maxMaterialChars,
         @DefaultValue("1500") int maxFragmentChars,

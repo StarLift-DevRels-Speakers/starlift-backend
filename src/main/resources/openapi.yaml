@@ -5406,6 +5406,25 @@ components:
       type: object
       properties:
         summary: {type: string, nullable: true}
+        primarySegment:
+          type: string
+          nullable: true
+          enum: [schoolchildren, students, beginners, practitioners, experts]
+          description: Преимущественная ЦА — сегмент с наибольшей долей в experience
+        segmentLabel: {type: string, nullable: true, example: Студенты IT-направлений}
+        segmentReason: {type: string, nullable: true, description: Что в данных мероприятия указывает на этот сегмент}
+        experience:
+          type: object
+          description: Доли сегментов в процентах, в сумме 100
+          additionalProperties: {type: integer}
+        ageRange:
+          type: object
+          nullable: true
+          description: Только если возраст прямо следует из данных мероприятия
+          properties:
+            from: {type: integer, nullable: true}
+            to: {type: integer, nullable: true}
+        visualExpectation: {type: string, enum: [low, medium, high]}
         levels:
           type: object
           description: Доли уровней в процентах (junior, middle, senior, lead), в сумме 100; пусто, если уровень не ясен
@@ -5442,6 +5461,11 @@ components:
       type: object
       properties:
         summary: {type: string}
+        primarySegment: {type: string, enum: [schoolchildren, students, beginners, practitioners, experts]}
+        segmentLabel: {type: string}
+        ageFrom: {type: integer, nullable: true}
+        ageTo: {type: integer, nullable: true}
+        visualExpectation: {type: string, enum: [low, medium, high]}
         levels: {type: object, additionalProperties: {type: number}}
         roles: {type: array, items: {type: string}}
         domains: {type: array, items: {type: string}}
@@ -5466,7 +5490,7 @@ components:
           items:
             type: object
             properties:
-              key: {type: string, enum: [level, relevance, expectations, knowledge, turnoffs]}
+              key: {type: string, enum: [level, relevance, expectations, knowledge, presentation, turnoffs]}
               label: {type: string}
               score: {type: integer, minimum: 0, maximum: 10}
               comment: {type: string, nullable: true}
@@ -5491,6 +5515,19 @@ components:
               why: {type: string}
         profileConfidence: {type: string, enum: [low, medium, high]}
         truncated: {type: boolean}
+        primarySegment: {type: string, nullable: true}
+        segmentLabel: {type: string, nullable: true}
+        visual:
+          type: object
+          nullable: true
+          description: Наглядность презентации, посчитанная по файлу; null — слайдов нет
+          properties:
+            slides: {type: integer}
+            slidesWithImages: {type: integer}
+            imageOnlySlides: {type: integer}
+            averageWords: {type: integer}
+            textOnlySlides: {type: array, items: {type: string}}
+            wallOfTextSlides: {type: array, items: {type: string}}
     AudienceFitCheckResponse:
       type: object
       properties:

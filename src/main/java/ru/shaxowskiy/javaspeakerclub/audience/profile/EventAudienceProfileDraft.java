@@ -8,6 +8,12 @@ import java.util.Map;
  */
 public record EventAudienceProfileDraft(
         String summary,
+        String primarySegment,
+        String segmentLabel,
+        String segmentReason,
+        Map<String, Object> experience,
+        Age age,
+        String visualExpectation,
         Map<String, Object> levels,
         List<String> roles,
         List<String> domains,
@@ -17,6 +23,12 @@ public record EventAudienceProfileDraft(
         String confidence,
         List<Evidence> evidence
 ) {
+
+    /**
+     * Возраст с полем мероприятия, где он назван (name, topic, audience или description).
+     */
+    public record Age(Object from, Object to, String sourceField) {
+    }
 
     public record Evidence(String source, String id) {
     }

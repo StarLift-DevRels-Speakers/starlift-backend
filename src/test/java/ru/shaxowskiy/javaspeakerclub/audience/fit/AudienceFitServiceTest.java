@@ -173,7 +173,7 @@ class AudienceFitServiceTest {
         Completion completion = completion(check);
         assertThat(completion.status()).isEqualTo(AudienceFitService.STATUS_READY);
         assertThat(completion.contentHash()).hasSize(64);
-        assertThat(completion.promptVersion()).isEqualTo("audience-fit-v2");
+        assertThat(completion.promptVersion()).isEqualTo("audience-fit-v3");
         AudienceFitResult result = json.read(completion.resultJson(), AudienceFitResult.class);
         assertThat(result.score()).isEqualTo(90);
         assertThat(result.verdict()).isEqualTo(AudienceFitValidator.FITS);
@@ -265,9 +265,9 @@ class AudienceFitServiceTest {
     void runReusesCachedResultForSameMaterial() {
         AudienceFitChecksRecord check = stored(talk.getId(), null, AudienceFitService.TRIGGER_APPLICATION);
         AudienceFitChecksRecord cached = new AudienceFitChecksRecord();
-        cached.setResultJson(json.write(new AudienceFitResult("fits", 85, null, List.of(), List.of(), List.of(), "high", false)));
+        cached.setResultJson(json.write(new AudienceFitResult("fits", 85, null, List.of(), List.of(), List.of(), "high", false, "practitioners", "Практики", null)));
         cached.setModel("GigaChat-2-Max");
-        cached.setPromptVersion("audience-fit-v2");
+        cached.setPromptVersion("audience-fit-v3");
         when(checkRepository.findReadyByContent(eq(event.getId()), anyString(), eq(profileRecord.getUpdatedDate())))
                 .thenReturn(Optional.of(cached));
 
@@ -436,7 +436,6 @@ class AudienceFitServiceTest {
     }
 
     private static EventAudienceProfile profile() {
-        return new EventAudienceProfile("Senior Java-разработчики", Map.of("senior", 80, "middle", 20),
-                List.of("backend"), List.of("Java"), List.of("кейсы"), List.of("Spring"), List.of("основы"), "high", List.of());
+        return AudienceTestData.profile("practitioners", "Senior Java-разработчики", "medium", "high");
     }
 }

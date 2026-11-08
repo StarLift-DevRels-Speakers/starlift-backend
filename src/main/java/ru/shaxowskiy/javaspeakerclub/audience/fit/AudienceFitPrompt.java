@@ -26,8 +26,9 @@ public class AudienceFitPrompt {
         return systemText;
     }
 
-    public String user(String eventName, String profileJson, String materialJson) {
+    public String user(String eventName, String profileJson, String materialJson, String visualJson) {
         return "Мероприятие: «" + eventName + "».\nПрофиль ожидаемой аудитории:\n" + profileJson
-                + "\n\nМатериал спикера (фрагменты с id):\n" + materialJson;
+                + "\n\nМатериал спикера (фрагменты с id):\n" + materialJson
+                + "\n\nНаглядность презентации (посчитано по файлу, null — слайдов нет):\n" + visualJson;
     }
 }
