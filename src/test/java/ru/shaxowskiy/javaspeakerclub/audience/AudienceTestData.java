@@ -19,7 +19,7 @@ public final class AudienceTestData {
     }
 
     public static AudienceProperties properties(int maxMaterialChars, int maxFragmentChars, int minMaterialChars) {
-        return new AudienceProperties(true, "event-audience-v1", "audience-fit-v1", 2500,
+        return new AudienceProperties(true, "event-audience-v2", "audience-fit-v2", 2500,
                 maxMaterialChars, maxFragmentChars, minMaterialChars, 200, 20, 30, 70, 45, 10);
     }
 

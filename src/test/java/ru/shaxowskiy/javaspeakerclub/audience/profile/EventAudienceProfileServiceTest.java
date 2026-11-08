@@ -75,7 +75,7 @@ class EventAudienceProfileServiceTest {
         verify(repository).save(saved.capture());
         assertThat(saved.getValue().status()).isEqualTo(EventAudienceProfileService.STATUS_READY);
         assertThat(saved.getValue().inputsHash()).isEqualTo(service.inputsHash(inputs));
-        assertThat(saved.getValue().promptVersion()).isEqualTo("event-audience-v1");
+        assertThat(saved.getValue().promptVersion()).isEqualTo("event-audience-v2");
         assertThat(service.readProfile(result).levels()).containsEntry("senior", 80).containsEntry("middle", 20);
         // заявленная аудитория без программы — не выше medium
         assertThat(service.readProfile(result).confidence()).isEqualTo("medium");

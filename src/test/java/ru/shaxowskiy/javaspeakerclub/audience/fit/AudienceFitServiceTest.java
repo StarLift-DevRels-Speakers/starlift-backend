@@ -173,7 +173,7 @@ class AudienceFitServiceTest {
         Completion completion = completion(check);
         assertThat(completion.status()).isEqualTo(AudienceFitService.STATUS_READY);
         assertThat(completion.contentHash()).hasSize(64);
-        assertThat(completion.promptVersion()).isEqualTo("audience-fit-v1");
+        assertThat(completion.promptVersion()).isEqualTo("audience-fit-v2");
         AudienceFitResult result = json.read(completion.resultJson(), AudienceFitResult.class);
         assertThat(result.score()).isEqualTo(90);
         assertThat(result.verdict()).isEqualTo(AudienceFitValidator.FITS);
@@ -267,7 +267,7 @@ class AudienceFitServiceTest {
         AudienceFitChecksRecord cached = new AudienceFitChecksRecord();
         cached.setResultJson(json.write(new AudienceFitResult("fits", 85, null, List.of(), List.of(), List.of(), "high", false)));
         cached.setModel("GigaChat-2-Max");
-        cached.setPromptVersion("audience-fit-v1");
+        cached.setPromptVersion("audience-fit-v2");
         when(checkRepository.findReadyByContent(eq(event.getId()), anyString(), eq(profileRecord.getUpdatedDate())))
                 .thenReturn(Optional.of(cached));
 

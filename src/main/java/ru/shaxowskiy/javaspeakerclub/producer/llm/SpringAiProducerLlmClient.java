@@ -45,14 +45,33 @@ public class SpringAiProducerLlmClient implements ProducerLlmClient {
                 .options(ChatOptions.builder().temperature(properties.temperature()).maxTokens(maxTokens))
                 .call()
                 .content();
+        return parse(content, type);
+    }
+
+    /**
+     * Ответ как есть, затем с дописанными скобками, затем с экранированными кавычками внутри строк.
+     * Если не помогло ничего, бросается исходная ошибка разбора.
+     */
+    <T> T parse(String content, Class<T> type) {
         try {
             return json.read(ParsingJsonUtil.extractJsonObject(content), type);
         } catch (RuntimeException e) {
-            String repaired = JsonRepair.closeUnbalanced(content);
-            if (repaired == null) {
-                throw e;
+            String escaped = JsonRepair.escapeInnerQuotes(content);
+            for (String candidate : new String[]{
+                    JsonRepair.closeUnbalanced(content),
+                    escaped,
+                    JsonRepair.closeUnbalanced(escaped)
+            }) {
+                if (candidate == null) {
+                    continue;
+                }
+                try {
+                    return json.read(ParsingJsonUtil.extractJsonObject(candidate), type);
+                } catch (RuntimeException ignored) {
+                    // следующий вариант починки
+                }
             }
-            return json.read(repaired, type);
+            throw e;
         }
     }
 
