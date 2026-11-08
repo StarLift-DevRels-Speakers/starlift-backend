@@ -100,3 +100,17 @@ app:
     recent-feedback-limit: 20
     achievements-limit: 10
     parsing-events-limit: 10
+  audience:
+    triggers-enabled: true
+    profile-prompt-version: event-audience-v1
+    fit-prompt-version: audience-fit-v1
+    max-response-tokens: 2500
+    max-material-chars: 30000
+    max-fragment-chars: 1500
+    min-material-chars: 200
+    max-pages: 200
+    accepted-talks-limit: 20
+    past-editions-limit: 30
+    fit-threshold: 70
+    partial-threshold: 45
+    pending-timeout-minutes: 10

@@ -93,6 +93,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/events/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
                 .requestMatchers("/api/events/**").hasAnyRole("DEVREL", "ADMIN")
                 .requestMatchers("/api/applications/**", "/api/invitations/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers("/api/audience-fit/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
                 .requestMatchers("/api/notifications/**", "/api/me/**").hasAnyRole("USER", "SPEAKER", "DEVREL", "ADMIN")
                 .requestMatchers("/api/catalog/**").hasAnyRole("DEVREL", "ADMIN")
 

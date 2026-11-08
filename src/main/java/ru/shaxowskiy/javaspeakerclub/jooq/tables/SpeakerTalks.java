@@ -35,6 +35,7 @@ import org.jooq.impl.TableImpl;
 import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.AudienceFitChecks.AudienceFitChecksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications.EventApplicationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Talks.TalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia.UserMediaPath;
@@ -185,6 +186,19 @@ public class SpeakerTalks extends TableImpl<SpeakerTalksRecord> {
             _users = new UsersPath(this, Keys.FK_SPEAKER_TALKS_USERS_SPEAKER_ID, null);
 
         return _users;
+    }
+
+    private transient AudienceFitChecksPath _audienceFitChecks;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>audience_fit_checks</code> table
+     */
+    public AudienceFitChecksPath audienceFitChecks() {
+        if (_audienceFitChecks == null)
+            _audienceFitChecks = new AudienceFitChecksPath(this, null, Keys.FK_AUDIENCE_FIT_CHECKS_SPEAKER_TALKS_TALK_ID.getInverseKey());
+
+        return _audienceFitChecks;
     }
 
     private transient EventApplicationsPath _fkEventApplicationsSpeakerTalksChangeId;

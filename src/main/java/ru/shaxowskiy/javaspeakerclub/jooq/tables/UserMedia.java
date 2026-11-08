@@ -35,6 +35,7 @@ import org.jooq.impl.TableImpl;
 import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.AudienceFitChecks.AudienceFitChecksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.SpeakerTalks.SpeakerTalksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users.UsersPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserMediaRecord;
@@ -205,6 +206,19 @@ public class UserMedia extends TableImpl<UserMediaRecord> {
             _users = new UsersPath(this, Keys.FK_USER_MEDIA_USERS_USER_ID, null);
 
         return _users;
+    }
+
+    private transient AudienceFitChecksPath _audienceFitChecks;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>audience_fit_checks</code> table
+     */
+    public AudienceFitChecksPath audienceFitChecks() {
+        if (_audienceFitChecks == null)
+            _audienceFitChecks = new AudienceFitChecksPath(this, null, Keys.FK_AUDIENCE_FIT_CHECKS_USER_MEDIA_MEDIA_ID.getInverseKey());
+
+        return _audienceFitChecks;
     }
 
     @Override

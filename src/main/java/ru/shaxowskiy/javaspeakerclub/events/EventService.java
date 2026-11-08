@@ -1,10 +1,12 @@
 package ru.shaxowskiy.javaspeakerclub.events;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import ru.shaxowskiy.javaspeakerclub.audience.trigger.AudienceTriggers.EventChanged;
 import ru.shaxowskiy.javaspeakerclub.events.EventModels.EventRequest;
 import ru.shaxowskiy.javaspeakerclub.events.EventModels.EventResponse;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventsRecord;
@@ -38,6 +40,7 @@ public class EventService {
     private final UserRepository userRepository;
     private final SpeakerAccessGuard accessGuard;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher events;
 
     @Transactional(readOnly = true)
     public List<EventResponse> findVisible() {
@@ -65,6 +68,7 @@ public class EventService {
                 .filter(event -> event.getOwnerId().equals(me.getId()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Нет доступа к чужому мероприятию"));
         eventRepository.updateEvent(id, validate(request, existing));
+        events.publishEvent(new EventChanged(id));
         return toResponse(eventRepository.findEvent(id).orElseThrow(), me, me.getId());
     }
 
@@ -78,6 +82,7 @@ public class EventService {
             throw EventRules.conflict("Мероприятие уже опубликовано");
         }
         eventRepository.setEventState(id, STATE_PUBLISHED);
+        events.publishEvent(new EventChanged(id));
         notificationService.notify(me.getId(), "Мероприятие опубликовано: " + event.getName());
         return toResponse(eventRepository.findEvent(id).orElseThrow(), me, me.getId());
     }

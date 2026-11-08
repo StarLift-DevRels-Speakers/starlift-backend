@@ -25,7 +25,10 @@ public class MinioService {
             "application/pdf",
             "image/jpeg", "image/png", "image/gif", "image/webp",
             "application/vnd.ms-powerpoint",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            // Текст выступления для проверки под аудиторию мероприятия.
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/plain", "text/markdown"
     );
 
     private final MinioClient minioClient;

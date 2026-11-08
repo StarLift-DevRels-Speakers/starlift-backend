@@ -38,7 +38,9 @@ import org.jooq.impl.TableImpl;
 import ru.shaxowskiy.javaspeakerclub.jooq.DefaultSchema;
 import ru.shaxowskiy.javaspeakerclub.jooq.Indexes;
 import ru.shaxowskiy.javaspeakerclub.jooq.Keys;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.AudienceFitChecks.AudienceFitChecksPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications.EventApplicationsPath;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventAudienceProfiles.EventAudienceProfilesPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations.EventInvitationsPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users.UsersPath;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventsRecord;
@@ -219,6 +221,19 @@ public class Events extends TableImpl<EventsRecord> {
         return _users;
     }
 
+    private transient AudienceFitChecksPath _audienceFitChecks;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>audience_fit_checks</code> table
+     */
+    public AudienceFitChecksPath audienceFitChecks() {
+        if (_audienceFitChecks == null)
+            _audienceFitChecks = new AudienceFitChecksPath(this, null, Keys.FK_AUDIENCE_FIT_CHECKS_EVENTS_EVENT_ID.getInverseKey());
+
+        return _audienceFitChecks;
+    }
+
     private transient EventApplicationsPath _eventApplications;
 
     /**
@@ -230,6 +245,19 @@ public class Events extends TableImpl<EventsRecord> {
             _eventApplications = new EventApplicationsPath(this, null, Keys.FK_EVENT_APPLICATIONS_EVENTS_EVENT_ID.getInverseKey());
 
         return _eventApplications;
+    }
+
+    private transient EventAudienceProfilesPath _eventAudienceProfiles;
+
+    /**
+     * Get the implicit to-many join path to the
+     * <code>event_audience_profiles</code> table
+     */
+    public EventAudienceProfilesPath eventAudienceProfiles() {
+        if (_eventAudienceProfiles == null)
+            _eventAudienceProfiles = new EventAudienceProfilesPath(this, null, Keys.FK_EVENT_AUDIENCE_PROFILES_EVENTS_EVENT_ID.getInverseKey());
+
+        return _eventAudienceProfiles;
     }
 
     private transient EventInvitationsPath _eventInvitations;

@@ -54,6 +54,31 @@ public class UserMediaRepository {
                 .fetchOptional();
     }
 
+    public Optional<UserMediaRecord> findById(UUID id) {
+        return dsl.selectFrom(UserMedia.USER_MEDIA)
+                .where(UserMedia.USER_MEDIA.ID.eq(id))
+                .fetchOptional();
+    }
+
+    public List<UserMediaRecord> findByIds(List<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return dsl.selectFrom(UserMedia.USER_MEDIA)
+                .where(UserMedia.USER_MEDIA.ID.in(ids))
+                .fetch();
+    }
+
+    /**
+     * Файлы, прикреплённые к заготовке доклада, новые первыми.
+     */
+    public List<UserMediaRecord> findByTalkId(UUID talkId) {
+        return dsl.selectFrom(UserMedia.USER_MEDIA)
+                .where(UserMedia.USER_MEDIA.SPEAKER_TALK_ID.eq(talkId))
+                .orderBy(UserMedia.USER_MEDIA.CREATED_DATE.desc())
+                .fetch();
+    }
+
     public void deleteById(UUID id) {
         dsl.deleteFrom(UserMedia.USER_MEDIA)
                 .where(UserMedia.USER_MEDIA.ID.eq(id))
