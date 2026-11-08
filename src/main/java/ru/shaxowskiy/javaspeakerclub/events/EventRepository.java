@@ -107,6 +107,21 @@ public class EventRepository {
                 .fetchInto(EventApplicationsRecord.class);
     }
 
+    public List<EventApplicationsRecord> findApplicationsByEvent(UUID eventId, String status) {
+        return dsl.selectFrom(A).where(A.EVENT_ID.eq(eventId)).and(A.STATUS.eq(status)).orderBy(A.CREATED_DATE.asc()).fetch();
+    }
+
+    /**
+     * Заявки спикера с этим докладом в статусах statuses — по ним проверяется новая презентация доклада.
+     */
+    public List<EventApplicationsRecord> findApplicationsByTalk(Long speakerId, UUID talkId, List<String> statuses) {
+        return dsl.selectFrom(A)
+                .where(A.SPEAKER_ID.eq(speakerId))
+                .and(A.SPEAKER_TALK_ID.eq(talkId))
+                .and(A.STATUS.in(statuses))
+                .fetch();
+    }
+
     public List<EventApplicationsRecord> findApplications(UUID eventId, Long speakerId) {
         return dsl.selectFrom(A).where(A.EVENT_ID.eq(eventId)).and(A.SPEAKER_ID.eq(speakerId)).fetch();
     }

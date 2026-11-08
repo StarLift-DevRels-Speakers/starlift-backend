@@ -11,9 +11,11 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.jooq.impl.QOM.ForeignKeyRule;
 
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.AudienceFitChecks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventAudienceProfiles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Events;
@@ -41,9 +43,11 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserMedia;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserProfileTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.UserRoles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.AudienceFitChecksRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.CfpRecommendationTagsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.CfpRecommendationsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventApplicationsRecord;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventAudienceProfilesRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventInvitationsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventRequestsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventsRecord;
@@ -84,9 +88,11 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<AudienceFitChecksRecord> CONSTRAINT_5A = Internal.createUniqueKey(AudienceFitChecks.AUDIENCE_FIT_CHECKS, DSL.name("CONSTRAINT_5A"), new TableField[] { AudienceFitChecks.AUDIENCE_FIT_CHECKS.ID }, true);
     public static final UniqueKey<CfpRecommendationTagsRecord> PK_CFP_RECOMMENDATION_TAGS = Internal.createUniqueKey(CfpRecommendationTags.CFP_RECOMMENDATION_TAGS, DSL.name("pk_cfp_recommendation_tags"), new TableField[] { CfpRecommendationTags.CFP_RECOMMENDATION_TAGS.RECOMMENDATION_ID, CfpRecommendationTags.CFP_RECOMMENDATION_TAGS.TAG }, true);
     public static final UniqueKey<CfpRecommendationsRecord> CONSTRAINT_6D = Internal.createUniqueKey(CfpRecommendations.CFP_RECOMMENDATIONS, DSL.name("CONSTRAINT_6D"), new TableField[] { CfpRecommendations.CFP_RECOMMENDATIONS.ID }, true);
     public static final UniqueKey<EventApplicationsRecord> CONSTRAINT_69A = Internal.createUniqueKey(EventApplications.EVENT_APPLICATIONS, DSL.name("CONSTRAINT_69A"), new TableField[] { EventApplications.EVENT_APPLICATIONS.ID }, true);
+    public static final UniqueKey<EventAudienceProfilesRecord> CONSTRAINT_77 = Internal.createUniqueKey(EventAudienceProfiles.EVENT_AUDIENCE_PROFILES, DSL.name("CONSTRAINT_77"), new TableField[] { EventAudienceProfiles.EVENT_AUDIENCE_PROFILES.EVENT_ID }, true);
     public static final UniqueKey<EventInvitationsRecord> CONSTRAINT_D = Internal.createUniqueKey(EventInvitations.EVENT_INVITATIONS, DSL.name("CONSTRAINT_D"), new TableField[] { EventInvitations.EVENT_INVITATIONS.ID }, true);
     public static final UniqueKey<EventRequestsRecord> CONSTRAINT_AF = Internal.createUniqueKey(EventRequests.EVENT_REQUESTS, DSL.name("CONSTRAINT_AF"), new TableField[] { EventRequests.EVENT_REQUESTS.ID }, true);
     public static final UniqueKey<EventsRecord> CONSTRAINT_B3 = Internal.createUniqueKey(Events.EVENTS, DSL.name("CONSTRAINT_B3"), new TableField[] { Events.EVENTS.ID }, true);
@@ -127,12 +133,17 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<AudienceFitChecksRecord, EventsRecord> FK_AUDIENCE_FIT_CHECKS_EVENTS_EVENT_ID = Internal.createForeignKey(AudienceFitChecks.AUDIENCE_FIT_CHECKS, DSL.name("fk_audience_fit_checks_events_event_id"), new TableField[] { AudienceFitChecks.AUDIENCE_FIT_CHECKS.EVENT_ID }, Keys.CONSTRAINT_B3, new TableField[] { Events.EVENTS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<AudienceFitChecksRecord, SpeakerTalksRecord> FK_AUDIENCE_FIT_CHECKS_SPEAKER_TALKS_TALK_ID = Internal.createForeignKey(AudienceFitChecks.AUDIENCE_FIT_CHECKS, DSL.name("fk_audience_fit_checks_speaker_talks_talk_id"), new TableField[] { AudienceFitChecks.AUDIENCE_FIT_CHECKS.SPEAKER_TALK_ID }, Keys.CONSTRAINT_F, new TableField[] { SpeakerTalks.SPEAKER_TALKS.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<AudienceFitChecksRecord, UserMediaRecord> FK_AUDIENCE_FIT_CHECKS_USER_MEDIA_MEDIA_ID = Internal.createForeignKey(AudienceFitChecks.AUDIENCE_FIT_CHECKS, DSL.name("fk_audience_fit_checks_user_media_media_id"), new TableField[] { AudienceFitChecks.AUDIENCE_FIT_CHECKS.MEDIA_ID }, Keys.CONSTRAINT_72, new TableField[] { UserMedia.USER_MEDIA.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<AudienceFitChecksRecord, UsersRecord> FK_AUDIENCE_FIT_CHECKS_USERS_SPEAKER_ID = Internal.createForeignKey(AudienceFitChecks.AUDIENCE_FIT_CHECKS, DSL.name("fk_audience_fit_checks_users_speaker_id"), new TableField[] { AudienceFitChecks.AUDIENCE_FIT_CHECKS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<CfpRecommendationTagsRecord, CfpRecommendationsRecord> FK_CFP_RECOMMENDATION_TAGS_RECOMMENDATION_ID = Internal.createForeignKey(CfpRecommendationTags.CFP_RECOMMENDATION_TAGS, DSL.name("fk_cfp_recommendation_tags_recommendation_id"), new TableField[] { CfpRecommendationTags.CFP_RECOMMENDATION_TAGS.RECOMMENDATION_ID }, Keys.CONSTRAINT_6D, new TableField[] { CfpRecommendations.CFP_RECOMMENDATIONS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<CfpRecommendationsRecord, EventRequestsRecord> FK_CFP_RECOMMENDATIONS_EVENT_REQUEST_ID = Internal.createForeignKey(CfpRecommendations.CFP_RECOMMENDATIONS, DSL.name("fk_cfp_recommendations_event_request_id"), new TableField[] { CfpRecommendations.CFP_RECOMMENDATIONS.EVENT_REQUEST_ID }, Keys.CONSTRAINT_AF, new TableField[] { EventRequests.EVENT_REQUESTS.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<EventApplicationsRecord, EventsRecord> FK_EVENT_APPLICATIONS_EVENTS_EVENT_ID = Internal.createForeignKey(EventApplications.EVENT_APPLICATIONS, DSL.name("fk_event_applications_events_event_id"), new TableField[] { EventApplications.EVENT_APPLICATIONS.EVENT_ID }, Keys.CONSTRAINT_B3, new TableField[] { Events.EVENTS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<EventApplicationsRecord, SpeakerTalksRecord> FK_EVENT_APPLICATIONS_SPEAKER_TALKS_CHANGE_ID = Internal.createForeignKey(EventApplications.EVENT_APPLICATIONS, DSL.name("fk_event_applications_speaker_talks_change_id"), new TableField[] { EventApplications.EVENT_APPLICATIONS.CHANGE_TALK_ID }, Keys.CONSTRAINT_F, new TableField[] { SpeakerTalks.SPEAKER_TALKS.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<EventApplicationsRecord, SpeakerTalksRecord> FK_EVENT_APPLICATIONS_SPEAKER_TALKS_TALK_ID = Internal.createForeignKey(EventApplications.EVENT_APPLICATIONS, DSL.name("fk_event_applications_speaker_talks_talk_id"), new TableField[] { EventApplications.EVENT_APPLICATIONS.SPEAKER_TALK_ID }, Keys.CONSTRAINT_F, new TableField[] { SpeakerTalks.SPEAKER_TALKS.ID }, true, ForeignKeyRule.SET_NULL, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<EventApplicationsRecord, UsersRecord> FK_EVENT_APPLICATIONS_USERS_SPEAKER_ID = Internal.createForeignKey(EventApplications.EVENT_APPLICATIONS, DSL.name("fk_event_applications_users_speaker_id"), new TableField[] { EventApplications.EVENT_APPLICATIONS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
+    public static final ForeignKey<EventAudienceProfilesRecord, EventsRecord> FK_EVENT_AUDIENCE_PROFILES_EVENTS_EVENT_ID = Internal.createForeignKey(EventAudienceProfiles.EVENT_AUDIENCE_PROFILES, DSL.name("fk_event_audience_profiles_events_event_id"), new TableField[] { EventAudienceProfiles.EVENT_AUDIENCE_PROFILES.EVENT_ID }, Keys.CONSTRAINT_B3, new TableField[] { Events.EVENTS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<EventInvitationsRecord, EventsRecord> FK_EVENT_INVITATIONS_EVENTS_EVENT_ID = Internal.createForeignKey(EventInvitations.EVENT_INVITATIONS, DSL.name("fk_event_invitations_events_event_id"), new TableField[] { EventInvitations.EVENT_INVITATIONS.EVENT_ID }, Keys.CONSTRAINT_B3, new TableField[] { Events.EVENTS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<EventInvitationsRecord, UsersRecord> FK_EVENT_INVITATIONS_USERS_SPEAKER_ID = Internal.createForeignKey(EventInvitations.EVENT_INVITATIONS, DSL.name("fk_event_invitations_users_speaker_id"), new TableField[] { EventInvitations.EVENT_INVITATIONS.SPEAKER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);
     public static final ForeignKey<EventRequestsRecord, UsersRecord> FK_EVENT_REQUESTS_USERS_ORGANIZER_ID = Internal.createForeignKey(EventRequests.EVENT_REQUESTS, DSL.name("fk_event_requests_users_organizer_id"), new TableField[] { EventRequests.EVENT_REQUESTS.ORGANIZER_ID }, Keys.CONSTRAINT_6, new TableField[] { Users.USERS.ID }, true, ForeignKeyRule.CASCADE, ForeignKeyRule.RESTRICT);

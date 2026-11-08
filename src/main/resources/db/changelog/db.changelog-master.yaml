@@ -49,3 +49,5 @@ databaseChangeLog:
       file: db/changelog/0023_demo_feedback_answers_and_tags.yaml
   - include:
       file: db/changelog/0024_demo_link_remaining_talks.yaml
+  - include:
+      file: db/changelog/0025_audience_fit.yaml

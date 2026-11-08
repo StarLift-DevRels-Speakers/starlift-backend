@@ -49,6 +49,17 @@ public class ParsingEventRepository {
                 .fetchOne();
     }
 
+    /**
+     * Спикеры прошлых выпусков конференции: название содержит term без учёта регистра.
+     */
+    public List<ParsingEventsRecord> findByConferenceContaining(String term, int limit) {
+        return dsl.selectFrom(ParsingEvents.PARSING_EVENTS)
+                .where(DSL.lower(ParsingEvents.PARSING_EVENTS.CONFERENCE).contains(term.toLowerCase()))
+                .orderBy(ParsingEvents.PARSING_EVENTS.EVENT_DATE.desc().nullsLast())
+                .limit(limit)
+                .fetch();
+    }
+
     public Optional<ParsingEventsRecord> findByDedupKey(String dedupKey) {
         return dsl.selectFrom(ParsingEvents.PARSING_EVENTS)
                 .where(ParsingEvents.PARSING_EVENTS.DEDUP_KEY.eq(dedupKey))

@@ -4,9 +4,11 @@
 package ru.shaxowskiy.javaspeakerclub.jooq;
 
 
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.AudienceFitChecks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventAudienceProfiles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Events;
@@ -43,6 +45,11 @@ import ru.shaxowskiy.javaspeakerclub.jooq.tables.Users;
 public class Tables {
 
     /**
+     * The table <code>audience_fit_checks</code>.
+     */
+    public static final AudienceFitChecks AUDIENCE_FIT_CHECKS = AudienceFitChecks.AUDIENCE_FIT_CHECKS;
+
+    /**
      * The table <code>cfp_recommendation_tags</code>.
      */
     public static final CfpRecommendationTags CFP_RECOMMENDATION_TAGS = CfpRecommendationTags.CFP_RECOMMENDATION_TAGS;
@@ -56,6 +63,11 @@ public class Tables {
      * The table <code>event_applications</code>.
      */
     public static final EventApplications EVENT_APPLICATIONS = EventApplications.EVENT_APPLICATIONS;
+
+    /**
+     * The table <code>event_audience_profiles</code>.
+     */
+    public static final EventAudienceProfiles EVENT_AUDIENCE_PROFILES = EventAudienceProfiles.EVENT_AUDIENCE_PROFILES;
 
     /**
      * The table <code>event_invitations</code>.

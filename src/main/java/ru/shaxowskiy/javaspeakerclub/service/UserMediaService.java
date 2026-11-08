@@ -1,6 +1,7 @@
 package ru.shaxowskiy.javaspeakerclub.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import ru.shaxowskiy.javaspeakerclub.audience.trigger.AudienceTriggers.MediaUploaded;
 import ru.shaxowskiy.javaspeakerclub.dto.UserMediaUploadResponse;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.UserMediaRecord;
 import ru.shaxowskiy.javaspeakerclub.repository.SpeakerTalkRepository;
@@ -26,6 +28,7 @@ public class UserMediaService {
     private final UserRepository userRepository;
     private final MinioService minioService;
     private final SpeakerTalkRepository speakerTalkRepository;
+    private final ApplicationEventPublisher events;
 
     public record MediaFileResponse(UUID id, String name, Long sizeBytes, UUID talkId, LocalDateTime createdDate) {
     }
@@ -55,6 +58,9 @@ public class UserMediaService {
         } catch (RuntimeException ex) {
             minioService.deleteFile(objectKey);
             throw ex;
+        }
+        if (talkId != null) {
+            events.publishEvent(new MediaUploaded(userId, id, talkId));
         }
         return new UserMediaUploadResponse(id, objectKey, name, file.getSize(), talkId);
     }

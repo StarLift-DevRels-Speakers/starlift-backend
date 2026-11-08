@@ -30,6 +30,15 @@ public class SpeakerTalkRepository {
                 .fetchOptional();
     }
 
+    public List<SpeakerTalksRecord> findByIds(List<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return dsl.selectFrom(SpeakerTalks.SPEAKER_TALKS)
+                .where(SpeakerTalks.SPEAKER_TALKS.ID.in(ids))
+                .fetch();
+    }
+
     public SpeakerTalksRecord create(Long speakerId, String name, String topic, String description) {
         return dsl.insertInto(SpeakerTalks.SPEAKER_TALKS)
                 .set(SpeakerTalks.SPEAKER_TALKS.ID, UUID.randomUUID())
