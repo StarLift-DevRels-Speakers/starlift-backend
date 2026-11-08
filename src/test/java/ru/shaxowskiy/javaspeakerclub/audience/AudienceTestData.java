@@ -2,11 +2,14 @@ package ru.shaxowskiy.javaspeakerclub.audience;
 
 import ru.shaxowskiy.javaspeakerclub.audience.material.Fragment;
 import ru.shaxowskiy.javaspeakerclub.audience.material.MaterialSnapshot;
+import ru.shaxowskiy.javaspeakerclub.audience.profile.EventAudienceProfile;
+import ru.shaxowskiy.javaspeakerclub.audience.profile.EventAudienceProfileDraft;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.EventsRecord;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.records.SpeakerTalksRecord;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public final class AudienceTestData {
@@ -19,7 +22,7 @@ public final class AudienceTestData {
     }
 
     public static AudienceProperties properties(int maxMaterialChars, int maxFragmentChars, int minMaterialChars) {
-        return new AudienceProperties(true, "event-audience-v2", "audience-fit-v2", 2500,
+        return new AudienceProperties(true, "event-audience-v3", "audience-fit-v3", 2500,
                 maxMaterialChars, maxFragmentChars, minMaterialChars, 200, 20, 30, 70, 45, 10);
     }
 
@@ -54,5 +57,19 @@ public final class AudienceTestData {
             total += fragment.text().length();
         }
         return new MaterialSnapshot("Доклад", "slides.pptx", List.of(fragments), total, false, null);
+    }
+
+    /** Профиль с преимущественной ЦА segment и ожиданием по наглядности visual. */
+    public static EventAudienceProfile profile(String segment, String label, String visual, String confidence) {
+        return new EventAudienceProfile("Кто придёт", segment, label, "Так сказано в описании", Map.of(segment, 100), null, visual,
+                Map.of("senior", 80, "middle", 20), List.of("backend"), List.of("Java"), List.of("кейсы"), List.of("Spring"),
+                List.of("основы"), confidence, List.of());
+    }
+
+    public static EventAudienceProfileDraft draft(String segment, Map<String, Object> experience, EventAudienceProfileDraft.Age age,
+                                                  String confidence, List<EventAudienceProfileDraft.Evidence> evidence) {
+        return new EventAudienceProfileDraft("Опытные разработчики", segment, "Senior Java-разработчики", "В описании: хардкор",
+                experience, age, null, Map.of("senior", 70, "middle", 30), List.of("backend"), List.of("Java"), List.of("кейсы"),
+                List.of("Spring"), List.of("реклама"), confidence, evidence);
     }
 }

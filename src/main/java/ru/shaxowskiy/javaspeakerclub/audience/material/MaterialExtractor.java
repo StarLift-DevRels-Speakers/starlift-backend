@@ -2,12 +2,17 @@ package ru.shaxowskiy.javaspeakerclub.audience.material;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.sl.usermodel.Placeholder;
 import org.apache.poi.xslf.usermodel.XMLSlideShow;
+import org.apache.poi.xslf.usermodel.XSLFGraphicFrame;
 import org.apache.poi.xslf.usermodel.XSLFGroupShape;
 import org.apache.poi.xslf.usermodel.XSLFNotes;
+import org.apache.poi.xslf.usermodel.XSLFPictureShape;
 import org.apache.poi.xslf.usermodel.XSLFShape;
 import org.apache.poi.xslf.usermodel.XSLFSlide;
 import org.apache.poi.xslf.usermodel.XSLFTable;
@@ -31,7 +36,8 @@ import java.util.Set;
 
 /**
  * Текст презентации или документа по фрагментам: PDF — по страницам, PPTX — по слайдам (вместе с заметками
- * спикера), DOCX и текст — частями по абзацам. Старые .ppt и .doc не поддерживаются.
+ * спикера), DOCX и текст — частями по абзацам. Для слайдов и страниц считаются картинки и диаграммы;
+ * слайд из одних изображений остаётся фрагментом, чтобы учесть его в наглядности. Старые .ppt и .doc не поддерживаются.
  */
 @Component
 @RequiredArgsConstructor
@@ -65,12 +71,30 @@ public class MaterialExtractor {
                 stripper.setStartPage(page);
                 stripper.setEndPage(page);
                 String text = Texts.normalizeWhitespace(stripper.getText(document));
-                if (!text.isEmpty()) {
-                    fragments.add(new Fragment("page-" + page, "Страница " + page, text));
+                int images = pdfImages(document.getPage(page - 1));
+                if (!text.isEmpty() || images > 0) {
+                    fragments.add(new Fragment("page-" + page, "Страница " + page, text.isEmpty() ? Fragment.IMAGE_ONLY_TEXT : text, images));
                 }
             }
         }
         return fragments;
+    }
+
+    /**
+     * Растровые изображения страницы; векторные схемы PDFBox так не видит, поэтому оценка нижняя.
+     */
+    private static int pdfImages(PDPage page) {
+        PDResources resources = page.getResources();
+        if (resources == null) {
+            return 0;
+        }
+        int images = 0;
+        for (COSName name : resources.getXObjectNames()) {
+            if (resources.isImageXObject(name)) {
+                images++;
+            }
+        }
+        return images;
     }
 
     private List<Fragment> pptx(InputStream in) throws IOException {
@@ -80,21 +104,41 @@ public class MaterialExtractor {
             for (int index = 0; index < Math.min(slides.size(), properties.maxPages()); index++) {
                 XSLFSlide slide = slides.get(index);
                 StringBuilder text = new StringBuilder();
+                int images = 0;
                 for (XSLFShape shape : slide.getShapes()) {
                     appendShapeText(shape, text);
+                    images += countVisuals(shape);
                 }
                 String notes = notesText(slide.getNotes());
                 if (!notes.isEmpty()) {
                     text.append("\nЗаметки спикера: ").append(notes);
                 }
                 String normalized = Texts.normalizeWhitespace(text.toString());
-                if (!normalized.isEmpty()) {
+                if (!normalized.isEmpty() || images > 0) {
                     int number = index + 1;
-                    fragments.add(new Fragment("slide-" + number, "Слайд " + number, normalized));
+                    fragments.add(new Fragment("slide-" + number, "Слайд " + number,
+                            normalized.isEmpty() ? Fragment.IMAGE_ONLY_TEXT : normalized, images));
                 }
             }
         }
         return fragments;
+    }
+
+    /**
+     * Картинки, диаграммы и SmartArt; таблицы и надписи наглядностью не считаем.
+     */
+    private static int countVisuals(XSLFShape shape) {
+        if (shape instanceof XSLFGroupShape group) {
+            int total = 0;
+            for (XSLFShape child : group.getShapes()) {
+                total += countVisuals(child);
+            }
+            return total;
+        }
+        if (shape instanceof XSLFPictureShape) {
+            return 1;
+        }
+        return shape instanceof XSLFGraphicFrame && !(shape instanceof XSLFTable) ? 1 : 0;
     }
 
     private static void appendShapeText(XSLFShape shape, StringBuilder out) {

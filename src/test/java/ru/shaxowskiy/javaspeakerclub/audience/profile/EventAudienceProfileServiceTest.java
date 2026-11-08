@@ -75,8 +75,9 @@ class EventAudienceProfileServiceTest {
         verify(repository).save(saved.capture());
         assertThat(saved.getValue().status()).isEqualTo(EventAudienceProfileService.STATUS_READY);
         assertThat(saved.getValue().inputsHash()).isEqualTo(service.inputsHash(inputs));
-        assertThat(saved.getValue().promptVersion()).isEqualTo("event-audience-v2");
-        assertThat(service.readProfile(result).levels()).containsEntry("senior", 80).containsEntry("middle", 20);
+        assertThat(saved.getValue().promptVersion()).isEqualTo("event-audience-v3");
+        assertThat(service.readProfile(result).levels()).containsEntry("senior", 70).containsEntry("middle", 30);
+        assertThat(service.readProfile(result).primarySegment()).isEqualTo("practitioners");
         // заявленная аудитория без программы — не выше medium
         assertThat(service.readProfile(result).confidence()).isEqualTo("medium");
     }
@@ -145,7 +146,7 @@ class EventAudienceProfileServiceTest {
         when(accessGuard.currentUserId()).thenReturn(OWNER);
 
         EventAudienceProfileResponse response = service.update(event.getId(), new EventAudienceProfileUpdate(
-                "Тимлиды", Map.of("lead", 100), List.of("тимлиды"), null, null, null, null));
+                "Тимлиды", "experts", null, null, null, null, Map.of("lead", 100), List.of("тимлиды"), null, null, null, null));
 
         assertThat(response.manual()).isTrue();
         assertThat(response.profile().levels()).containsEntry("lead", 100);
@@ -158,7 +159,7 @@ class EventAudienceProfileServiceTest {
     void otherUserCannotEditProfile() {
         when(accessGuard.currentUserId()).thenReturn(SPEAKER);
 
-        assertThatThrownBy(() -> service.update(event.getId(), new EventAudienceProfileUpdate(null, null, null, null, null, null, null)))
+        assertThatThrownBy(() -> service.update(event.getId(), new EventAudienceProfileUpdate(null, null, null, null, null, null, null, null, null, null, null, null)))
                 .isInstanceOf(ResponseStatusException.class);
         assertThatThrownBy(() -> service.refresh(event.getId())).isInstanceOf(ResponseStatusException.class);
         verify(repository, never()).save(any());
@@ -187,9 +188,8 @@ class EventAudienceProfileServiceTest {
     }
 
     private static EventAudienceProfileDraft draft() {
-        return new EventAudienceProfileDraft("Опытные Java-разработчики", Map.of("senior", 80, "middle", 20),
-                List.of("backend"), List.of("Java"), List.of("кейсы"), List.of("Spring"), List.of("основы"),
-                "high", List.of(new EventAudienceProfileDraft.Evidence("EVENT", "audience")));
+        return AudienceTestData.draft("practitioners", Map.of("practitioners", 80, "experts", 20), null, "high",
+                List.of(new EventAudienceProfileDraft.Evidence("EVENT", "audience")));
     }
 
     private EventAudienceProfilesRecord stored(String status, String hash, boolean manual) {

@@ -67,4 +67,45 @@ class MaterialAssemblerTest {
 
         assertThat(first).hasSize(64).isEqualTo(sameText).isNotEqualTo(otherText);
     }
+
+    @Test
+    void visualStatsOverAllSlidesAndImageOnlySlidesDoNotCountAsText() {
+        MaterialAssembler assembler = new MaterialAssembler(AudienceTestData.properties());
+        String wall = "слово ".repeat(90).trim();
+
+        MaterialSnapshot snapshot = assembler.assemble(null, "deck.pptx", List.of(
+                new Fragment("slide-1", "Слайд 1", "Схема архитектуры", 2),
+                new Fragment("slide-2", "Слайд 2", Fragment.IMAGE_ONLY_TEXT, 1),
+                new Fragment("slide-3", "Слайд 3", wall, 0),
+                new Fragment("slide-4", "Слайд 4", "Выводы", 0)
+        ), false);
+
+        assertThat(snapshot.totalChars()).isEqualTo("Схема архитектуры".length() + wall.length() + "Выводы".length());
+        MaterialSnapshot.VisualStats visual = snapshot.visual();
+        assertThat(visual.slides()).isEqualTo(4);
+        assertThat(visual.slidesWithImages()).isEqualTo(2);
+        assertThat(visual.imageOnlySlides()).isEqualTo(1);
+        assertThat(visual.textOnlySlides()).containsExactly("Слайд 3", "Слайд 4");
+        assertThat(visual.wallOfTextSlides()).containsExactly("Слайд 3");
+        assertThat(visual.averageWords()).isEqualTo(Math.round((2 + 90 + 1) / 3f));
+        assertThat(visual.textOnlyShare()).isEqualTo(0.5);
+    }
+
+    @Test
+    void noVisualStatsWithoutSlides() {
+        MaterialAssembler assembler = new MaterialAssembler(AudienceTestData.properties());
+
+        assertThat(assembler.assemble(AudienceTestData.talk(UUID.randomUUID(), 1L, "Описание"), null, List.of(), false).visual()).isNull();
+        assertThat(assembler.assemble(null, "speech.txt", List.of(new Fragment("part-1", "Фрагмент 1", "Текст")), false).visual()).isNull();
+    }
+
+    @Test
+    void contentHashChangesWhenPicturesAdded() {
+        MaterialAssembler assembler = new MaterialAssembler(AudienceTestData.properties());
+
+        String without = assembler.contentHash(assembler.assemble(null, "a.pptx", List.of(new Fragment("slide-1", "Слайд 1", "Кейс", 0)), false));
+        String with = assembler.contentHash(assembler.assemble(null, "a.pptx", List.of(new Fragment("slide-1", "Слайд 1", "Кейс", 1)), false));
+
+        assertThat(with).isNotEqualTo(without);
+    }
 }
