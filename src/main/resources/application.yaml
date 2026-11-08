@@ -114,3 +114,8 @@ app:
     fit-threshold: 70
     partial-threshold: 45
     pending-timeout-minutes: 10
+  llm:
+    # Тариф GigaChat допускает один параллельный запрос.
+    max-concurrent: 1
+    rate-limit-retries: 3
+    rate-limit-delay: 3s
