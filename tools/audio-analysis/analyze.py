@@ -2,6 +2,7 @@
 """Analyze one Russian speech recording locally and print a JSON report."""
 
 import argparse
+from collections import Counter
 from http.client import HTTPConnection
 import json
 from pathlib import Path
@@ -27,29 +28,57 @@ VAD_SEGMENT = re.compile(r"^Speech segment \d+: start = ([\d.]+), end = ([\d.]+)
 VAD_COUNT = re.compile(r"^Detected (\d+) speech segments?:", re.M)
 
 
+def transcript_segments(entries, duration_ms):
+    blocks = []
+    current = []
+    text_length = 0
+    for segment in entries:
+        text = segment["text"]
+        start = max(0, segment["offsets"]["from"])
+        end = min(duration_ms, segment["offsets"]["to"])
+        if not text.strip() or end < start or start >= duration_ms:
+            continue
+        if current and (text_length + len(text) > 120 or current[-1]["text"].rstrip().endswith((".", "?", "!"))):
+            blocks.append(current)
+            current = []
+            text_length = 0
+        current.append({"text": text, "startMs": start, "endMs": end})
+        text_length += len(text)
+    if current:
+        blocks.append(current)
+    segments = []
+    for block in blocks:
+        text = ""
+        spans = []
+        for piece in block:
+            spans.append((len(text), len(text) + len(piece["text"]), piece))
+            text += piece["text"]
+        words = []
+        for match in WORD.finditer(text):
+            pieces = [piece for start, end, piece in spans if start < match.end() and end > match.start()]
+            words.append({
+                "text": match[0],
+                "startMs": min(piece["startMs"] for piece in pieces),
+                "endMs": max(piece["endMs"] for piece in pieces),
+                "timingSource": (
+                    "whisper" if all(len(WORD.findall(piece["text"])) == 1 for piece in pieces) else "estimated"
+                ),
+            })
+        segments.append({"id": len(segments) + 1, "startMs": min(p["startMs"] for p in block),
+                         "endMs": max(p["endMs"] for p in block), "text": text.strip(), "words": words})
+    return segments
+
+
 def transcribe(audio, model, output, duration_ms):
     subprocess.run(
         ["whisper-cli", "-m", str(model), "-f", str(audio), "-l", "ru",
-         "-ml", "120", "-sow", "-oj", "-of", str(output)],
+         "-ml", "1", "-sow", "-oj", "-of", str(output)],
         stdout=subprocess.DEVNULL, check=True,
     )
     result = json.loads(output.with_suffix(".json").read_text(encoding="utf-8"))
     if result["result"]["language"] != "ru":
         raise ValueError("Whisper не распознал аудио в режиме ru. Проверь, что модель мультиязычная.")
-    segments = []
-    for index, segment in enumerate(result["transcription"], 1):
-        text = segment["text"].strip()
-        start = max(0, segment["offsets"]["from"])
-        end = min(duration_ms, segment["offsets"]["to"])
-        if not text or end < start or start >= duration_ms:
-            continue
-        segments.append({
-            "id": index,
-            "startMs": start,
-            "endMs": end,
-            "text": text,
-        })
-    return segments
+    return transcript_segments(result["transcription"], duration_ms)
 
 
 def speech_intervals(audio, model, duration_ms):
@@ -77,7 +106,34 @@ def speech_intervals(audio, model, duration_ms):
     return intervals
 
 
-def analyze(segments, intervals, min_pause_ms):
+def tempo_series(segments, duration_ms, window_ms=10_000):
+    bins = Counter()
+    estimated = False
+    for segment in segments:
+        words = segment.get("words", [])
+        if words:
+            starts = [word["startMs"] for word in words]
+            estimated |= any(word["timingSource"] != "whisper" for word in words)
+        else:
+            count = len(WORD.findall(segment["text"]))
+            length = segment["endMs"] - segment["startMs"]
+            starts = [segment["startMs"] + length * (index + 0.5) / count for index in range(count)]
+            estimated |= bool(count)
+        bins.update(int(start // window_ms) for start in starts if 0 <= start < duration_ms)
+    return [
+        {
+            "startMs": start,
+            "endMs": min(start + window_ms, duration_ms),
+            "wordCount": bins[start // window_ms],
+            "wordsPerMinute": round(60000 * bins[start // window_ms]
+                                    / (min(start + window_ms, duration_ms) - start), 1),
+            "timingSource": "estimated" if estimated else "whisper",
+        }
+        for start in range(0, duration_ms, window_ms)
+    ] if bins else []
+
+
+def analyze(segments, intervals, min_pause_ms, duration_ms=None):
     pauses = [
         {"startMs": left[1], "endMs": right[0], "durationMs": right[0] - left[1]}
         for left, right in zip(intervals, intervals[1:])
@@ -85,14 +141,38 @@ def analyze(segments, intervals, min_pause_ms):
     ]
     words = sum(len(WORD.findall(segment["text"])) for segment in segments)
     span_ms = intervals[-1][1] - intervals[0][0] if intervals else 0
-    candidates = [
-        {"type": kind, "text": match[0], "segmentId": segment["id"]}
-        for segment in segments
-        for kind, pattern in (
-            ("filler", FILLER), ("repeat", REPEAT), ("hesitation", HESITATION),
-        )
-        for match in pattern.finditer(segment["text"])
-    ]
+    candidates = []
+    for segment in segments:
+        lexical = list(WORD.finditer(segment["text"]))
+        for kind, pattern in (("filler", FILLER), ("repeat", REPEAT), ("hesitation", HESITATION)):
+            for match in pattern.finditer(segment["text"]):
+                matched_words = [
+                    segment["words"][index] for index, word in enumerate(lexical)
+                    if segment.get("words") and word.start() < match.end() and word.end() > match.start()
+                ]
+                candidates.append({
+                    "type": kind, "text": match[0], "segmentId": segment["id"],
+                    "startMs": min(word["startMs"] for word in matched_words) if matched_words else segment["startMs"],
+                    "endMs": max(word["endMs"] for word in matched_words) if matched_words else segment["endMs"],
+                    "timingSource": (
+                        "whisper" if matched_words and all(word["timingSource"] == "whisper" for word in matched_words)
+                        else "segment"
+                    ),
+                })
+    summary = []
+    for kind in ("filler", "repeat", "hesitation"):
+        matches = [candidate for candidate in candidates if candidate["type"] == kind]
+        counts = Counter(" ".join(candidate["text"].lower().split()) for candidate in matches)
+        summary.append({
+            "type": kind,
+            "count": len(matches),
+            "occurrencesPer100Words": round(100 * len(matches) / words, 2) if words else None,
+            "byText": [{"text": text, "count": count}
+                       for text, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))],
+        })
+    duration_ms = duration_ms if duration_ms is not None else max(
+        [segment["endMs"] for segment in segments] + [end for _, end in intervals], default=0
+    )
     return {
         "wordCount": words,
         "speechSpanMs": span_ms,
@@ -101,6 +181,8 @@ def analyze(segments, intervals, min_pause_ms):
         "minPauseMs": min_pause_ms,
         "pauses": pauses,
         "candidates": candidates,
+        "candidateSummary": summary,
+        "tempo": tempo_series(segments, duration_ms),
     }
 
 
@@ -280,8 +362,9 @@ def main():
         )
         asr_seconds = round(time.perf_counter() - asr_started, 3)
 
-    metrics = analyze(segments, intervals, args.min_pause_ms)
+    metrics = analyze(segments, intervals, args.min_pause_ms, duration_ms)
     report = {
+        "schemaVersion": 2,
         "language": "ru",
         "model": args.model.name,
         "durationMs": duration_ms,

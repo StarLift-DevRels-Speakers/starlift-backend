@@ -1705,6 +1705,37 @@ paths:
                     description: При SUCCEEDED содержит транскрипт, паузы и темп. Времена даны в миллисекундах.
                     additionalProperties: true
                     properties:
+                      schemaVersion:
+                        type: integer
+                        description: Версия формата отчёта. В старых отчётах поле может отсутствовать.
+                      tempo:
+                        type: array
+                        description: Темп по окнам 10 секунд. Последнее окно использует фактическую длительность.
+                        items:
+                          type: object
+                          required: [startMs, endMs, wordCount, wordsPerMinute, timingSource]
+                          properties:
+                            startMs: {type: integer}
+                            endMs: {type: integer}
+                            wordCount: {type: integer}
+                            wordsPerMinute: {type: number}
+                            timingSource: {type: string, enum: [whisper, estimated]}
+                      candidateSummary:
+                        type: array
+                        description: Количество кандидатов и частота на 100 слов. Поиск по словарю требует проверки контекста.
+                        items:
+                          type: object
+                          properties:
+                            type: {type: string, enum: [filler, repeat, hesitation]}
+                            count: {type: integer}
+                            occurrencesPer100Words: {type: [number, 'null']}
+                            byText:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  text: {type: string}
+                                  count: {type: integer}
                       language:
                         const: ru
                       durationMs:
@@ -1721,6 +1752,16 @@ paths:
                             startMs: {type: integer}
                             endMs: {type: integer}
                             text: {type: string}
+                            words:
+                              type: array
+                              description: Таймкоды отдельных слов. Автоматическое выравнивание может быть неточным.
+                              items:
+                                type: object
+                                properties:
+                                  text: {type: string}
+                                  startMs: {type: integer}
+                                  endMs: {type: integer}
+                                  timingSource: {type: string, enum: [whisper, estimated]}
                       pauses:
                         type: array
                         items:
