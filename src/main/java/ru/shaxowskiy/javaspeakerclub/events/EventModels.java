@@ -100,4 +100,22 @@ public final class EventModels {
             String status
     ) {
     }
+
+    /**
+     * Подтверждённое выступление спикера: заявка принята или приглашение подтверждено.
+     * reminder: WEEK, THREE_DAYS, ONE_DAY или TODAY; null — до мероприятия больше недели.
+     */
+    public record ScheduleItemResponse(
+            UUID eventId,
+            String eventName,
+            LocalDate date,
+            String city,
+            String format,
+            String topic,
+            String ownerName,
+            long daysLeft,
+            String reminder,
+            String googleCalendarUrl
+    ) {
+    }
 }

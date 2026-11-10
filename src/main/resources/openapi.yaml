@@ -2440,6 +2440,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /api/me/schedule:
+    get:
+      tags: [Schedule]
+      summary: Предстоящие выступления текущего спикера
+      operationId: listMySchedule
+      description: >
+        Выступление — принятая DevRel заявка на CFP или подтверждённое спикером приглашение на опубликованное
+        мероприятие, которое ещё не прошло. Ближайшие первыми. reminder задаёт баннер-напоминание на платформе.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleItemResponse'
+
+  /api/me/schedule/calendar.ics:
+    get:
+      tags: [Schedule]
+      summary: Все предстоящие выступления файлом iCalendar
+      operationId: downloadMyScheduleCalendar
+      description: Импортируется в Google Календарь, Apple Calendar и Outlook. Напоминания — за 7, 3, 1 день и в 9:00 в день выступления.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            text/calendar:
+              schema:
+                type: string
+
+  /api/me/schedule/{eventId}/calendar.ics:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Schedule]
+      summary: Одно выступление файлом iCalendar
+      operationId: downloadMyEventCalendar
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            text/calendar:
+              schema:
+                type: string
+        '404':
+          description: Выступление не найдено
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /api/notifications:
     get:
       tags: [Notifications]
@@ -5695,6 +5759,39 @@ components:
         status:
           type: string
           enum: [sent, accepted, declined]
+
+    ScheduleItemResponse:
+      type: object
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        eventName:
+          type: string
+        date:
+          type: string
+          format: date
+        city:
+          type: string
+        format:
+          type: string
+          enum: [OFFLINE, ONLINE, HYBRID]
+        topic:
+          type: string
+        ownerName:
+          type: string
+        daysLeft:
+          type: integer
+          format: int64
+          description: Дней до выступления, 0 — сегодня
+        reminder:
+          type: string
+          nullable: true
+          enum: [WEEK, THREE_DAYS, ONE_DAY, TODAY]
+          description: "WEEK — 7–4 дня, THREE_DAYS — 3–2 дня, ONE_DAY — завтра, TODAY — сегодня; null — больше недели"
+        googleCalendarUrl:
+          type: string
+          description: Ссылка на форму нового события в Google Календаре с заполненными полями
 
     NotificationResponse:
       type: object
