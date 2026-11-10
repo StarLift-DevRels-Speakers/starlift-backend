@@ -102,10 +102,12 @@ public final class EventModels {
     }
 
     /**
-     * Подтверждённое выступление спикера: заявка принята или приглашение подтверждено.
+     * kind: SPEECH — подтверждённое выступление спикера (заявка принята или приглашение подтверждено),
+     * HOSTING — опубликованное мероприятие DevRel.
      * reminder: WEEK, THREE_DAYS, ONE_DAY или TODAY; null — до мероприятия больше недели.
      */
     public record ScheduleItemResponse(
+            String kind,
             UUID eventId,
             String eventName,
             LocalDate date,

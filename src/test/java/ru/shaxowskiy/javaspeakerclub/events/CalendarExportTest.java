@@ -30,6 +30,7 @@ class CalendarExportTest {
     @Test
     void icsIsAllDayEscapedAndFolded() {
         ScheduleItemResponse item = new ScheduleItemResponse(
+                "SPEECH",
                 UUID.fromString("00000000-0000-0000-0000-000000000001"),
                 "Highload; Java, Kotlin и очень длинное название конференции, которое не помещается в строку",
                 LocalDate.of(2026, 11, 17),
@@ -68,12 +69,22 @@ class CalendarExportTest {
 
     @Test
     void cityIsOptional() {
-        ScheduleItemResponse online = new ScheduleItemResponse(UUID.randomUUID(), "Online Day", LocalDate.of(2026, 12, 31),
+        ScheduleItemResponse online = new ScheduleItemResponse("SPEECH", UUID.randomUUID(), "Online Day", LocalDate.of(2026, 12, 31),
                 null, "ONLINE", "Доклад", null, 30, null, null);
 
         assertThat(CalendarExport.googleCalendarUrl(online)).doesNotContain("&location=").contains("&dates=20261231/20270101");
         assertThat(CalendarExport.ics(List.of(online), LocalDateTime.of(2026, 11, 10, 0, 0)))
                 .doesNotContain("LOCATION:")
                 .doesNotContain("Организатор");
+    }
+
+    @Test
+    void hostingIsTitledAsEventWithoutOrganizerLine() {
+        ScheduleItemResponse hosting = new ScheduleItemResponse("HOSTING", UUID.randomUUID(), "Backend Meetup", LocalDate.of(2026, 11, 17),
+                "Москва", "OFFLINE", "Backend", "Дина Релова", 7, "WEEK", null);
+
+        String ics = CalendarExport.ics(List.of(hosting), LocalDateTime.of(2026, 11, 10, 0, 0)).replace("\r\n ", "");
+
+        assertThat(ics).contains("SUMMARY:Мероприятие: Backend Meetup", "Тематика: Backend").doesNotContain("Организатор");
     }
 }

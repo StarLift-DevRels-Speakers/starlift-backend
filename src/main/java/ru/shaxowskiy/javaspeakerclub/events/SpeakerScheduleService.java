@@ -22,13 +22,16 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Предстоящие выступления спикера: напоминания на платформе и выгрузка в календарь.
- * Выступление появляется, когда DevRel принял заявку на CFP или спикер принял приглашение.
+ * Предстоящие выступления спикера и мероприятия DevRel: напоминания на платформе и выгрузка в календарь.
+ * У спикера выступление появляется, когда DevRel принял заявку на CFP или спикер принял приглашение;
+ * у DevRel — его опубликованные мероприятия.
  */
 @Service
 @RequiredArgsConstructor
 public class SpeakerScheduleService {
 
+    static final String KIND_SPEECH = "SPEECH";
+    static final String KIND_HOSTING = "HOSTING";
     static final String REMINDER_WEEK = "WEEK";
     static final String REMINDER_THREE_DAYS = "THREE_DAYS";
     static final String REMINDER_ONE_DAY = "ONE_DAY";
@@ -39,25 +42,16 @@ public class SpeakerScheduleService {
     private final SpeakerAccessGuard accessGuard;
 
     /**
-     * Предстоящие выступления текущего пользователя, ближайшие первыми; прошедшие и снятые с публикации не входят.
+     * Предстоящие выступления (у DevRel — свои мероприятия) текущего пользователя, ближайшие первыми;
+     * прошедшие и снятые с публикации не входят.
      */
     @Transactional(readOnly = true)
     public List<ScheduleItemResponse> findMine() {
         Long me = accessGuard.currentUserId();
         LocalDate today = LocalDate.now();
-
-        // Тема выступления: из принятой заявки, иначе из подтверждённого приглашения.
-        Map<UUID, String> topics = new LinkedHashMap<>();
-        for (EventApplicationsRecord application : eventRepository.findApplicationsBySpeaker(me)) {
-            if (ApplicationService.STATUS_ACCEPTED.equals(application.getStatus())) {
-                topics.putIfAbsent(application.getEventId(), application.getTopic());
-            }
-        }
-        for (EventInvitationsRecord invitation : eventRepository.findInvitationsBySpeaker(me)) {
-            if (InvitationService.STATUS_ACCEPTED.equals(invitation.getStatus())) {
-                topics.putIfAbsent(invitation.getEventId(), invitation.getTopic());
-            }
-        }
+        boolean devrel = accessGuard.isDevrel();
+        String kind = devrel ? KIND_HOSTING : KIND_SPEECH;
+        Map<UUID, String> topics = devrel ? ownEventTopics(me) : speechTopics(me);
 
         List<EventsRecord> events = eventRepository.findByIds(List.copyOf(topics.keySet())).stream()
                 .filter(event -> EventService.STATE_PUBLISHED.equals(event.getState()))
@@ -68,7 +62,7 @@ public class SpeakerScheduleService {
                 .stream()
                 .collect(Collectors.toMap(UsersRecord::getId, Function.identity()));
         return events.stream()
-                .map(event -> toItem(event, topics.get(event.getId()), owners.get(event.getOwnerId()), today))
+                .map(event -> toItem(kind, event, topics.get(event.getId()), owners.get(event.getOwnerId()), today))
                 .toList();
     }
 
@@ -88,8 +82,39 @@ public class SpeakerScheduleService {
         ScheduleItemResponse item = findMine().stream()
                 .filter(candidate -> candidate.eventId().equals(eventId))
                 .findFirst()
-                .orElseThrow(() -> EventRules.notFound("Выступление не найдено"));
+                .orElseThrow(() -> EventRules.notFound("Мероприятие не найдено"));
         return CalendarExport.ics(List.of(item), CalendarExport.nowUtc());
+    }
+
+    /**
+     * Тема выступления: из принятой заявки, иначе из подтверждённого приглашения.
+     */
+    private Map<UUID, String> speechTopics(Long speakerId) {
+        Map<UUID, String> topics = new LinkedHashMap<>();
+        for (EventApplicationsRecord application : eventRepository.findApplicationsBySpeaker(speakerId)) {
+            if (ApplicationService.STATUS_ACCEPTED.equals(application.getStatus())) {
+                topics.putIfAbsent(application.getEventId(), application.getTopic());
+            }
+        }
+        for (EventInvitationsRecord invitation : eventRepository.findInvitationsBySpeaker(speakerId)) {
+            if (InvitationService.STATUS_ACCEPTED.equals(invitation.getStatus())) {
+                topics.putIfAbsent(invitation.getEventId(), invitation.getTopic());
+            }
+        }
+        return topics;
+    }
+
+    /**
+     * Мероприятия DevRel: тема — тематика мероприятия.
+     */
+    private Map<UUID, String> ownEventTopics(Long ownerId) {
+        Map<UUID, String> topics = new LinkedHashMap<>();
+        for (EventsRecord event : eventRepository.findVisible(ownerId)) {
+            if (event.getOwnerId().equals(ownerId)) {
+                topics.put(event.getId(), event.getTopic());
+            }
+        }
+        return topics;
     }
 
     /**
@@ -108,9 +133,10 @@ public class SpeakerScheduleService {
         return daysLeft <= 3 ? REMINDER_THREE_DAYS : REMINDER_WEEK;
     }
 
-    private static ScheduleItemResponse toItem(EventsRecord event, String topic, UsersRecord owner, LocalDate today) {
+    private static ScheduleItemResponse toItem(String kind, EventsRecord event, String topic, UsersRecord owner, LocalDate today) {
         long daysLeft = ChronoUnit.DAYS.between(today, event.getEventDate());
         ScheduleItemResponse item = new ScheduleItemResponse(
+                kind,
                 event.getId(),
                 event.getName(),
                 event.getEventDate(),
@@ -123,7 +149,7 @@ public class SpeakerScheduleService {
                 null
         );
         return new ScheduleItemResponse(
-                item.eventId(), item.eventName(), item.date(), item.city(), item.format(), item.topic(),
+                item.kind(), item.eventId(), item.eventName(), item.date(), item.city(), item.format(), item.topic(),
                 item.ownerName(), item.daysLeft(), item.reminder(), CalendarExport.googleCalendarUrl(item)
         );
     }

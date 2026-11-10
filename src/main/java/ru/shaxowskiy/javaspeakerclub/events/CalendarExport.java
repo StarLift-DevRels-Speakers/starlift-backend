@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Выгрузка выступлений во внешний календарь: ссылка «Добавить в Google Календарь» и файл iCalendar (RFC 5545).
+ * Выгрузка выступлений и мероприятий DevRel во внешний календарь: ссылка «Добавить в Google Календарь» и файл iCalendar (RFC 5545).
  * Мероприятия хранятся с датой без времени, поэтому событие календаря — на весь день.
  */
 final class CalendarExport {
@@ -40,14 +40,14 @@ final class CalendarExport {
     }
 
     static String title(ScheduleItemResponse item) {
-        return "Выступление: " + item.eventName();
+        return (isHosting(item) ? "Мероприятие: " : "Выступление: ") + item.eventName();
     }
 
     static String description(ScheduleItemResponse item) {
         return Stream.of(
-                        "Доклад: " + item.topic(),
+                        (isHosting(item) ? "Тематика: " : "Доклад: ") + item.topic(),
                         "Формат: " + FORMAT_LABELS.getOrDefault(item.format(), item.format()),
-                        item.ownerName() == null ? null : "Организатор (DevRel): " + item.ownerName(),
+                        item.ownerName() == null || isHosting(item) ? null : "Организатор (DevRel): " + item.ownerName(),
                         "Добавлено из StarLift"
                 )
                 .filter(line -> line != null)
@@ -75,7 +75,7 @@ final class CalendarExport {
         line(out, "PRODID:-//StarLift//Speaker schedule//RU");
         line(out, "CALSCALE:GREGORIAN");
         line(out, "METHOD:PUBLISH");
-        line(out, "X-WR-CALNAME:" + text("StarLift — мои выступления"));
+        line(out, "X-WR-CALNAME:" + text("StarLift — мои мероприятия"));
         for (ScheduleItemResponse item : items) {
             line(out, "BEGIN:VEVENT");
             line(out, "UID:" + item.eventId() + "@starlift");
@@ -144,6 +144,10 @@ final class CalendarExport {
             i += Character.charCount(codePoint);
         }
         out.append("\r\n");
+    }
+
+    private static boolean isHosting(ScheduleItemResponse item) {
+        return SpeakerScheduleService.KIND_HOSTING.equals(item.kind());
     }
 
     private static boolean isBlank(String value) {

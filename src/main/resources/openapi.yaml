@@ -2443,11 +2443,11 @@ paths:
   /api/me/schedule:
     get:
       tags: [Schedule]
-      summary: Предстоящие выступления текущего спикера
+      summary: Предстоящие выступления спикера или мероприятия DevRel
       operationId: listMySchedule
       description: >
-        Выступление — принятая DevRel заявка на CFP или подтверждённое спикером приглашение на опубликованное
-        мероприятие, которое ещё не прошло. Ближайшие первыми. reminder задаёт баннер-напоминание на платформе.
+        У спикера — принятая DevRel заявка на CFP или подтверждённое приглашение на опубликованное
+        мероприятие, которое ещё не прошло; у DevRel — его опубликованные непрошедшие мероприятия. Ближайшие первыми. reminder задаёт баннер-напоминание на платформе.
       security:
         - bearerAuth: []
       responses:
@@ -5763,6 +5763,10 @@ components:
     ScheduleItemResponse:
       type: object
       properties:
+        kind:
+          type: string
+          enum: [SPEECH, HOSTING]
+          description: SPEECH — выступление спикера, HOSTING — мероприятие DevRel
         eventId:
           type: string
           format: uuid
