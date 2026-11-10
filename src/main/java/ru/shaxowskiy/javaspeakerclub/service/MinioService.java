@@ -21,7 +21,7 @@ public class MinioService {
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "video/mp4", "video/webm", "video/quicktime",
-            "audio/mpeg", "audio/wav", "audio/ogg",
+            "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4", "audio/x-m4a",
             "application/pdf",
             "image/jpeg", "image/png", "image/gif", "image/webp",
             "application/vnd.ms-powerpoint",

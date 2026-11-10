@@ -27,6 +27,8 @@ tags:
     description: Поиск спикеров и управление NPS
   - name: Media
     description: Загрузка медиа (в т.ч. без привязки к лекции), скачивание и удаление файлов лекций
+  - name: AudioAnalysis
+    description: Фоновый анализ русскоязычных аудиозаписей владельца
   - name: Users
     description: Администрирование ролей пользователей
   - name: Producer
@@ -1625,6 +1627,118 @@ paths:
             text/html:
               schema:
                 type: string
+
+  /api/audio-analyses:
+    post:
+      tags: [AudioAnalysis]
+      operationId: startAudioAnalysis
+      summary: Поставить загруженную запись в очередь
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mediaId]
+              properties:
+                mediaId:
+                  type: string
+                  format: uuid
+                  description: Поле id ответа POST /api/media/upload
+      responses:
+        '202':
+          description: Задача принята
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [analysisId, status]
+                properties:
+                  analysisId:
+                    type: string
+                    format: uuid
+                  status:
+                    const: QUEUED
+        '400':
+          description: Некорректный mediaId
+        '404':
+          description: Файл владельца не найден
+
+  /api/audio-analyses/{id}:
+    get:
+      tags: [AudioAnalysis]
+      operationId: getAudioAnalysis
+      summary: Получить статус и готовый отчёт
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Текущее состояние задачи
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [analysisId, mediaId, status, createdAt, updatedAt]
+                properties:
+                  analysisId:
+                    type: string
+                    format: uuid
+                  mediaId:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [QUEUED, RUNNING, SUCCEEDED, FAILED]
+                  report:
+                    type: [object, 'null']
+                    description: При SUCCEEDED содержит транскрипт, паузы и темп. Времена даны в миллисекундах.
+                    additionalProperties: true
+                    properties:
+                      language:
+                        const: ru
+                      durationMs:
+                        type: integer
+                      wordsPerMinute:
+                        type: [number, 'null']
+                      transcript:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, startMs, endMs, text]
+                          properties:
+                            id: {type: integer}
+                            startMs: {type: integer}
+                            endMs: {type: integer}
+                            text: {type: string}
+                      pauses:
+                        type: array
+                        items:
+                          type: object
+                          required: [startMs, endMs, durationMs]
+                          properties:
+                            startMs: {type: integer}
+                            endMs: {type: integer}
+                            durationMs: {type: integer}
+                  errorCode:
+                    type: [string, 'null']
+                    enum: [DOWNLOAD_FAILED, INVALID_AUDIO, ANALYSIS_FAILED, ANALYSIS_TIMEOUT, LEASE_EXPIRED, null]
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+        '404':
+          description: Задача владельца не найдена
 
   # ── Weak signals ────────────────────────────────────────────────────
 

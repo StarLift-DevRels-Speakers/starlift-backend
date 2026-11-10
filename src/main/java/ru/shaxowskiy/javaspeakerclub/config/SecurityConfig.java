@@ -1,11 +1,15 @@
 package ru.shaxowskiy.javaspeakerclub.config;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -31,7 +35,8 @@ public class SecurityConfig {
                                                    AppUserDetailsService userDetailsService,
                                                    JwtAuthenticationFilter jwtAuthenticationFilter,
                                                    ProblemJsonAuthenticationEntryPoint authenticationEntryPoint,
-                                                   ProblemJsonAccessDeniedHandler accessDeniedHandler) throws Exception {
+                                                   ProblemJsonAccessDeniedHandler accessDeniedHandler,
+                                                   @Value("${AUDIO_ANALYSIS_WORKER_TOKEN:}") String audioWorkerToken) throws Exception {
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
@@ -41,6 +46,12 @@ public class SecurityConfig {
                     .accessDeniedHandler(accessDeniedHandler))
             .userDetailsService(userDetailsService)
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/internal/audio-analyses/**").access((authentication, context) -> {
+                    String token = context.getRequest().getHeader("X-Audio-Worker-Token");
+                    return new AuthorizationDecision(!audioWorkerToken.isBlank() && token != null
+                            && MessageDigest.isEqual(audioWorkerToken.getBytes(StandardCharsets.UTF_8),
+                            token.getBytes(StandardCharsets.UTF_8)));
+                })
                 .requestMatchers("/", "/**/home", "/**/sign-on", "/**/sign-in", "/health", "/api/auth/**", "/api/parsing/*, /api/media/*").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/talks/*/feedback", "/api/talks/*/feedback/*").permitAll()
@@ -59,6 +70,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/talks/**", "/api/lectures/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
 
                 .requestMatchers("/api/media/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
+                .requestMatchers("/api/audio-analyses/**").hasAnyRole("SPEAKER", "DEVREL", "ADMIN")
 
                 .requestMatchers("/api/cfp/**").hasAnyRole("DEVREL", "ADMIN")
 
