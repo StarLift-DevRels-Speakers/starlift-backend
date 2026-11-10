@@ -1,0 +1,96 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0028-01
+      author: demo
+      comment: >-
+        Напоминания для демо-спикеров: подтверждённые выступления ilya.mironov, anna.levina, timur.karimov,
+        daniil.gromov и maria.orlova на мероприятиях demo.devrel в пределах недели — у каждого свой этап баннера.
+        Доклады берутся из уже залитых демо-данных по спикеру и названию; чего нет — пропускается.
+        Без контекста demo: применяется, только если есть demo.devrel, иначе помечается выполненным.
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: >-
+              SELECT COUNT(*) FROM users WHERE username = 'demo.devrel'
+              AND NOT EXISTS (SELECT 1 FROM events WHERE id = 'e7e00000-0000-4000-8000-000000000801')
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO events (id, owner_id, name, event_date, cfp_deadline, city, format, topic, audience, description, state)
+              SELECT e.id::uuid, u.id, e.name, CURRENT_DATE + e.event_in, NULL, e.city, e.format, e.topic,
+                     e.audience, e.description, 'published'
+              FROM (VALUES
+                ('e7e00000-0000-4000-8000-000000000801', 'Android Ural Meetup', 0, 'Екатеринбург', 'OFFLINE',
+                 'Android', 'Android-разработчики', 'Вечерний митап про скорость сборки и инструменты Android-команд.'),
+                ('e7e00000-0000-4000-8000-000000000802', 'Compose Day Online', 5, NULL, 'ONLINE',
+                 'Мобильная разработка', 'Мобильные разработчики', 'Онлайн-день про Jetpack Compose и Compose Multiplatform.'),
+                ('e7e00000-0000-4000-8000-000000000803', 'Product Analytics Day', 1, 'Москва', 'OFFLINE',
+                 'Продуктовая аналитика', 'Аналитики и продакт-менеджеры', 'Метрики и эксперименты в продуктовых командах.'),
+                ('e7e00000-0000-4000-8000-000000000804', 'Product Leaders Meetup', 4, 'Москва', 'HYBRID',
+                 'Продуктовая аналитика', 'Продакт-лиды', 'Как продуктовые лиды выбирают метрики и цели.'),
+                ('e7e00000-0000-4000-8000-000000000805', 'Payments Tech Meetup', 2, 'Казань', 'OFFLINE',
+                 'Backend', 'Бэкенд-разработчики платёжных систем', 'Надёжность и согласованность в платёжном контуре.'),
+                ('e7e00000-0000-4000-8000-000000000806', 'Data Ural', 3, 'Екатеринбург', 'OFFLINE',
+                 'Data Engineering', 'Инженеры данных', 'Региональная конференция про хранилища и аналитические базы.'),
+                ('e7e00000-0000-4000-8000-000000000807', 'Streaming Data Conf', 7, 'Новосибирск', 'HYBRID',
+                 'Data Engineering', 'Инженеры данных и архитекторы', 'Потоковая обработка, Kafka и Flink в продакшене.'),
+                ('e7e00000-0000-4000-8000-000000000808', 'TeamLead Ural', 6, 'Екатеринбург', 'OFFLINE',
+                 'Менеджмент', 'Тимлиды и руководители разработки', 'Найм, онбординг и рост инженерных команд.')
+              ) AS e(id, name, event_in, city, format, topic, audience, description)
+              JOIN users u ON u.username = 'demo.devrel';
+
+              INSERT INTO event_applications (id, event_id, speaker_id, speaker_talk_id, topic, status)
+              SELECT a.id::uuid, a.event_id::uuid, u.id, t.id, t.name, 'accepted'
+              FROM (VALUES
+                ('a9900000-0000-4000-8000-000000000801', 'e7e00000-0000-4000-8000-000000000801', 'ilya.mironov', 'Как мы ускорили сборку в 3 раза'),
+                ('a9900000-0000-4000-8000-000000000804', 'e7e00000-0000-4000-8000-000000000804', 'anna.levina', 'North Star Metric на практике'),
+                ('a9900000-0000-4000-8000-000000000805', 'e7e00000-0000-4000-8000-000000000805', 'timur.karimov', 'Outbox-паттерн на практике'),
+                ('a9900000-0000-4000-8000-000000000807', 'e7e00000-0000-4000-8000-000000000807', 'daniil.gromov', 'Потоковая обработка на Flink'),
+                ('a9900000-0000-4000-8000-000000000808', 'e7e00000-0000-4000-8000-000000000808', 'maria.orlova', 'Как вырастить мобильную команду')
+              ) AS a(id, event_id, username, talk)
+              JOIN users u ON u.username = a.username
+              JOIN speaker_talks t ON t.speaker_id = u.id AND t.name = a.talk;
+
+              INSERT INTO event_invitations (id, event_id, speaker_id, topic, status)
+              SELECT i.id::uuid, i.event_id::uuid, u.id, i.topic, 'accepted'
+              FROM (VALUES
+                ('b1100000-0000-4000-8000-000000000802', 'e7e00000-0000-4000-8000-000000000802', 'ilya.mironov', 'Compose Multiplatform: первый опыт'),
+                ('b1100000-0000-4000-8000-000000000803', 'e7e00000-0000-4000-8000-000000000803', 'anna.levina', 'Метрики, которые врут'),
+                ('b1100000-0000-4000-8000-000000000806', 'e7e00000-0000-4000-8000-000000000806', 'daniil.gromov', 'Хранилище на ClickHouse за месяц')
+              ) AS i(id, event_id, username, topic)
+              JOIN users u ON u.username = i.username;
+
+              INSERT INTO notifications (id, user_id, text, is_read, created_date)
+              SELECT n.id::uuid, u.id, n.text, FALSE, CURRENT_TIMESTAMP - INTERVAL '1 day'
+              FROM (VALUES
+                ('c3300000-0000-4000-8000-000000000801', 'ilya.mironov', 'Заявка на «Android Ural Meetup»: принята'),
+                ('c3300000-0000-4000-8000-000000000804', 'anna.levina', 'Заявка на «Product Leaders Meetup»: принята'),
+                ('c3300000-0000-4000-8000-000000000805', 'timur.karimov', 'Заявка на «Payments Tech Meetup»: принята'),
+                ('c3300000-0000-4000-8000-000000000807', 'daniil.gromov', 'Заявка на «Streaming Data Conf»: принята'),
+                ('c3300000-0000-4000-8000-000000000808', 'maria.orlova', 'Заявка на «TeamLead Ural»: принята')
+              ) AS n(id, username, text)
+              JOIN users u ON u.username = n.username;
+
+  - changeSet:
+      id: 0028-02
+      author: demo
+      runAlways: true
+      comment: >-
+        Даты выступлений демо-спикеров отсчитываются от дня запуска, чтобы этапы напоминаний не устаревали.
+      changes:
+        - sql:
+            sql: |
+              UPDATE events e
+              SET event_date = CURRENT_DATE + d.event_in
+              FROM (VALUES
+                ('e7e00000-0000-4000-8000-000000000801', 0),
+                ('e7e00000-0000-4000-8000-000000000802', 5),
+                ('e7e00000-0000-4000-8000-000000000803', 1),
+                ('e7e00000-0000-4000-8000-000000000804', 4),
+                ('e7e00000-0000-4000-8000-000000000805', 2),
+                ('e7e00000-0000-4000-8000-000000000806', 3),
+                ('e7e00000-0000-4000-8000-000000000807', 7),
+                ('e7e00000-0000-4000-8000-000000000808', 6)
+              ) AS d(id, event_in)
+              WHERE e.id = d.id::uuid;
