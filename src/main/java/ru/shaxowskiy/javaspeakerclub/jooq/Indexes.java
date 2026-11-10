@@ -9,6 +9,7 @@ import org.jooq.OrderField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.AudienceFitChecks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications;
@@ -49,6 +50,8 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index IDX_AUDIENCE_FIT_CHECKS_EVENT_ID = Internal.createIndex(DSL.name("idx_audience_fit_checks_event_id"), AudienceFitChecks.AUDIENCE_FIT_CHECKS, new OrderField[] { AudienceFitChecks.AUDIENCE_FIT_CHECKS.EVENT_ID }, false);
+    public static final Index IDX_AUDIENCE_FIT_CHECKS_SPEAKER_CREATED = Internal.createIndex(DSL.name("idx_audience_fit_checks_speaker_created"), AudienceFitChecks.AUDIENCE_FIT_CHECKS, new OrderField[] { AudienceFitChecks.AUDIENCE_FIT_CHECKS.SPEAKER_ID, AudienceFitChecks.AUDIENCE_FIT_CHECKS.CREATED_DATE }, false);
     public static final Index IDX_CFP_RECOMMENDATION_TAGS_TAG = Internal.createIndex(DSL.name("idx_cfp_recommendation_tags_tag"), CfpRecommendationTags.CFP_RECOMMENDATION_TAGS, new OrderField[] { CfpRecommendationTags.CFP_RECOMMENDATION_TAGS.TAG }, false);
     public static final Index IDX_CFP_RECOMMENDATIONS_CITY = Internal.createIndex(DSL.name("idx_cfp_recommendations_city"), CfpRecommendations.CFP_RECOMMENDATIONS, new OrderField[] { CfpRecommendations.CFP_RECOMMENDATIONS.CITY }, false);
     public static final Index IDX_CFP_RECOMMENDATIONS_DEADLINE = Internal.createIndex(DSL.name("idx_cfp_recommendations_deadline"), CfpRecommendations.CFP_RECOMMENDATIONS, new OrderField[] { CfpRecommendations.CFP_RECOMMENDATIONS.DEADLINE }, false);

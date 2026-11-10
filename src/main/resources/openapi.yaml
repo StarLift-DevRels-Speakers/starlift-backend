@@ -11,6 +11,8 @@ servers:
     description: Локальный запуск
 
 tags:
+  - name: AudienceFit
+    description: Ожидаемая аудитория мероприятия и проверка докладов и презентаций под неё
   - name: Auth
     description: Регистрация и аутентификация
   - name: Profile
@@ -2182,6 +2184,142 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
 
+  /api/events/{eventId}/audience-profile:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [AudienceFit]
+      summary: Ожидаемая аудитория мероприятия
+      operationId: getEventAudienceProfile
+      description: >-
+        Профиль выводится LLM из полей мероприятия, принятых докладов и прошлых выпусков конференции и пересчитывается,
+        только когда эти данные изменились. Первый запрос может занять до минуты. Черновик видит только организатор.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Профиль (status ready) или причина, почему его нет (status failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAudienceProfileResponse'
+        '404':
+          description: Мероприятие не найдено
+    put:
+      tags: [AudienceFit]
+      summary: Уточнить аудиторию вручную (организатор мероприятия)
+      operationId: updateEventAudienceProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventAudienceProfileUpdate'
+      responses:
+        '200':
+          description: Сохранённый профиль, manual = true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAudienceProfileResponse'
+        '403':
+          description: Не организатор мероприятия
+  /api/events/{eventId}/audience-profile/refresh:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [AudienceFit]
+      summary: Сбросить ручную правку и заново вывести аудиторию из данных (организатор)
+      operationId: refreshEventAudienceProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Новый профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAudienceProfileResponse'
+        '403':
+          description: Не организатор мероприятия
+  /api/audience-fit/checks:
+    post:
+      tags: [AudienceFit]
+      summary: Проверить доклад и/или файл под аудиторию мероприятия (SPEAKER)
+      operationId: requestAudienceFitCheck
+      description: >-
+        Отвечает сразу со статусом pending, проверка идёт в фоне. Без mediaId берётся последний PDF/PPTX/DOCX/TXT/MD
+        файл доклада. Проверки запускаются и автоматически: при подаче заявки, смене доклада в заявке и загрузке файла
+        к докладу, поданному на мероприятие.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AudienceFitRequest'
+      responses:
+        '202':
+          description: Проверка создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudienceFitCheckResponse'
+        '400':
+          description: Не выбран доклад или файл, либо формат файла не поддерживается
+        '404':
+          description: Мероприятие, доклад или файл не найдены
+    get:
+      tags: [AudienceFit]
+      summary: Проверки под аудиторию
+      operationId: listAudienceFitChecks
+      description: Спикер получает свои проверки. Организатор с eventId своего мероприятия — готовые проверки по нему.
+      security:
+        - bearerAuth: []
+      parameters:
+        - {name: eventId, in: query, required: false, schema: {type: string, format: uuid}}
+        - {name: talkId, in: query, required: false, schema: {type: string, format: uuid}}
+        - {name: mediaId, in: query, required: false, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Новые первыми
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AudienceFitCheckResponse'
+  /api/audience-fit/checks/{id}:
+    get:
+      tags: [AudienceFit]
+      summary: Одна проверка под аудиторию
+      operationId: getAudienceFitCheck
+      security:
+        - bearerAuth: []
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudienceFitCheckResponse'
+        '404':
+          description: Проверка не найдена
   /api/applications:
     get:
       tags: [Applications]
@@ -2411,6 +2549,70 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
         '404':
           description: Не найдено или нет доступа
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/me/schedule:
+    get:
+      tags: [Schedule]
+      summary: Предстоящие выступления спикера или мероприятия DevRel
+      operationId: listMySchedule
+      description: >
+        У спикера — принятая DevRel заявка на CFP или подтверждённое приглашение на опубликованное
+        мероприятие, которое ещё не прошло; у DevRel — его опубликованные непрошедшие мероприятия. Ближайшие первыми. reminder задаёт баннер-напоминание на платформе.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScheduleItemResponse'
+
+  /api/me/schedule/calendar.ics:
+    get:
+      tags: [Schedule]
+      summary: Все предстоящие выступления файлом iCalendar
+      operationId: downloadMyScheduleCalendar
+      description: Импортируется в Google Календарь, Apple Calendar и Outlook. Напоминания — за 7, 3, 1 день и в 9:00 в день выступления.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            text/calendar:
+              schema:
+                type: string
+
+  /api/me/schedule/{eventId}/calendar.ics:
+    parameters:
+      - name: eventId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Schedule]
+      summary: Одно выступление файлом iCalendar
+      operationId: downloadMyEventCalendar
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешно
+          content:
+            text/calendar:
+              schema:
+                type: string
+        '404':
+          description: Выступление не найдено
           content:
             application/problem+json:
               schema:
@@ -5378,6 +5580,152 @@ components:
         description:
           type: string
 
+    EventAudienceProfile:
+      type: object
+      properties:
+        summary: {type: string, nullable: true}
+        primarySegment:
+          type: string
+          nullable: true
+          enum: [schoolchildren, students, beginners, practitioners, experts]
+          description: Преимущественная ЦА — сегмент с наибольшей долей в experience
+        segmentLabel: {type: string, nullable: true, example: Студенты IT-направлений}
+        segmentReason: {type: string, nullable: true, description: Что в данных мероприятия указывает на этот сегмент}
+        experience:
+          type: object
+          description: Доли сегментов в процентах, в сумме 100
+          additionalProperties: {type: integer}
+        ageRange:
+          type: object
+          nullable: true
+          description: Только если возраст прямо следует из данных мероприятия
+          properties:
+            from: {type: integer, nullable: true}
+            to: {type: integer, nullable: true}
+        visualExpectation: {type: string, enum: [low, medium, high]}
+        levels:
+          type: object
+          description: Доли уровней в процентах (junior, middle, senior, lead), в сумме 100; пусто, если уровень не ясен
+          additionalProperties: {type: integer}
+        roles: {type: array, items: {type: string}}
+        domains: {type: array, items: {type: string}}
+        expectations: {type: array, items: {type: string}}
+        assumedKnowledge: {type: array, items: {type: string}}
+        turnoffs: {type: array, items: {type: string}}
+        confidence: {type: string, enum: [low, medium, high]}
+        evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              source: {type: string, enum: [EVENT, ACCEPTED_TALK, PAST_EDITION, DEVREL]}
+              id: {type: string, nullable: true}
+              label: {type: string}
+    EventAudienceProfileResponse:
+      type: object
+      properties:
+        eventId: {type: string, format: uuid}
+        status: {type: string, enum: [ready, failed]}
+        message: {type: string, nullable: true}
+        profile:
+          allOf:
+            - $ref: '#/components/schemas/EventAudienceProfile'
+          nullable: true
+        manual: {type: boolean}
+        model: {type: string, nullable: true}
+        promptVersion: {type: string, nullable: true}
+        updatedDate: {type: string, format: date-time}
+    EventAudienceProfileUpdate:
+      type: object
+      properties:
+        summary: {type: string}
+        primarySegment: {type: string, enum: [schoolchildren, students, beginners, practitioners, experts]}
+        segmentLabel: {type: string}
+        ageFrom: {type: integer, nullable: true}
+        ageTo: {type: integer, nullable: true}
+        visualExpectation: {type: string, enum: [low, medium, high]}
+        levels: {type: object, additionalProperties: {type: number}}
+        roles: {type: array, items: {type: string}}
+        domains: {type: array, items: {type: string}}
+        expectations: {type: array, items: {type: string}}
+        assumedKnowledge: {type: array, items: {type: string}}
+        turnoffs: {type: array, items: {type: string}}
+    AudienceFitRequest:
+      type: object
+      required: [eventId]
+      properties:
+        eventId: {type: string, format: uuid}
+        talkId: {type: string, format: uuid}
+        mediaId: {type: string, format: uuid}
+    AudienceFitResult:
+      type: object
+      properties:
+        verdict: {type: string, enum: [fits, partially, not_fits]}
+        score: {type: integer, minimum: 0, maximum: 100, description: Считает сервер по оценкам критериев}
+        summary: {type: string, nullable: true}
+        criteria:
+          type: array
+          items:
+            type: object
+            properties:
+              key: {type: string, enum: [level, relevance, expectations, knowledge, presentation, turnoffs]}
+              label: {type: string}
+              score: {type: integer, minimum: 0, maximum: 10}
+              comment: {type: string, nullable: true}
+        issues:
+          type: array
+          items:
+            type: object
+            properties:
+              fragmentId: {type: string, example: slide-3}
+              label: {type: string, example: Слайд 3}
+              quote: {type: string}
+              problem: {type: string}
+              fix: {type: string, nullable: true}
+        strengths:
+          type: array
+          items:
+            type: object
+            properties:
+              fragmentId: {type: string}
+              label: {type: string}
+              quote: {type: string}
+              why: {type: string}
+        profileConfidence: {type: string, enum: [low, medium, high]}
+        truncated: {type: boolean}
+        primarySegment: {type: string, nullable: true}
+        segmentLabel: {type: string, nullable: true}
+        visual:
+          type: object
+          nullable: true
+          description: Наглядность презентации, посчитанная по файлу; null — слайдов нет
+          properties:
+            slides: {type: integer}
+            slidesWithImages: {type: integer}
+            imageOnlySlides: {type: integer}
+            averageWords: {type: integer}
+            textOnlySlides: {type: array, items: {type: string}}
+            wallOfTextSlides: {type: array, items: {type: string}}
+    AudienceFitCheckResponse:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        eventId: {type: string, format: uuid}
+        eventName: {type: string, nullable: true}
+        speakerId: {type: integer, format: int64}
+        talkId: {type: string, format: uuid, nullable: true}
+        talkName: {type: string, nullable: true}
+        mediaId: {type: string, format: uuid, nullable: true}
+        fileName: {type: string, nullable: true}
+        trigger: {type: string, enum: [manual, upload, application]}
+        status: {type: string, enum: [pending, ready, insufficient_data, failed]}
+        message: {type: string, nullable: true}
+        result:
+          allOf:
+            - $ref: '#/components/schemas/AudienceFitResult'
+          nullable: true
+        createdDate: {type: string, format: date-time}
+        updatedDate: {type: string, format: date-time}
     EventResponse:
       type: object
       properties:
@@ -5525,6 +5873,43 @@ components:
         status:
           type: string
           enum: [sent, accepted, declined]
+
+    ScheduleItemResponse:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [SPEECH, HOSTING]
+          description: SPEECH — выступление спикера, HOSTING — мероприятие DevRel
+        eventId:
+          type: string
+          format: uuid
+        eventName:
+          type: string
+        date:
+          type: string
+          format: date
+        city:
+          type: string
+        format:
+          type: string
+          enum: [OFFLINE, ONLINE, HYBRID]
+        topic:
+          type: string
+        ownerName:
+          type: string
+        daysLeft:
+          type: integer
+          format: int64
+          description: Дней до выступления, 0 — сегодня
+        reminder:
+          type: string
+          nullable: true
+          enum: [WEEK, THREE_DAYS, ONE_DAY, TODAY]
+          description: "WEEK — 7–4 дня, THREE_DAYS — 3–2 дня, ONE_DAY — завтра, TODAY — сегодня; null — больше недели"
+        googleCalendarUrl:
+          type: string
+          description: Ссылка на форму нового события в Google Календаре с заполненными полями
 
     NotificationResponse:
       type: object

@@ -100,4 +100,24 @@ public final class EventModels {
             String status
     ) {
     }
+
+    /**
+     * kind: SPEECH — подтверждённое выступление спикера (заявка принята или приглашение подтверждено),
+     * HOSTING — опубликованное мероприятие DevRel.
+     * reminder: WEEK, THREE_DAYS, ONE_DAY или TODAY; null — до мероприятия больше недели.
+     */
+    public record ScheduleItemResponse(
+            String kind,
+            UUID eventId,
+            String eventName,
+            LocalDate date,
+            String city,
+            String format,
+            String topic,
+            String ownerName,
+            long daysLeft,
+            String reminder,
+            String googleCalendarUrl
+    ) {
+    }
 }

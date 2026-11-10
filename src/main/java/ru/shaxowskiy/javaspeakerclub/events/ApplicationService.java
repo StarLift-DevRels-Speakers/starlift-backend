@@ -1,8 +1,11 @@
 package ru.shaxowskiy.javaspeakerclub.events;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.shaxowskiy.javaspeakerclub.audience.trigger.AudienceTriggers.ApplicationTalkSet;
+import ru.shaxowskiy.javaspeakerclub.audience.trigger.AudienceTriggers.EventChanged;
 import ru.shaxowskiy.javaspeakerclub.events.EventModels.ApplicationCreateRequest;
 import ru.shaxowskiy.javaspeakerclub.events.EventModels.ApplicationResponse;
 import ru.shaxowskiy.javaspeakerclub.events.EventModels.TalkChange;
@@ -46,6 +49,7 @@ public class ApplicationService {
     private final UserRepository userRepository;
     private final SpeakerAccessGuard accessGuard;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher events;
 
     /**
      * DevRel видит заявки на свои мероприятия, спикер — свои заявки.
@@ -91,6 +95,7 @@ public class ApplicationService {
         }
 
         eventRepository.insertApplication(event.getId(), me.getId(), talk.getId(), talk.getName());
+        events.publishEvent(new ApplicationTalkSet(me.getId(), event.getId(), talk.getId()));
         notificationService.notify(event.getOwnerId(), "Поступила заявка на " + event.getName());
     }
 
@@ -145,6 +150,10 @@ public class ApplicationService {
                 throw EventRules.conflict("С этим докладом уже есть другая заявка");
             }
             eventRepository.applyTalkChange(applicationId, application.getChangeTalkId(), application.getChangeTopic());
+            events.publishEvent(new ApplicationTalkSet(application.getSpeakerId(), event.getId(), application.getChangeTalkId()));
+            if (STATUS_ACCEPTED.equals(application.getStatus())) {
+                events.publishEvent(new EventChanged(event.getId()));
+            }
         } else {
             eventRepository.setTalkChange(applicationId, null, null);
         }
@@ -177,6 +186,10 @@ public class ApplicationService {
         }
 
         eventRepository.setApplicationStatus(applicationId, status);
+        if (STATUS_ACCEPTED.equals(status)) {
+            // Принятый доклад входит в программу и уточняет ожидаемую аудиторию.
+            events.publishEvent(new EventChanged(event.getId()));
+        }
         notificationService.notify(application.getSpeakerId(), "Заявка на «%s»: %s".formatted(event.getName(), DECISION_LABELS.get(status)));
     }
 

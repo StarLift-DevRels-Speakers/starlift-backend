@@ -20,6 +20,9 @@ spring:
     exclude: org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
 
 app:
+  audience:
+    # Фоновые проверки ходят в LLM — в тестах не запускаем.
+    triggers-enabled: false
   parsing:
     search-api-key: test-search-key
     serper-url: https://google.serper.dev/search

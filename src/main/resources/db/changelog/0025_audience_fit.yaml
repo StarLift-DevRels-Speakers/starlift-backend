@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0025-01
+      author: scrum-71
+      comment: >-
+        Проверка материалов под аудиторию мероприятия: профиль ожидаемой аудитории, который LLM выводит из данных
+        мероприятия (DevRel может поправить его вручную), и проверки докладов и презентаций спикеров на соответствие ему.
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE event_audience_profiles (
+                event_id UUID PRIMARY KEY,
+                status VARCHAR(30) NOT NULL CHECK (status IN ('ready', 'failed')),
+                profile_json TEXT,
+                inputs_json TEXT,
+                inputs_hash VARCHAR(64),
+                validation_json TEXT,
+                manual BOOLEAN NOT NULL DEFAULT FALSE,
+                model VARCHAR(100),
+                prompt_version VARCHAR(50),
+                error TEXT,
+                updated_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_event_audience_profiles_events_event_id FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+              );
+
+              CREATE TABLE audience_fit_checks (
+                id UUID PRIMARY KEY,
+                event_id UUID NOT NULL,
+                speaker_id BIGINT NOT NULL,
+                speaker_talk_id UUID,
+                media_id UUID,
+                trigger_source VARCHAR(20) NOT NULL CHECK (trigger_source IN ('manual', 'upload', 'application')),
+                status VARCHAR(30) NOT NULL CHECK (status IN ('pending', 'ready', 'insufficient_data', 'failed')),
+                content_hash VARCHAR(64),
+                material_json TEXT,
+                result_json TEXT,
+                validation_json TEXT,
+                model VARCHAR(100),
+                prompt_version VARCHAR(50),
+                error TEXT,
+                created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_audience_fit_checks_events_event_id FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+                CONSTRAINT fk_audience_fit_checks_users_speaker_id FOREIGN KEY (speaker_id) REFERENCES users(id) ON DELETE CASCADE,
+                CONSTRAINT fk_audience_fit_checks_speaker_talks_talk_id FOREIGN KEY (speaker_talk_id) REFERENCES speaker_talks(id) ON DELETE SET NULL,
+                CONSTRAINT fk_audience_fit_checks_user_media_media_id FOREIGN KEY (media_id) REFERENCES user_media(id) ON DELETE SET NULL
+              );
+
+              CREATE INDEX idx_audience_fit_checks_speaker_created ON audience_fit_checks (speaker_id, created_date);
+              CREATE INDEX idx_audience_fit_checks_event_id ON audience_fit_checks (event_id);

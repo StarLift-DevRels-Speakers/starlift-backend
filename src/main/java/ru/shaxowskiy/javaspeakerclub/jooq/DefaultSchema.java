@@ -12,9 +12,11 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
 
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.AudienceFitChecks;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendationTags;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.CfpRecommendations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventApplications;
+import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventAudienceProfiles;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventInvitations;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.EventRequests;
 import ru.shaxowskiy.javaspeakerclub.jooq.tables.Events;
@@ -58,6 +60,11 @@ public class DefaultSchema extends SchemaImpl {
     public static final DefaultSchema DEFAULT_SCHEMA = new DefaultSchema();
 
     /**
+     * The table <code>audience_fit_checks</code>.
+     */
+    public final AudienceFitChecks AUDIENCE_FIT_CHECKS = AudienceFitChecks.AUDIENCE_FIT_CHECKS;
+
+    /**
      * The table <code>cfp_recommendation_tags</code>.
      */
     public final CfpRecommendationTags CFP_RECOMMENDATION_TAGS = CfpRecommendationTags.CFP_RECOMMENDATION_TAGS;
@@ -71,6 +78,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>event_applications</code>.
      */
     public final EventApplications EVENT_APPLICATIONS = EventApplications.EVENT_APPLICATIONS;
+
+    /**
+     * The table <code>event_audience_profiles</code>.
+     */
+    public final EventAudienceProfiles EVENT_AUDIENCE_PROFILES = EventAudienceProfiles.EVENT_AUDIENCE_PROFILES;
 
     /**
      * The table <code>event_invitations</code>.
@@ -223,9 +235,11 @@ public class DefaultSchema extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            AudienceFitChecks.AUDIENCE_FIT_CHECKS,
             CfpRecommendationTags.CFP_RECOMMENDATION_TAGS,
             CfpRecommendations.CFP_RECOMMENDATIONS,
             EventApplications.EVENT_APPLICATIONS,
+            EventAudienceProfiles.EVENT_AUDIENCE_PROFILES,
             EventInvitations.EVENT_INVITATIONS,
             EventRequests.EVENT_REQUESTS,
             Events.EVENTS,
