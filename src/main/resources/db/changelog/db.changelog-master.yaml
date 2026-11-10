@@ -51,3 +51,5 @@ databaseChangeLog:
       file: db/changelog/0024_demo_link_remaining_talks.yaml
   - include:
       file: db/changelog/0025_audience_fit.yaml
+  - include:
+      file: db/changelog/0026_speaker_reminders_demo_seed.yaml
