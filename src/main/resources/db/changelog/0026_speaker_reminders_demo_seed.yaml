@@ -1,0 +1,105 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0026-01
+      author: demo
+      context: demo
+      comment: >-
+        Демо-спикер reminder.speaker для проверки напоминаний о выступлениях: подтверждённые выступления
+        сегодня, завтра, через 3, 6 и 20 дней (принятые заявки и принятые приглашения на мероприятия demo.devrel)
+        и заявка на рассмотрении, которая в напоминания не попадает. Пароль — как у остальных демо-пользователей.
+        Люди и мероприятия вымышленные.
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO users (username, password, first_name, last_name, region, company, company_role, influence,
+                                 profile_completion, avatar_color)
+              VALUES ('reminder.speaker', '$2y$10$2hme6uJuen2/vTxlejXsI.OIuRnDy1FSUj05uEOWxnAw0Jn.6N5oC', 'Вера', 'Сроков',
+                      'Екатеринбург', 'StarLift Demo', 'Backend-разработчик', 'regional', 60, '#ef4444');
+
+              INSERT INTO user_roles (user_id, role)
+              SELECT id, role FROM users
+              CROSS JOIN (VALUES ('SPEAKER'), ('USER')) AS r(role)
+              WHERE username = 'reminder.speaker';
+
+              INSERT INTO speaker_talks (id, speaker_id, name, topic, description)
+              SELECT t.id::uuid, u.id, t.name, t.topic, t.description
+              FROM (VALUES
+                ('5a1c0000-0000-4000-8000-000000000701', 'Наблюдаемость без боли', 'Observability',
+                 'Метрики, трейсы и логи в одном контуре: что внедрять в первую очередь.'),
+                ('5a1c0000-0000-4000-8000-000000000702', 'Kafka в продакшене', 'Backend',
+                 'Ребалансировки, ретраи и exactly-once на практике.'),
+                ('5a1c0000-0000-4000-8000-000000000703', 'Postgres под нагрузкой', 'Базы данных',
+                 'Индексы, блокировки и пулы соединений в высоконагруженном сервисе.'),
+                ('5a1c0000-0000-4000-8000-000000000704', 'Feature flags для бэкенда', 'Backend',
+                 'Как выкатывать изменения без релизов и не утонуть в флагах.')
+              ) AS t(id, name, topic, description)
+              JOIN users u ON u.username = 'reminder.speaker';
+
+              INSERT INTO events (id, owner_id, name, event_date, cfp_deadline, city, format, topic, audience, description, state)
+              SELECT e.id::uuid, u.id, e.name, CURRENT_DATE + e.event_in, NULL, e.city, e.format, e.topic,
+                     e.audience, e.description, 'published'
+              FROM (VALUES
+                ('e7e00000-0000-4000-8000-000000000701', 'Reminder Demo: сегодня', 0, 'Екатеринбург', 'OFFLINE',
+                 'Observability', 'Бэкенд-разработчики и SRE', 'Демо: выступление в день X.'),
+                ('e7e00000-0000-4000-8000-000000000702', 'Reminder Demo: завтра', 1, 'Москва', 'HYBRID',
+                 'Backend', 'Бэкенд-разработчики', 'Демо: выступление завтра.'),
+                ('e7e00000-0000-4000-8000-000000000703', 'Reminder Demo: через 3 дня', 3, NULL, 'ONLINE',
+                 'Базы данных', 'Разработчики и DBA', 'Демо: выступление через 3 дня.'),
+                ('e7e00000-0000-4000-8000-000000000704', 'Reminder Demo: через неделю', 6, 'Казань', 'OFFLINE',
+                 'Backend', 'Бэкенд-разработчики', 'Демо: выступление на этой неделе.'),
+                ('e7e00000-0000-4000-8000-000000000705', 'Reminder Demo: через 20 дней', 20, 'Санкт-Петербург', 'OFFLINE',
+                 'Backend', 'Бэкенд-разработчики', 'Демо: выступление дальше недели — без баннера.'),
+                ('e7e00000-0000-4000-8000-000000000706', 'Reminder Demo: заявка на рассмотрении', 2, 'Москва', 'OFFLINE',
+                 'Backend', 'Бэкенд-разработчики', 'Демо: заявка не принята — напоминания нет.')
+              ) AS e(id, name, event_in, city, format, topic, audience, description)
+              JOIN users u ON u.username = 'demo.devrel';
+
+              INSERT INTO event_applications (id, event_id, speaker_id, speaker_talk_id, topic, status)
+              SELECT a.id::uuid, a.event_id::uuid, u.id, a.talk_id::uuid, a.topic, a.status
+              FROM (VALUES
+                ('a9900000-0000-4000-8000-000000000701', 'e7e00000-0000-4000-8000-000000000701',
+                 '5a1c0000-0000-4000-8000-000000000701', 'Наблюдаемость без боли', 'accepted'),
+                ('a9900000-0000-4000-8000-000000000703', 'e7e00000-0000-4000-8000-000000000703',
+                 '5a1c0000-0000-4000-8000-000000000703', 'Postgres под нагрузкой', 'accepted'),
+                ('a9900000-0000-4000-8000-000000000705', 'e7e00000-0000-4000-8000-000000000705',
+                 '5a1c0000-0000-4000-8000-000000000704', 'Feature flags для бэкенда', 'accepted'),
+                ('a9900000-0000-4000-8000-000000000706', 'e7e00000-0000-4000-8000-000000000706',
+                 '5a1c0000-0000-4000-8000-000000000702', 'Kafka в продакшене', 'sent')
+              ) AS a(id, event_id, talk_id, topic, status)
+              JOIN users u ON u.username = 'reminder.speaker';
+
+              INSERT INTO event_invitations (id, event_id, speaker_id, topic, status)
+              SELECT i.id::uuid, i.event_id::uuid, u.id, i.topic, 'accepted'
+              FROM (VALUES
+                ('b1100000-0000-4000-8000-000000000702', 'e7e00000-0000-4000-8000-000000000702', 'Kafka в продакшене'),
+                ('b1100000-0000-4000-8000-000000000704', 'e7e00000-0000-4000-8000-000000000704', 'Наблюдаемость без боли')
+              ) AS i(id, event_id, topic)
+              JOIN users u ON u.username = 'reminder.speaker';
+
+              INSERT INTO notifications (id, user_id, text, is_read, created_date)
+              SELECT 'c3300000-0000-4000-8000-000000000701'::uuid, id,
+                     'Заявка на «Reminder Demo: сегодня»: принята', FALSE, CURRENT_TIMESTAMP - INTERVAL '2 days'
+              FROM users WHERE username = 'reminder.speaker';
+
+  - changeSet:
+      id: 0026-02
+      author: demo
+      context: demo
+      runAlways: true
+      comment: >-
+        Даты демо-выступлений reminder.speaker отсчитываются от дня запуска, чтобы на стенде всегда были
+        напоминания всех этапов. Скрытые в браузере баннеры возвращаются на следующем этапе.
+      changes:
+        - sql:
+            sql: |
+              UPDATE events e
+              SET event_date = CURRENT_DATE + d.event_in
+              FROM (VALUES
+                ('e7e00000-0000-4000-8000-000000000701', 0),
+                ('e7e00000-0000-4000-8000-000000000702', 1),
+                ('e7e00000-0000-4000-8000-000000000703', 3),
+                ('e7e00000-0000-4000-8000-000000000704', 6),
+                ('e7e00000-0000-4000-8000-000000000705', 20),
+                ('e7e00000-0000-4000-8000-000000000706', 2)
+              ) AS d(id, event_in)
+              WHERE e.id = d.id::uuid;
