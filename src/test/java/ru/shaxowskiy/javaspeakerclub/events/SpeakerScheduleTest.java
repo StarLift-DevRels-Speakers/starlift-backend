@@ -94,8 +94,22 @@ class SpeakerScheduleTest {
         assertThat(schedule.get(1).get("topic").asText()).isEqualTo("Kafka в проде");
         assertThat(schedule.get(1).get("reminder").isNull()).isTrue();
 
-        // Чужое выступление не выгружается; у DevRel своих выступлений нет.
-        assertThat(read(as(get("/api/me/schedule"), "dina", "DEVREL"))).isEmpty();
+        assertThat(schedule.get(0).get("kind").asText()).isEqualTo("SPEECH");
+
+        // DevRel видит свои опубликованные мероприятия, черновик — нет.
+        mockMvc.perform(as(post("/api/events"), "dina", "DEVREL")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Черновик\",\"date\":\"" + LocalDate.now().plusDays(2)
+                                + "\",\"cfp\":null,\"city\":\"Москва\",\"format\":\"OFFLINE\",\"topic\":\"Backend\"}"))
+                .andExpect(status().isCreated());
+        JsonNode hosting = read(as(get("/api/me/schedule"), "dina", "DEVREL"));
+        assertThat(hosting).hasSize(3);
+        assertThat(hosting.get(0).get("eventId").asText()).isEqualTo(pending);
+        assertThat(hosting.get(0).get("kind").asText()).isEqualTo("HOSTING");
+        assertThat(hosting.get(0).get("reminder").asText()).isEqualTo("ONE_DAY");
+        assertThat(hosting.get(0).get("topic").asText()).isEqualTo("Backend");
+
+        // Мероприятие, где спикер не выступает, ему не выгружается.
         mockMvc.perform(as(get("/api/me/schedule/" + pending + "/calendar.ics"), "anna", "SPEAKER"))
                 .andExpect(status().isNotFound());
 

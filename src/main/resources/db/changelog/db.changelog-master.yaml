@@ -53,3 +53,5 @@ databaseChangeLog:
       file: db/changelog/0025_audience_fit.yaml
   - include:
       file: db/changelog/0026_speaker_reminders_demo_seed.yaml
+  - include:
+      file: db/changelog/0027_reminders_demo_without_context.yaml
