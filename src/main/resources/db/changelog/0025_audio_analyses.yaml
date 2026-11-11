@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0025-audio-analyses
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE audio_analyses (
+                  id UUID PRIMARY KEY,
+                  media_id UUID NOT NULL REFERENCES user_media(id) ON DELETE CASCADE,
+                  status VARCHAR(16) NOT NULL CHECK (status IN ('QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED')),
+                  attempts INTEGER NOT NULL DEFAULT 0,
+                  lease_id UUID,
+                  lease_until TIMESTAMPTZ,
+                  report JSONB,
+                  error_code VARCHAR(32),
+                  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                  updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+              );
+              CREATE INDEX audio_analyses_media_idx ON audio_analyses (media_id);
+              CREATE INDEX audio_analyses_claim_idx ON audio_analyses (created_at, id)
+                  WHERE status IN ('QUEUED', 'RUNNING');
+      rollback:
+        - dropTable:
+            tableName: audio_analyses
