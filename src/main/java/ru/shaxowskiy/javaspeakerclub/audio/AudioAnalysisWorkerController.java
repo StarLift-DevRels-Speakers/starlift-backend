@@ -1,6 +1,6 @@
 package ru.shaxowskiy.javaspeakerclub.audio;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +13,18 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/internal/audio-analyses")
-@RequiredArgsConstructor
 public class AudioAnalysisWorkerController {
 
     private final AudioAnalysisRepository jobs;
     private final MinioService minio;
+    private final boolean internalDownload;
+
+    public AudioAnalysisWorkerController(AudioAnalysisRepository jobs, MinioService minio,
+                                         @Value("${app.audio.internal-download:false}") boolean internalDownload) {
+        this.jobs = jobs;
+        this.minio = minio;
+        this.internalDownload = internalDownload;
+    }
 
     @PostMapping("/claim")
     @Transactional
@@ -26,7 +33,9 @@ public class AudioAnalysisWorkerController {
         UUID leaseId = UUID.randomUUID();
         return jobs.claim(leaseId)
                 .map(job -> ResponseEntity.ok(new Assignment(
-                        job.id(), leaseId, minio.getPresignedUrl(job.objectKey()))))
+                        job.id(), leaseId, internalDownload
+                                ? minio.getInternalPresignedUrl(job.objectKey())
+                                : minio.getPresignedUrl(job.objectKey()))))
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
 

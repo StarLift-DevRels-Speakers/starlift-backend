@@ -19,6 +19,7 @@ public class MinioConfig {
     public MinioClient minioClient() {
         return MinioClient.builder()
                 .endpoint(s3Properties.getEndpoint())
+                .region(s3Properties.getRegion())
                 .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
                 .build();
     }

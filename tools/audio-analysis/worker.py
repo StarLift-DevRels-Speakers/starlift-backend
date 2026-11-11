@@ -35,13 +35,13 @@ class NoRedirect(HTTPRedirectHandler):
 WORKER_API = build_opener(ProxyHandler({}), NoRedirect())
 
 
-def valid_base_url(url):
+def valid_base_url(url, allow_insecure_http=False):
     try:
         parsed = urlsplit(url)
         return (parsed.hostname and not parsed.username and not parsed.password
                 and not parsed.query and not parsed.fragment
                 and (parsed.scheme == "https" or (
-                    parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+                    parsed.scheme == "http" and (allow_insecure_http or parsed.hostname in {"localhost", "127.0.0.1", "::1"})
                 )))
     except ValueError:
         return False
@@ -167,6 +167,9 @@ def main():
     parser.add_argument("--vad-model", type=Path, required=True)
     parser.add_argument("--token-file", type=Path, help="Read the worker token from a private file")
     parser.add_argument("--once", action="store_true", help="Claim and process at most one job")
+    parser.add_argument("--allow-insecure-http", action="store_true",
+                        help="Allow HTTP to the backend on a trusted private Docker network")
+    parser.add_argument("--health-file", type=Path, help="Update a readiness file after authenticated API requests")
     args = parser.parse_args()
     if args.token_file:
         try:
@@ -187,12 +190,16 @@ def main():
             parser.error(f"Tool not found on PATH: {tool}")
 
     base = args.base_url.rstrip("/")
-    if not valid_base_url(base):
-        parser.error("--base-url requires HTTPS or loopback HTTP")
+    if not valid_base_url(base, args.allow_insecure_http):
+        parser.error("--base-url requires HTTPS or loopback HTTP; private Docker networks may use --allow-insecure-http")
     logging.basicConfig(level=logging.INFO)
+    if args.health_file:
+        args.health_file.unlink(missing_ok=True)
     while True:
         try:
             job = request(base, token, "/claim", "POST")
+            if args.health_file:
+                args.health_file.touch()
         except HTTPError as error:
             if error.code < 500 or args.once:
                 sys.exit(f"Spring отклонил запрос воркера: HTTP {error.code}")
