@@ -1,9 +1,62 @@
 # Локальный разбор русской речи
 
-Прототип обрабатывает аудио одного основного спикера и выдаёт JSON-отчёт.
-Распознавание выполняется на Mac через whisper.cpp, а паузы измеряются
+Анализатор обрабатывает аудио одного основного спикера и выдаёт JSON-отчёт.
+Распознавание выполняется через whisper.cpp на Linux CPU или на Mac с Metal, а паузы измеряются
 отдельным проходом Silero VAD по исходному звуку. Для структуры речи и
 контекстных примеров можно подключить Qwen3 через локальный llama-server.
+
+## Сервер Linux: production Compose
+
+`docker-compose.yml` включает `audio-worker`: Python, FFmpeg, whisper.cpp
+v1.9.1 и Silero VAD. GPU и macOS не нужны. На x86 образ собирает варианты
+CPU-бэкенда с выбором подходящего при запуске, без `-march=native`.
+
+При деплое из `develop` workflow сохраняет общий случайный
+`AUDIO_ANALYSIS_WORKER_TOKEN` в `~/starlift/env/backend.env` и передаёт его
+обоим сервисам. Непустой существующий ключ не меняется. Ручной запуск после
+настройки `.env`:
+
+```sh
+python3 tools/audio-analysis/ensure_worker_token.py .env
+docker compose up -d --build --wait --wait-timeout 1800
+```
+
+Первый запуск скачивает модели в том `audio_models`; последующие используют
+кэш. SHA-256 проверяется перед запуском. По умолчанию используется `turbo`
+(large-v3-turbo Q5). Для менее мощного CPU в `.env` можно выбрать
+`AUDIO_ANALYSIS_MODEL=small`; качество распознавания будет отличаться.
+Лимиты контейнера по умолчанию: 2 CPU и 2 ГиБ. Они задаются через
+`AUDIO_ANALYSIS_CPUS` и `AUDIO_ANALYSIS_MEMORY`. Существующий таймаут анализа
+12 минут остаётся в силе: скорость длинных записей нужно измерить на сервере.
+
+Воркер обращается к `http://app:8080` с явным `--allow-insecure-http` только
+внутри Docker-сети. По умолчанию CLI по-прежнему принимает HTTP только на
+loopback. Публиковать `/internal/audio-analyses` в nginx не требуется.
+`APP_AUDIO_INTERNAL_DOWNLOAD=true` у app включает подписанные ссылки на
+внутренний адрес MinIO (`S3_ENDPOINT=http://minio:9000`). Нативный запуск
+на Mac сохраняет прежнее поведение, значение по умолчанию — `false`.
+
+Ссылки для браузера используют `S3_PUBLIC_ENDPOINT`, по умолчанию
+`https://startlift.duckdns.org`. Nginx проксирует GET/HEAD `/lectures-media/`
+в MinIO с исходным Host для проверки SigV4. URL нельзя переписывать после
+подписания. Если в серверном `.env` остался `S3_PUBLIC_ENDPOINT=http://localhost:9000`,
+замените его внешним HTTPS-адресом. MinIO отклоняет запросы без корректной подписи.
+
+Healthcheck воркера становится успешным после загрузки моделей и первого
+успешного авторизованного запроса к API. Он допускает обработку одной записи
+до 12 минут и становится неуспешным после 14 минут без подтверждённой связи.
+Workflow ждёт готовности сервисов до 30 минут, включая первую загрузку моделей.
+
+```sh
+docker compose ps
+docker compose logs --tail=100 audio-worker app
+docker stats --no-stream
+```
+
+После развёртывания загрузите короткую русскую запись через «Медиа» и
+проверьте `QUEUED → RUNNING → SUCCEEDED`, открытие отчёта и воспроизведение.
+Уже созданные задачи в очереди будут подобраны автоматически. Код и локальные
+контейнерные проверки не заменяют этот прогон на фактическом сервере.
 
 ## Подготовка
 
@@ -162,8 +215,8 @@ token_file="$audio_work/worker.token"
 (umask 077; test -e "$token_file" || openssl rand -hex 32 > "$token_file")
 export AUDIO_ANALYSIS_WORKER_TOKEN="$(cat "$token_file")"
 
-# Запустите Spring с тем же токеном. Для локального Compose:
-docker compose up -d --build app
+# Запустите Spring в IDE с тем же токеном и APP_AUDIO_INTERNAL_DOWNLOAD=false.
+# Для готового локального стенда вместо ручной настройки используйте local.sh up.
 
 label=club.speakers.audio-analysis
 plist="$HOME/Library/LaunchAgents/$label.plist"
@@ -182,8 +235,10 @@ LaunchAgent запускается после входа пользовател�
 Журнал лежит в `logs/audio-worker.log`. Для остановки используйте
 `launchctl bootout "gui/$(id -u)/$label"`. При замене plist сначала
 выгрузите старый агент, затем загрузите новый. Для удалённого Spring
-нужны доступные с Mac HTTPS-адрес внутреннего API и адрес подписанных
-ссылок MinIO. На локальном стенде оба адреса указывают на localhost.
+нужны отдельно настроенные защищённый HTTPS-адрес API воркера и адрес
+подписанных ссылок MinIO. Основной production Compose использует внутреннюю
+Docker-сеть, и внешний Mac-воркер к нему по умолчанию не подключается.
+На локальном Mac-стенде оба адреса указывают на localhost.
 
 ## Дополнительные эксперименты
 

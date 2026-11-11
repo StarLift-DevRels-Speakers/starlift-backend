@@ -96,8 +96,17 @@ public class MinioService {
      * The signature covers the host, so the URL must be used as is.
      */
     public String getPresignedUrl(String objectKey) {
+        return presign(presignMinioClient, objectKey);
+    }
+
+    /** Worker containers access MinIO directly, without using the browser's public URL. */
+    public String getInternalPresignedUrl(String objectKey) {
+        return presign(minioClient, objectKey);
+    }
+
+    private String presign(MinioClient client, String objectKey) {
         try {
-            return presignMinioClient.getPresignedObjectUrl(
+            return client.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(Method.GET)
                             .bucket(s3Properties.getBucket())

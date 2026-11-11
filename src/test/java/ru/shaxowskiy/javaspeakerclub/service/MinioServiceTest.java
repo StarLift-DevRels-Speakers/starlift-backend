@@ -79,6 +79,20 @@ class MinioServiceTest {
         assertThat(internalS3.getRequestCount()).isZero();
     }
 
+    @Test
+    void workerUrlUsesInternalHostWithoutRewritingPublicSignature() {
+        String internalEndpoint = internalS3.url("/").toString();
+        contextRunner
+                .withPropertyValues("s3.endpoint=" + internalEndpoint, "s3.public-endpoint=" + publicS3.url("/"))
+                .run(context -> {
+                    String url = context.getBean(MinioService.class).getInternalPresignedUrl(OBJECT_KEY);
+                    assertThat(url).startsWith(internalEndpoint + BUCKET + "/" + OBJECT_KEY + "?");
+                    assertSignedForOwnHost(URI.create(url));
+                });
+        assertThat(internalS3.getRequestCount()).isZero();
+        assertThat(publicS3.getRequestCount()).isZero();
+    }
+
     /**
      * Presigning is local, so any request here is a bug: answer it with 404 at once instead of
      * blocking until the MinIO client times out.

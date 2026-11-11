@@ -17,10 +17,17 @@ jobs:
         run: |
           ENV_FILE="$HOME/starlift/env/backend.env"
           if [ -f "$ENV_FILE" ]; then
-            cp "$ENV_FILE" .env
+            echo "Using the persisted backend environment"
           else
             echo "::warning::$ENV_FILE not found, starting with defaults from docker-compose.yml"
           fi
+          python3 tools/audio-analysis/ensure_worker_token.py "$ENV_FILE"
+          cp "$ENV_FILE" .env
+
+      - name: Check audio worker configuration
+        run: |
+          python3 -B -m unittest discover -s tools/audio-analysis -p 'test_*.py'
+          docker compose config --quiet
 
       - name: Build and Restart Docker Containers
         run: |
@@ -32,3 +39,13 @@ jobs:
         run: |
           docker exec java-speaker-club-nginx nginx -t
           docker exec java-speaker-club-nginx nginx -s reload
+
+      # Keep the public API available while a fresh worker downloads its models.
+      - name: Wait for services and audio worker readiness
+        run: docker compose up -d --wait --wait-timeout 1800
+
+      - name: Audio worker diagnostics on failure
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --tail=120 audio-worker

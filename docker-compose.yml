@@ -34,6 +34,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     ports:
@@ -44,7 +46,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       S3_ENDPOINT: http://minio:9000
-      S3_PUBLIC_ENDPOINT: http://localhost:9000
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-https://startlift.duckdns.org}
       S3_ACCESS_KEY: minioadmin
       S3_SECRET_KEY: minioadmin
       S3_BUCKET: lectures-media
@@ -58,7 +60,30 @@ services:
       PARSING_SEARCH_API_KEY: ${PARSING_SEARCH_API_KEY:-not-set}
       APP_LIQUIBASE_CONTEXTS: ${APP_LIQUIBASE_CONTEXTS:-}
       WEAK_SIGNALS_BASE_URL: ${WEAK_SIGNALS_BASE_URL:-http://signals:8000}
-      AUDIO_ANALYSIS_WORKER_TOKEN: ${AUDIO_ANALYSIS_WORKER_TOKEN:-}
+      AUDIO_ANALYSIS_WORKER_TOKEN: ${AUDIO_ANALYSIS_WORKER_TOKEN:?Run python3 tools/audio-analysis/ensure_worker_token.py .env}
+      APP_AUDIO_INTERNAL_DOWNLOAD: "true"
+
+  audio-worker:
+    build:
+      context: .
+      dockerfile: tools/audio-analysis/Dockerfile
+    networks:
+      - app-net
+    depends_on:
+      app:
+        condition: service_started
+    environment:
+      AUDIO_ANALYSIS_WORKER_TOKEN: ${AUDIO_ANALYSIS_WORKER_TOKEN:?Run python3 tools/audio-analysis/ensure_worker_token.py .env}
+      AUDIO_ANALYSIS_MODEL: ${AUDIO_ANALYSIS_MODEL:-turbo}
+    volumes:
+      - audio_models:/models
+    cpus: ${AUDIO_ANALYSIS_CPUS:-2.0}
+    mem_limit: ${AUDIO_ANALYSIS_MEMORY:-2g}
+    init: true
+    tmpfs:
+      - /tmp:size=256m
+    stop_grace_period: 20s
+    restart: unless-stopped
 
   postgres:
     image: postgres:15
@@ -113,10 +138,9 @@ services:
       minio:
         condition: service_healthy
     entrypoint: >
-      /bin/sh -c "
+      /bin/sh -ec "
       mc alias set local http://minio:9000 minioadmin minioadmin;
       mc mb --ignore-existing local/lectures-media;
-      exit 0;
       "
 
   redis:
@@ -154,6 +178,7 @@ services:
 
 
 volumes:
+  audio_models:
   postgres_data:
   minio_data:
   redis_data:
