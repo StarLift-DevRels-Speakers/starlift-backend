@@ -1631,10 +1631,40 @@ paths:
                 type: string
 
   /api/audio-analyses:
+    get:
+      tags: [AudioAnalysis]
+      operationId: listLatestAudioAnalyses
+      summary: Последний анализ каждого файла текущего пользователя
+      description: Краткие статусы без транскриптов. Полный отчёт возвращает GET /api/audio-analyses/{id}.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: mediaId
+          in: query
+          required: false
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Последние анализы собственных файлов; для чужого файла возвращается пустой список.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [analysisId, mediaId, status, createdAt, updatedAt]
+                  properties:
+                    analysisId: {type: string, format: uuid}
+                    mediaId: {type: string, format: uuid}
+                    status: {type: string, enum: [QUEUED, RUNNING, SUCCEEDED, FAILED]}
+                    errorCode: {type: [string, 'null']}
+                    createdAt: {type: string, format: date-time}
+                    updatedAt: {type: string, format: date-time}
     post:
       tags: [AudioAnalysis]
       operationId: startAudioAnalysis
       summary: Поставить загруженную запись в очередь
+      description: Пока для файла есть активная задача, повторный запрос возвращает её ID и текущий статус. После завершения можно запустить новый анализ.
       security:
         - bearerAuth: []
       requestBody:
@@ -1662,7 +1692,8 @@ paths:
                     type: string
                     format: uuid
                   status:
-                    const: QUEUED
+                    type: string
+                    enum: [QUEUED, RUNNING]
         '400':
           description: Некорректный mediaId
         '404':

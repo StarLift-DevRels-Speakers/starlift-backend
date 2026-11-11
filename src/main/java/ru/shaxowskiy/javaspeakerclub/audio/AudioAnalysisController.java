@@ -10,6 +10,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.security.Principal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/audio-analyses")
@@ -25,11 +26,16 @@ public class AudioAnalysisController {
         if (request.mediaId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Требуется mediaId");
         }
-        UUID id = UUID.randomUUID();
-        if (!jobs.create(id, request.mediaId(), principal.getName())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Файл не найден");
-        }
-        return new Accepted(id, "QUEUED");
+        var job = jobs.createOrFindActive(request.mediaId(), principal.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Файл не найден"));
+        return new Accepted(job.id(), job.status());
+    }
+
+    @GetMapping
+    public List<Summary> latest(@RequestParam(required = false) UUID mediaId, Principal principal) {
+        return jobs.latest(principal.getName(), mediaId).stream()
+                .map(job -> new Summary(job.id(), job.mediaId(), job.status(), job.errorCode(),
+                        job.createdAt(), job.updatedAt())).toList();
     }
 
     @GetMapping("/{id}")
@@ -45,6 +51,10 @@ public class AudioAnalysisController {
     }
 
     public record Accepted(UUID analysisId, String status) {
+    }
+
+    public record Summary(UUID analysisId, UUID mediaId, String status, String errorCode,
+                          OffsetDateTime createdAt, OffsetDateTime updatedAt) {
     }
 
     public record Status(UUID analysisId, UUID mediaId, String status, JsonNode report, String errorCode,
