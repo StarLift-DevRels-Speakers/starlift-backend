@@ -43,3 +43,9 @@ jobs:
       # Keep the public API available while a fresh worker downloads its models.
       - name: Wait for services and audio worker readiness
         run: docker compose up -d --wait --wait-timeout 1800
+
+      - name: Audio worker diagnostics on failure
+        if: failure()
+        run: |
+          docker compose ps
+          docker compose logs --no-color --tail=120 audio-worker
