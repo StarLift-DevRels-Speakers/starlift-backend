@@ -1,9 +1,8 @@
-.git
-.gitignore
-target
-.idea
-*.iml
+# Only Maven metadata and application sources are needed for the image build.
+*
+!pom.xml
+!src/
+!src/**
 **/.DS_Store
-**/node_modules
-**/logs
-**/tmp
+**/.env
+**/.env.*
